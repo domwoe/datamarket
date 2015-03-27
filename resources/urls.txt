@@ -1,0 +1,21 @@
+https://en.bitcoin.it/wiki/Transaction
+https://en.bitcoin.it/wiki/Script
+https://en.bitcoin.it/wiki/User:Aakselrod/Draft
+https://en.bitcoin.it/wiki/Contracts#Example_7:_Rapidly-adjusted_.28micro.29payments_to_a_pre-determined_party
+https://bitcoinj.github.io/working-with-micropayments
+Alex Akselrod. Draft. https://en.bitcoin.it/wiki/User:Aakselrod/Draft
+Satoshi Nakamoto. Bitcoin: A Peer-to-peer Electronic Cash System. https://bitcoin.org/bitcoin.pdf Oct 2008.
+Alex Akselrod. ESCHATON. https://gist.github.com/aakselrod/9964667 April 2014.
+Peter Todd. Near-zero fee transactions with hub-and-spoke micropayments. http://sourceforge.net/p/bitcoin/mailman/message/33144746/
+http://www.coindesk.com/could-the-bitcoin-lightning-network-solve-blockchain-scalability/
+Peter Wuille. BIP 0032: Hierarchical Deterministic Wallet. https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki Feb 2012.
+Ilja Gerhardt and Timo Hanke. Homomorphic Payment Addresses and the Pay-to-Contract Protocol. http://arxiv.org/abs/1212.3257 Dec 2012.
+http://www.instructables.com/id/SensoDuino-Turn-Your-Android-Phone-into-a-Wireless/
+http://developer.android.com/guide/topics/sensors/sensors_overview.html
+
+Apps that read sensor data: 
+https://play.google.com/store/apps/details?id=com.fivasim.androsensor&hl=en
+https://play.google.com/store/apps/details?id=imoblife.androidsensorbox&hl=en
+https://play.google.com/store/apps/details?id=com.calintat.sensors&hl=en
+https://play.google.com/store/apps/details?id=com.mtorres.phonetester&hl=en
+https://play.google.com/store/apps/details?id=com.innoventions.sensorkinetics&hl=en

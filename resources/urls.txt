@@ -19,3 +19,9 @@ https://play.google.com/store/apps/details?id=imoblife.androidsensorbox&hl=en
 https://play.google.com/store/apps/details?id=com.calintat.sensors&hl=en
 https://play.google.com/store/apps/details?id=com.mtorres.phonetester&hl=en
 https://play.google.com/store/apps/details?id=com.innoventions.sensorkinetics&hl=en
+
+Sensor Ex (https://play.google.com/store/apps/details?id=com.tarco.tarsensorics&hl=en)
+	Logs data directly to your PC via WiFi for real-time remote data acquisition 
+	or plots phone sensors and saves them for extended analyses later on 
+
+Collecting Sensor Data from Smart Devices: http://web.engr.illinois.edu/~das17/smartphone-data-collection.html

@@ -25,3 +25,4 @@ Sensor Ex (https://play.google.com/store/apps/details?id=com.tarco.tarsensorics&
 	or plots phone sensors and saves them for extended analyses later on 
 
 Collecting Sensor Data from Smart Devices: http://web.engr.illinois.edu/~das17/smartphone-data-collection.html
+	Collects sensor data through an app and periodically uploads it to a remote server when WIFI is available

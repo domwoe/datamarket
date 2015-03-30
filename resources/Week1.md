@@ -12,6 +12,14 @@
 9. **The Architecture of Coupon-Based, Semi-off-Line Anonymous Micropayment System for Internet of Things** - describes an anonymous micropayment system for transactions in IoT. Uses the idea of hash chains to produce divisible coins.
 10. **The Bitcoin Lightning Network** - describes a solution to Bitcoin's scalability problem by using timelocks on a network of micropayment channels. *Hashed Timelock Contract (HTLC) * - recipient generates random data R, hashes it to produce H and sends H to the sender of funds, together with its bitcoin address. Sender routes their payment to the receiver and when an updated transaction is received, the recipient may elect to redeem the transaction by disclosing the random data R (which pulls the funds from the sender).
 	http://www.coindesk.com/could-the-bitcoin-lightning-network-solve-blockchain-scalability/
+11. **When Money Learns to Fly: Towards Sensing as a Service Applications Using Bitcoin** - describes how IoT apps could benefit from Bitcoin technology
+12. **Mobile Phone Sensing as a Service: Business Model and Use Cases** - introduces the idea of mobile sensing as a service. Sensed data is offered as a service to
+the network operator. 
+13. **Sensing as a Service: Challenges, Solutions and Future Directions** - describes challenges of developing a SaaS cloud.
+14. **PEIR, the Personal Environmental Impact Report, as a Platform for Participatory Sensing Systems Research** - describes a sensing application that uses location data sampled from everyday mobile phones to calculate personalized estimates of environmental impact and exposure.
+15. **Ear-Phone: An End-to-End Participatory Urban NoiseMapping System** - design, implementation and performance of an end-to-end urban noise mapping system (collects accurate noise pollution readings at a mobile device).
+16. **Sensing Meets Mobile Social Networks: The Design, Implementation and Evaluation of the CenceMe Application** - automatically retrieve and publish sensing presence to social networks.
+17. **Other similar applications: UbiFit Garden, Micro-blogs, Blood glucometer connected to mobile devices, heart-attack self-test systems, etc.**
 
 ## URLS
 1. **https://en.bitcoin.it/wiki/Transaction** - transactions in Bitcoin are transfers of Bitcoin values that are broadcast to the network and collected into blocks (in the blockchain); a transaction references the previous transaction's outputs and dedicates all input Bitcoin value to new outputs; not encrypted -> possible to browse and view every transaction ever collected into a block. General format:
@@ -25,7 +33,7 @@
 	* a pubk that, when hashed, yields the destination address D embedded into the script
 	* a signature to show evidence of the private key corresponding to the pubkey just provided
 The party who originally sent the Bitcoins now being spent, dictates script operations that will occur last in order to release them for use in another transaction. The party wanting to spend them must provide inputs to the previously recorded script that results in those ops occuring last, leaving behind true.
-3. **https://en.bitcoin.it/wiki/Contracts#Example_7:_Rapidly-adjusted_.28micro.29payments_to_a_pre-determined_party**
+3. **https://en.bitcoin.it/wiki/Contracts**
 4. **https://bitcoinj.github.io/working-with-micropayments**
 5. **Alex Akselrod. Extensible Scalable Coopetitive High Availability Trade Optimization Network (ESCHATON)** 
 	* Friend-to-friend, instant, off-blockchain, trustless payments of arbitrary size with optional escrow, composable into distributed inter-blockchain instant payments and exchanges between arbitrary parties
@@ -54,3 +62,6 @@ or plots phone sensors and saves them for extended analyses later on
 3. **Funf** (http://www.funf.org/about.html) The Funf Open Sensing Framework is an extensible sensing and data processing framework for mobile devices, supported and maintained by Behavio. The core concept is to provide an open source, reusable set of functionalities, enabling the collection, uploading, and configuration of a wide range of data signals accessible via mobile phones.
 
 4. **sensor-data-collection-library** A simple library for logging sensor data to a file. (https://code.google.com/p/sensor-data-collection-library/)
+
+5. **TilePay** (https://www.tilepay.org/). Manages the payment addresses that can be assigned to each device for data that you might want to sell to the manufacturers. 
+Cryptotronix announced a partnership with TilePay to help enable cryptocurrency payments to IoT devices (http://cryptotronix.com/2014/12/10/tilepay/). TilePay is a decentralized payment system based on the Bitcoin blockchain. With TilePay, it is possible to pay for real-time access to IoT sensors using micropayments. 

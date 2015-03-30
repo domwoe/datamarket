@@ -1,17 +1,17 @@
 # Week 1 Progress
 
 ## Papers
-	1. ** Bitcoin: A Peer-to-Peer Electronic Cash System ** - describes the solution to double-spending in a peer-to-peer network protocol using proof of work.
-	2. ** Homomorphic Payment Addresses and the Pay-to-Contract Protocol ** - describes an e-payment protocol for customer-merchant relations w/o requireing a trusted payment descriptor (created destination account number on client side -> no need for encrypted/authenticated communication; secure even with merchant compromise).
-	3. ** Inter-channel payments (Impulse) ** - models a wallet as a set of N always-open payment channels. Payment is made through N payment channels and are closed immediately. Individual payment channels are thought of as unspent outputs.
-	4. ** Micropaymants Revisited ** - describes 3 new probabilistic micropayment schemes that are more efficient, user-friendly, and reduce processing costs.
-	5. ** Mobile Sensor Data Collector using Android Smartphone ** - describes a system
-	that using an Android app, collects, displays and streams sensor data (for BSN - Body Sensor Networks developed for medical healthcare apps) to a central server.
-	6. ** Paying your Internet, One Byte at a Time ** - proof-of-concept allowing an access point to provide Internet access to untrusted users in exchange for bitcoins through a micropayment channel.
-	7. ** PayWord and MicroMint - Two simple micropayment schemes ** - describes two lightweight micropayments schemes: PayWord is designed to authenticate a complete chain to the vendor, then uses each payword to make micropayments; MicroMint is designed for increased speed (eliminates pubkey ops, replaces them with hash fcts).
-	8. ** RNAP: A Resource Negotiation and Pricing Protocol ** - describes a protocol through which a user and a network can negotiate network services. The service provider can communicate availability of services and delivers charging info to the user.
-	9. ** The Architecture of Coupon-Based, Semi-off-Line Anonymous Micropayment System for Internet of Things ** - describes an anonymous micropayment system for transactions in IoT. Uses the idea of hash chains to produce divisible coins.
-	10. ** The Bitcoin Lightning Network ** - describes a solution to Bitcoin's scalability problem by using timelocks on a network of micropayment channels. *Hashed Timelock Contract (HTLC) * - recipient generates random data R, hashes it to produce H and sends H to the sender of funds, together with its bitcoin address. Sender routes their payment to the receiver and when an updated transaction is received, the recipient may elect to redeem the transaction by disclosing the random data R (which pulls the funds from the sender).
+1. ** Bitcoin: A Peer-to-Peer Electronic Cash System ** - describes the solution to double-spending in a peer-to-peer network protocol using proof of work.
+2. ** Homomorphic Payment Addresses and the Pay-to-Contract Protocol ** - describes an e-payment protocol for customer-merchant relations w/o requireing a trusted payment descriptor (created destination account number on client side -> no need for encrypted/authenticated communication; secure even with merchant compromise).
+3. ** Inter-channel payments (Impulse) ** - models a wallet as a set of N always-open payment channels. Payment is made through N payment channels and are closed immediately. Individual payment channels are thought of as unspent outputs.
+4. ** Micropaymants Revisited ** - describes 3 new probabilistic micropayment schemes that are more efficient, user-friendly, and reduce processing costs.
+5. ** Mobile Sensor Data Collector using Android Smartphone ** - describes a system
+that using an Android app, collects, displays and streams sensor data (for BSN - Body Sensor Networks developed for medical healthcare apps) to a central server.
+6. ** Paying your Internet, One Byte at a Time ** - proof-of-concept allowing an access point to provide Internet access to untrusted users in exchange for bitcoins through a micropayment channel.
+7. ** PayWord and MicroMint - Two simple micropayment schemes ** - describes two lightweight micropayments schemes: PayWord is designed to authenticate a complete chain to the vendor, then uses each payword to make micropayments; MicroMint is designed for increased speed (eliminates pubkey ops, replaces them with hash fcts).
+8. ** RNAP: A Resource Negotiation and Pricing Protocol ** - describes a protocol through which a user and a network can negotiate network services. The service provider can communicate availability of services and delivers charging info to the user.
+9. ** The Architecture of Coupon-Based, Semi-off-Line Anonymous Micropayment System for Internet of Things ** - describes an anonymous micropayment system for transactions in IoT. Uses the idea of hash chains to produce divisible coins.
+10. ** The Bitcoin Lightning Network ** - describes a solution to Bitcoin's scalability problem by using timelocks on a network of micropayment channels. *Hashed Timelock Contract (HTLC) * - recipient generates random data R, hashes it to produce H and sends H to the sender of funds, together with its bitcoin address. Sender routes their payment to the receiver and when an updated transaction is received, the recipient may elect to redeem the transaction by disclosing the random data R (which pulls the funds from the sender).
 	http://www.coindesk.com/could-the-bitcoin-lightning-network-solve-blockchain-scalability/
 
 ## URLS

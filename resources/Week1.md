@@ -44,6 +44,7 @@ The party who originally sent the Bitcoins now being spent, dictates script oper
 	Hub-and-Spoke Payments: Using a nearly completely untrusted hub, allow any number of parties to mutually send and receive Bitcoins instantly with near-zero
 	transaction fees. Each participant creates one or two micropayment channels with the hub; for Alice to send Bob some funds Alice first sends the funds to the hub in some small increment, the hub sends the funds to Bob, and finally the hub gives proof of that send to Alice. The incremental amount of Bitcoins sent can be set arbitrarily low, limited only by bandwidth and CPU time, and Bob does not necessarily need to actually be online. The worst that the hub can do is leave user's funds locked until the timeout expires.
 7. **http://developer.android.com/guide/topics/sensors/sensors_overview.html**
+8. **[PayPub](https://github.com/unsystem/paypub):** Trustless payments for publishing data
 
 ## Apps that read sensor data: 
 1. https://play.google.com/store/apps/details?id=com.fivasim.androsensor&hl=en

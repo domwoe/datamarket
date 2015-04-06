@@ -12,4 +12,4 @@
 
 ## Requirements
 ### Payment Protocol  
-![HTLC with Microchannel Payments](/resources/img/HTLC.pdf)
+![HTLC with Microchannel Payments](/resources/img/HTLC.png)

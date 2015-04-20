@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="Quote">
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="EntryPrice"
+            android:title="Price entry"
+            android:inputType="number"
+            android:id="@+id/price_entry"
+            android:enabled="true"
+        />
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="SecAvg"
+            android:title="1 Sec Avg"
+            android:inputType="number"
+            android:id="@+id/avg_price_entry"
+            android:enabled="true"
+        />
+    </PreferenceCategory>
+</PreferenceScreen>

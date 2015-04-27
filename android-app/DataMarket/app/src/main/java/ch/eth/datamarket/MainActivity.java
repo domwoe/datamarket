@@ -5,6 +5,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -16,6 +18,10 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.LinearLayout.LayoutParams;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,10 +32,14 @@ public class MainActivity extends ActionBarActivity {
 
     private static final String SIGNAL_STRENGTH = "SignalStrength";
     private static final String SIGNAL_STRENGTH_LABEL = "Signal Strength GSM";
+    private static final String GPS_SIGNAL = "GPS";
+    private static final String GPS_SIGNAL_LABEL = "GPS Location";
+
     private static final String PREFERENCES = "DataMarketPreferences";
 
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
+    private GPSLocationListener mLocationListener;
 
     private List<Sensor> mSensorList;
     private SwitchChangeListener mSwitchChangeListener;
@@ -91,6 +101,28 @@ public class MainActivity extends ActionBarActivity {
 
         // Add for Signal Strength
         addSwitchButton(SIGNAL_STRENGTH_LABEL, SIGNAL_STRENGTH);
+        addSwitchButton(GPS_SIGNAL_LABEL, GPS_SIGNAL);
+    }
+
+    class GPSLocationListener implements LocationListener {
+        public void onLocationChanged(Location location) {
+            Log.i("Frabu",
+                    location.getTime() + ": " +
+                    location.getAccuracy() + " " +
+                    location.getAltitude() + " " +
+                    location.getBearing() + " " +
+                    location.getLatitude() + " " +
+                    location.getLongitude()
+            );
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+        public void onProviderEnabled(String provider) {}
+
+        public void onProviderDisabled(String provider) {
+            Log.i("Frabu", "GPS/Use Wireless network is not enabled");
+        }
     }
 
     class SensorListener implements SensorEventListener {
@@ -114,17 +146,21 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             Log.i("Frabu", "Callback");
+            Object tag = buttonView.getTag();
             if (isChecked) { // Register listener
-
-                if (buttonView.getTag() instanceof Integer) { // Dealing with a sensor
+                if (tag instanceof Integer) { // Dealing with a sensor
                     Log.i("Frabu: ", "Registering " + mSensorList.get((Integer)buttonView.getTag()).getStringType());
                     mSensorManager.registerListener(
                             mSensorListener,
                             mSensorList.get((Integer)buttonView.getTag()),
                             SensorManager.SENSOR_DELAY_NORMAL
                     );
-                } else { //Signal Strength
+                } else {
+                    if (tag.equals(SIGNAL_STRENGTH)) {
 
+                    } else if (tag.equals(GPS_SIGNAL)) {
+                        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+                    }
                 }
             } else { // Unregister listener
                 Log.i("Frabu: ", "Unregistering " + buttonView.getTag());
@@ -134,7 +170,11 @@ public class MainActivity extends ActionBarActivity {
                             mSensorList.get((Integer) buttonView.getTag())
                     );
                 } else {
+                    if (tag.equals(SIGNAL_STRENGTH)) {
 
+                    } else if (tag.equals(GPS_SIGNAL)) {
+                        mLocationManager.removeUpdates(mLocationListener);
+                    }
                 }
             }
         }

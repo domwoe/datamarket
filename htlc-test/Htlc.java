@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.net.InetAddress;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -14,6 +15,7 @@ import org.bitcoinj.script.ScriptOpCodes;
 import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.UnreadableWalletException;
+import org.bitcoinj.crypto.TransactionSignature;
 
 public class Htlc {
 
@@ -86,17 +88,44 @@ public class Htlc {
 			bld.data(peerPubKey);
 			bld.op(ScriptOpCodes.OP_2);
 			bld.op(ScriptOpCodes.OP_CHECKMULTISIGVERIFY);
-		bld.op(ScriptOpCodes.OP_ELSE);
-			bld.op(ScriptOpCodes.OP_SHA256);
+		bld.op(ScriptOpCodes.OP_ELSE);	
 			bld.data(digest);
+			bld.op(ScriptOpCodes.OP_SHA256);
 			bld.op(ScriptOpCodes.OP_EQUAL);
+			bld.data(peerPubKey);
+			bld.op(ScriptOpCodes.OP_CHECKSIGVERIFY);
 		bld.op(ScriptOpCodes.OP_ENDIF);
 		Script htlcScript = bld.build();
 
-		Coin amount = Coin.valueOf(5, 0);
+		Coin amount = Coin.valueOf(1, 0);
 		htlc.addOutput(amount, htlcScript);
 
-		System.out.println("PROGRAM: " + htlcScript.toString());
+		System.out.println("WALLET: " + myWallet);
+
+		Set<Transaction> transactions = myWallet.getTransactions(false);
+		for (Transaction t: transactions) {
+
+			TransactionOutput sigOutput = t.getOutput(1);
+			TransactionInput input = htlc.addInput(sigOutput);
+
+			Script pubScript = sigOutput.getScriptPubKey();
+
+			Sha256Hash sighash = htlc.hashForSignature(0, pubScript, Transaction.SigHash.ALL, false);
+			ECKey.ECDSASignature mySignature = myKey.sign(sighash);
+			TransactionSignature ts = new TransactionSignature(mySignature, Transaction.SigHash.ALL, false);
+			Script inputScript = ScriptBuilder.createInputScript(ts, myKey);
+
+			System.out.println("TX PUBSCRIPT: " + sigOutput.getScriptPubKey());
+			System.out.println("TX SIGSCRIPT: " + inputScript);
+
+			System.out.println("TX: " + t);
+			System.out.println("HTLC TX: " + htlc);
+
+			input.setScriptSig(inputScript);
+			input.verify(sigOutput);
+			
+			break;
+		}
 
 		/****************/
 
@@ -123,9 +152,10 @@ public class Htlc {
 		NetworkParameters params = RegTestParams.get();
 
 		Htlc.createHTLC(params);
-		/*
-		Wallet wallet = Htlc.loadWallet(new File("test.wallet"), params);
+		
+		//Wallet wallet = Htlc.loadWallet(new File("test.wallet"), params);
 
+/*
 		BlockStore blockStore = new MemoryBlockStore(params);
         BlockChain chain = new BlockChain(params, wallet, blockStore);
 
@@ -139,6 +169,6 @@ public class Htlc {
         final File walletFile = new File("test.wallet");
         wallet.saveToFile(walletFile);
         System.out.println("Wallet: " + wallet);
-		*/
+*/		
 	}
 } 

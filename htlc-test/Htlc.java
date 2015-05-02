@@ -2,10 +2,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.Arrays;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ExecutionException;
+import java.util.Date;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.params.*;
@@ -14,6 +18,7 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.script.ScriptOpCodes;
 import org.bitcoinj.store.MemoryBlockStore;
 import org.bitcoinj.store.BlockStore;
+import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.store.UnreadableWalletException;
 import org.bitcoinj.crypto.TransactionSignature;
 
@@ -64,10 +69,12 @@ public class Htlc {
 		Wallet myWallet = Htlc.loadWallet(new File("test.wallet"), params);
 		ECKey myKey = myWallet.getImportedKeys().get(0);
 		byte[] myPubKey = myKey.getPubKey();
+		Address myAddr = myKey.toAddress(params);
 
 		Wallet peerWallet = Htlc.loadWallet(new File("test1.wallet"), params);
 		ECKey peerKey = peerWallet.getImportedKeys().get(0);
 		byte[] peerPubKey = peerKey.getPubKey();
+		Address peerAddr = peerKey.toAddress(params);
 
 		/* CLIENT SIDE */
 		Transaction htlc = new Transaction(params);
@@ -88,42 +95,118 @@ public class Htlc {
 			bld.data(peerPubKey);
 			bld.op(ScriptOpCodes.OP_2);
 			bld.op(ScriptOpCodes.OP_CHECKMULTISIGVERIFY);
-		bld.op(ScriptOpCodes.OP_ELSE);	
-			bld.data(digest);
+		bld.op(ScriptOpCodes.OP_ELSE);
 			bld.op(ScriptOpCodes.OP_SHA256);
+			bld.data(digest);
 			bld.op(ScriptOpCodes.OP_EQUAL);
 			bld.data(peerPubKey);
 			bld.op(ScriptOpCodes.OP_CHECKSIGVERIFY);
 		bld.op(ScriptOpCodes.OP_ENDIF);
 		Script htlcScript = bld.build();
 
-		Coin amount = Coin.valueOf(1, 0);
-		htlc.addOutput(amount, htlcScript);
-
 		System.out.println("WALLET: " + myWallet);
 
 		Set<Transaction> transactions = myWallet.getTransactions(false);
 		for (Transaction t: transactions) {
 
-			TransactionOutput sigOutput = t.getOutput(1);
-			TransactionInput input = htlc.addInput(sigOutput);
+			List<TransactionOutput> outputs = t.getOutputs();
+			TransactionOutput sigOutput = null;
 
-			Script pubScript = sigOutput.getScriptPubKey();
+			for (TransactionOutput tOut: outputs) {
+				if (tOut.isMine(myWallet)) {
+					sigOutput = tOut;
+					break;
+				}
+			}
 
-			Sha256Hash sighash = htlc.hashForSignature(0, pubScript, Transaction.SigHash.ALL, false);
-			ECKey.ECDSASignature mySignature = myKey.sign(sighash);
-			TransactionSignature ts = new TransactionSignature(mySignature, Transaction.SigHash.ALL, false);
-			Script inputScript = ScriptBuilder.createInputScript(ts, myKey);
+			if (sigOutput == null) {
+				System.out.println("Couldn't find bitcoins to spend");
+			} else {
+				/* Construct the Main HTLC Transaction */
+				Coin amount = Coin.valueOf(1, 0);
+				TransactionOutput htlcOutput = htlc.addOutput(amount, htlcScript); // Payment output 1 BTC
+				Coin change = sigOutput.getValue().subtract(amount);
+				htlc.addOutput(change, myAddr); // Change for rest THROWS DUPLICATE OUTPOINT
 
-			System.out.println("TX PUBSCRIPT: " + sigOutput.getScriptPubKey());
-			System.out.println("TX SIGSCRIPT: " + inputScript);
+				TransactionInput input = htlc.addInput(sigOutput);
 
-			System.out.println("TX: " + t);
-			System.out.println("HTLC TX: " + htlc);
+				/* Sign the Main Transaction but don't broadcast just yet */
+				Script pubScript = sigOutput.getScriptPubKey();
+				Sha256Hash sighash = htlc.hashForSignature(0, pubScript, Transaction.SigHash.ALL, false);
+				ECKey.ECDSASignature mySignature = myKey.sign(sighash);
+				TransactionSignature ts = new TransactionSignature(mySignature, Transaction.SigHash.ALL, false);
+				Script inputScript = ScriptBuilder.createInputScript(ts, myKey);
 
-			input.setScriptSig(inputScript);
-			input.verify(sigOutput);
-			
+			//	System.out.println("TX PUBSCRIPT: " + sigOutput.getScriptPubKey());
+		//		System.out.println("TX SIGSCRIPT: " + inputScript);
+
+			//	System.out.println("TX: " + t);
+				System.out.println("HTLC TX: " + htlc);
+
+				// Verify the redeem to the previous TX
+				input.setScriptSig(inputScript);
+				input.verify(sigOutput);
+
+				/* 
+					This steps is over the network. Simulate locally.
+					First, the client is creating a new transaction that has its input linked
+					to the first output of the main HTLC tx
+			    */
+
+				Transaction refundTx = new Transaction(params);
+				refundTx.addOutput(amount, myAddr);
+				TransactionInput refundInput = refundTx.addInput(htlcOutput);
+				// Lock it for 10 minutes
+				int minutes = 10;
+				long lockTime = new Date().getTime() / 1000l + minutes*60;
+				refundTx.setLockTime(lockTime);
+
+				// "Hand" this refundTx over to the server to get it signed
+				Script refundPubScript = htlcOutput.getScriptPubKey();
+				Sha256Hash serverRefundSighash = refundTx.hashForSignature(0, refundPubScript, Transaction.SigHash.ALL, false);
+				ECKey.ECDSASignature serverRefundSig = myKey.sign(serverRefundSighash);
+				TransactionSignature serverTS = new TransactionSignature(serverRefundSig, Transaction.SigHash.ALL, false);
+
+				Sha256Hash myRefundSighash = refundTx.hashForSignature(0, refundPubScript, Transaction.SigHash.ALL, false);
+				ECKey.ECDSASignature myRefundSig = myKey.sign(myRefundSighash);
+				TransactionSignature myTS = new TransactionSignature(myRefundSig, Transaction.SigHash.ALL, false);
+
+				// Create the script that spends the multi-sig output.
+				bld = new ScriptBuilder();
+				bld.data(serverTS.encodeToBitcoin());
+				bld.data(myTS.encodeToBitcoin());
+				bld.data(peerPubKey);
+				bld.data(myPubKey);
+				bld.op(ScriptOpCodes.OP_1); // One dummy op for OP_CHECKMULTISIGVERIFY bug
+
+				System.out.println("refundPubScript: " + refundPubScript);
+				
+				// Build it to a Script
+				Script refundInputScript = bld.build();
+				System.out.println("RefundInput: " + refundInputScript);
+				// Add it to the refundInput.
+				refundInput.setScriptSig(refundInputScript);
+				refundInput.verify(htlcOutput);
+/*
+				try {
+				  	
+					BlockStore blockStore = new MemoryBlockStore(params);
+			        BlockChain chain = new BlockChain(params, myWallet, blockStore);
+
+			        final PeerGroup peerGroup = new PeerGroup(params, chain);
+        			peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost()));
+		    	    peerGroup.start();
+				  	peerGroup.broadcastTransaction(htlc); 
+				  	peerGroup.stop();
+				  	System.out.println("WALLET: " + myWallet);
+				  	//myWallet.commitTx(htlc);
+
+				} catch (VerificationException | BlockStoreException | UnknownHostException e) {
+					System.out.println(e.getMessage());
+					e.printStackTrace();
+				}*/
+			}
+
 			break;
 		}
 
@@ -147,19 +230,66 @@ public class Htlc {
 		/****************/
 	}
 
+	public static void claimWithSecret(NetworkParameters params) throws Exception {
+
+		Wallet peerWallet = Htlc.loadWallet(new File("test.wallet"), params);
+		BlockStore blockStore = new MemoryBlockStore(params);
+        BlockChain chain = new BlockChain(params, peerWallet, blockStore);
+
+        final PeerGroup peerGroup = new PeerGroup(params, chain);
+		peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost()));
+	    peerGroup.startAsync();
+	    peerGroup.downloadBlockChain();
+	    System.out.println("PEER WALLET: " + peerWallet);
+	    peerWallet.saveToFile(new File("test.wallet"));
+	    peerGroup.stopAsync();
+	}
+
 	public static void main(String[] args) throws Exception {
 
 		NetworkParameters params = RegTestParams.get();
 
 		Htlc.createHTLC(params);
-		
-		//Wallet wallet = Htlc.loadWallet(new File("test.wallet"), params);
+		Htlc.claimWithSecret(params);
+	
+		/*Wallet wallet = Htlc.loadWallet(new File("test.wallet"), params);
+		System.out.println(wallet);
 
-/*
 		BlockStore blockStore = new MemoryBlockStore(params);
         BlockChain chain = new BlockChain(params, wallet, blockStore);
 
         final PeerGroup peerGroup = new PeerGroup(params, chain);
+        peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost()));
+        peerGroup.startAsync();
+        // Now download and process the block chain.
+        peerGroup.downloadBlockChain();
+
+        wallet.saveToFile(new File("test.wallet"));
+
+        System.out.println("WALLET@: " + wallet);*/
+
+/*
+		Wallet pwallet = Htlc.loadWallet(new File("test1.wallet"), params);
+		ECKey firstKey = pwallet.getImportedKeys().get(0);
+		Address addr = firstKey.toAddress(params);
+
+		BlockStore blockStore = new MemoryBlockStore(params);
+        BlockChain chain = new BlockChain(params, pwallet, blockStore);
+
+        final PeerGroup peerGroup = new PeerGroup(params, chain);
+        peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost()));
+        peerGroup.startAsync();
+        // Now download and process the block chain.
+        peerGroup.downloadBlockChain();
+
+		Wallet.SendResult result = wallet.sendCoins(peerGroup, addr, Coin.COIN);
+
+		System.out.println("WALLET@: " + pwallet);
+
+		peerGroup.stopAsync();*/
+
+/*
+		
         peerGroup.addAddress(new PeerAddress(InetAddress.getLocalHost()));
         peerGroup.startAsync();
         // Now download and process the block chain.

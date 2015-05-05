@@ -8,7 +8,7 @@
 5. https://en.bitcoin.it/wiki/Script
 
 ## Completed steps
-1. Dwelved into bitcoinj code to check how HTLC can be reuse the Micropayments code
+1. Dwelved into bitcoinj code to check how HTLC can be integrated with the Micropayments code
 2. With Christian's help:
 	* Fixed the HTLC setup scriptPub (use non-verify versions of signature verification ops)
 	* Created proper input tx for the refund branch of the HTLC script

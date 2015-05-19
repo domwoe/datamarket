@@ -2,7 +2,7 @@
 
 ## Complete steps
 1. Discussed protocol issues such as having multiple HTLCs active on the same teardown transaction or hash referencing.
-2. Rewrote the state machine with solutions to the avove problems in mind.
+2. Rewrote the state machine with solutions to the above problems in mind.
 3. Refactored the client payment channel with separate HTLC state instances. Included in both the client and server channel classes a hashmap referencing each HTLC state instance by a UUID.
 4. Created sequence diagram that depicts the protocol steps.
 

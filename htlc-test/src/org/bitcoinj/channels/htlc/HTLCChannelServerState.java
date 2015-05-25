@@ -61,6 +61,8 @@ public class HTLCChannelServerState {
 	private byte[] bestValueSignature;
 	private Transaction bestValueTx;
 	
+	private Transaction teardownTx;
+	
 	private Coin totalValue; // Total value locked into the multisig output
 	private Coin bestValueToMe = Coin.ZERO;
 	private Coin feePaidForPayment;
@@ -75,17 +77,6 @@ public class HTLCChannelServerState {
 	private final long htlcRefundExpireTime;
 	
 	Map<String, HTLCServerState> htlcMap;
-	
-	/** Container for a transaction and its signature. */
-    public static class SignedTransaction {
-    	public Transaction tx;
-        public TransactionSignature sig;
-    }
-	
-    public static class SignedTransactionWithHash {
-    	public SignedTransaction signedTx;
-    	public Sha256Hash spentTxHash;
-    }
 	
 	public HTLCChannelServerState(
 			Wallet wallet,
@@ -222,13 +213,31 @@ public class HTLCChannelServerState {
 	}
 	
 	/**
-	 * This is called when the server is provided with the updated teardown
+	 * First method to be called when initializing a new payment
+	 * Creates a new HTLCState object and inserts it into the map
+	 */
+	public void createNewHTLC(
+		String htlcId,
+		Coin value) {
+		HTLCServerState htlcState = new HTLCServerState(
+			htlcId, 
+			value, 
+			htlcSettlementExpireTime, 
+			htlcRefundExpireTime
+		);
+		htlcMap.put(htlcId, htlcState);
+	}
+	
+	/**
+	 * This is called when the server is provided with the updated teardownTx
 	 * (with the freshly added HTLC output)
+	 * @return The hash of the teardown and the signed HTLC refund Tx
 	 */
 	public SignedTransactionWithHash getSignedRefundAndTeardownHash(
+		String htlcId,
 		SignedTransaction signedTeardownTx
 	) {
-		Transaction teardownTx = signedTeardownTx.tx;
+		this.teardownTx = signedTeardownTx.getTx();
 		TransactionSignature serverTeardownSig = teardownTx.calculateSignature(
 			0,
 			serverKey,
@@ -238,71 +247,65 @@ public class HTLCChannelServerState {
 		);
 		// Now create an input script to fully sign the teardownTx
 		Script teardownScriptSig = ScriptBuilder.createMultiSigInputScript(
-			signedTeardownTx.sig,
+			signedTeardownTx.getSig(),
 			serverTeardownSig
 		);
-		teardownTx.getInput(0).setScriptSig(teardownScriptSig);
-		teardownTx.getInput(0).verify();
+		TransactionInput teardownTxIn = teardownTx.getInput(0);
+		teardownTxIn.setScriptSig(teardownScriptSig);
+		teardownTxIn.verify();
 		
-		TransactionOutput htlcOutput = teardownTx.getOutput(2);
-		Transaction htlcRefundTx = createHTLCRefundTx(htlcOutput);
+		HTLCServerState htlcState = htlcMap.get(htlcId);
+		SignedTransaction signedRefundTx = 
+			htlcState.getSignedRefund(teardownTx, clientKey, serverKey);
+		// Update the map
+		htlcMap.put(htlcId, htlcState);
 		
-		TransactionSignature serverRefundSig = htlcRefundTx.calculateSignature(
-			0,
-			serverKey,
-			htlcOutput.getScriptPubKey(),
-			Transaction.SigHash.ALL,
-			false
+		return new SignedTransactionWithHash(
+			signedRefundTx.getTx(),
+			signedRefundTx.getSig(),
+			teardownTx.getHash()
 		);
-		
-		SignedTransaction signedTx = new SignedTransaction();
-		signedTx.tx = htlcRefundTx;
-		signedTx.sig = serverRefundSig;		
-		
-		SignedTransactionWithHash sigTxWithHash = 
-			new SignedTransactionWithHash();
-		sigTxWithHash.signedTx = signedTx;
-		sigTxWithHash.spentTxHash = teardownTx.getHash();
-		return sigTxWithHash;
 	}
 	
-	private Transaction createHTLCRefundTx(TransactionOutput htlcOut) {
-		Transaction refundTx = new Transaction(PARAMS);
-		// Lock it for 10 minutes
-		int minutes = 10;
-		long lockTime = new Date().getTime() / 1000l + minutes*60;
-		refundTx.setLockTime(lockTime);
-		refundTx.addOutput(htlcOut.getValue(), clientKey.toAddress(PARAMS));
-		refundTx.addInput(htlcOut);
-		return refundTx;
+	public synchronized void storeHTLCSettlementTx(
+		String htlcId,
+		SignedTransaction signedSettlementTx
+	) {
+		HTLCServerState htlcState = htlcMap.get(htlcId);
+		htlcState.storeSignedSettlementTx(
+			teardownTx, 
+			signedSettlementTx
+		);		
+		// Update the map
+		htlcMap.put(htlcId, htlcState);
 	}
-	
 	
 	/**
-	 * Creates a transaction from the output of the old contract to reassure
-	 * that it will not reveal the secret at a later time after the contract
-	 * has been updated and steal the coins locked in the HTLC
-	 *//*
-	public SignedTransaction createAssuranceTx(Transaction teardownTx) {
-		Transaction tx = new Transaction(PARAMS);
-		tx.addInput(htlcTx.getOutput(0));
-		tx.addOutput(
-			htlcTx.getOutput(0).getValue(), 
-			clientKey.toAddress(PARAMS)
-		);
-		TransactionSignature mySignature = tx.calculateSignature(
-			0,
-			serverKey,
-			htlc,
-			Transaction.SigHash.ALL,
-			false
-		);
-		SignedTransaction sigTx = new SignedTransaction();
-		sigTx.tx = tx;
-		sigTx.sig = mySignature;
-		return sigTx;
+	 * Method that gets the fully signed settlementTX in case the timelock
+	 * expired and the server can pull its money due to non-collaborative client
+	 */
+	public Transaction getFullSettlementTx(String htlcId, String secret) {
+		HTLCServerState htlcState = htlcMap.get(htlcId);
+		Transaction settlementTx = 
+			htlcState.getFullSettlementTx(teardownTx, serverKey, secret);
+		htlcMap.put(htlcId, htlcState);
+		return settlementTx;
 	}
-	*/
+	
+	/**
+	 * Call this when server was able to provide secret in time to the sender
+	 * and the client sends an updated teardownTx
+	 */
+	public void removeHTLCAndUpdateTeardownTx(
+		String htlcId,
+		SignedTransaction signedTeardownTx
+	) {
+		// TODO: Add HTLCState validation and check the new teardown values
+		htlcMap.remove(htlcId);
+		this.teardownTx = signedTeardownTx.getTx();
+		this.bestValueSignature = signedTeardownTx.getSig().encodeToBitcoin();
+	}
+	
 	final SettableFuture<Transaction> closedFuture = SettableFuture.create();
 	
 	/**

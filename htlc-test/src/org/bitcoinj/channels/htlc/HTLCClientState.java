@@ -7,9 +7,12 @@ import java.util.Date;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutput;
+import org.bitcoinj.core.Transaction.SigHash;
+import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
@@ -25,22 +28,36 @@ public class HTLCClientState extends HTLCState {
 	
 	public enum State {
 		NEW,
-		OUTPUT_INIT,
+		OUTPUT_INITIATED,
+		REFUND_VERIFIED,
 		SETTLE_CREATED,
+		FORFEIT_CREATED,
 		SETTLE_EXPIRED,
 		FORFEIT_EXPIRED
 	}
 	private State state;
-
-/*	private Transaction setupTx;*/
-/*	private Transaction teardownTx;*/
 	
 	private final String secret;
 	
 	private TransactionOutput teardownTxHTLCOutput;
+	
+	private Transaction refundTx;
+	private Transaction settlementTx;
+	private Transaction forfeitTx;
+
+	public Transaction getRefundTx() {
+		return refundTx;
+	}
+
+	public Transaction getSettlementTx() {
+		return settlementTx;
+	}
+
+	public Transaction getForfeitTx() {
+		return forfeitTx;
+	}
 
 	public HTLCClientState(
-/*		Transaction teardownTx,*/
 		String secret, 
 		Coin value,
 		long settlementExpiryTime,
@@ -53,7 +70,6 @@ public class HTLCClientState extends HTLCState {
 	
 	public Transaction addHTLCOutput(
 		Transaction teardownTx, 
-		String secret, 
 		HTLCKeys keys
 	) {
 		if (this.state != State.NEW) {
@@ -92,17 +108,90 @@ public class HTLCClientState extends HTLCState {
 		
 		this.teardownTxHTLCOutput = 
 			teardownTx.addOutput(getValue(), bld.build());
-		this.state = State.OUTPUT_INIT;
+		this.state = State.OUTPUT_INITIATED;
 		
 		return teardownTx;
 	}
 	
-	public Transaction createSettlementTx(ECKey serverKey) {
+	public void signAndStoreRefundTx(
+		SignedTransactionWithHash signedTxWithHash, 
+		ECKey clientPrimaryKey
+	) {
+		Transaction refundTx = signedTxWithHash.getTx();
+		TransactionInput refundInput = refundTx.getInput(0);
+		TransactionSignature serverRefundSig = signedTxWithHash.getSig();
+		TransactionSignature clientSig = refundTx.calculateSignature(
+			0,
+			clientPrimaryKey,
+			teardownTxHTLCOutput.getScriptPubKey(),
+			Transaction.SigHash.ALL,
+			false
+		);
+		
+		// Create the script that spends the multi-sig output.
+		ScriptBuilder bld = new ScriptBuilder();
+		bld.data(new byte[]{}); // Null dummy
+		bld.data(clientSig.encodeToBitcoin());
+		bld.data(serverRefundSig.encodeToBitcoin());
+		bld.op(ScriptOpCodes.OP_1);
+		Script refundInputScript = bld.build();
+		
+		refundInput.setScriptSig(refundInputScript);
+		refundInput.verify(teardownTxHTLCOutput);
+		
+		this.refundTx = refundTx;
+		this.state = State.REFUND_VERIFIED;
+	}
+	
+	public SignedTransaction createSettlementTx(
+		Sha256Hash teardownTxHash,
+		ECKey clientPrimaryKey,
+		ECKey serverKey
+	) {
 		Transaction settlementTx = new Transaction(PARAMS);
 		settlementTx.setLockTime(getSettlementExpiryTime());
 		settlementTx.addOutput(getValue(), serverKey.toAddress(PARAMS));
-		settlementTx.addInput(teardownTxHTLCOutput);
+		settlementTx.addInput(
+			teardownTxHash,
+			3,
+			teardownTxHTLCOutput.getScriptPubKey()
+		);
+		
+		TransactionSignature clientSig = settlementTx.calculateSignature(
+			0,
+			clientPrimaryKey, 
+			teardownTxHTLCOutput.getScriptPubKey(), 
+			SigHash.ALL, 
+			false
+		);
+		
+		this.settlementTx = settlementTx;
 		this.state = State.SETTLE_CREATED;
-		return settlementTx;
+		return new SignedTransaction(settlementTx, clientSig);
+	}
+	
+	public SignedTransaction createForfeitTx(
+		Sha256Hash teardownTxHash,
+		ECKey clientPrimaryKey
+	) {
+		Transaction forfeitTx = new Transaction(PARAMS);
+		forfeitTx.addOutput(getValue(), clientPrimaryKey.toAddress(PARAMS));
+		forfeitTx.addInput(
+			teardownTxHash, 
+			3,
+			teardownTxHTLCOutput.getScriptPubKey()
+		);
+		
+		TransactionSignature clientSig = forfeitTx.calculateSignature(
+			0,
+			clientPrimaryKey, 
+			teardownTxHTLCOutput.getScriptPubKey(), 
+			SigHash.ALL, 
+			false
+		);
+		
+		this.forfeitTx = forfeitTx;
+		this.state = State.FORFEIT_CREATED;
+		return new SignedTransaction(forfeitTx, clientSig);
 	}
 }

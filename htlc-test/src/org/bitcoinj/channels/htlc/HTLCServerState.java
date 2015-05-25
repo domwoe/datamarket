@@ -1,11 +1,16 @@
 package org.bitcoinj.channels.htlc;
 
+import java.util.Date;
+
 import org.bitcoinj.channels.htlc.HTLCClientState.State;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionInput;
+import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.script.Script;
@@ -23,9 +28,17 @@ public class HTLCServerState extends HTLCState {
 	
 	public enum State {
 		NEW,
-		INITIATED
+		REFUND_SIGNED,
+		SETTLE_RECEIVED,
+		SETTLE_RETRIEVED
 	}
 	private State state;
+	
+	private Transaction refundTx;
+	
+	private TransactionSignature serverSettlementTxSig;
+	private TransactionSignature clientSettlementTxSig;
+	private Transaction settlementTx;
 	
 	public HTLCServerState(
 		String id,
@@ -33,60 +46,70 @@ public class HTLCServerState extends HTLCState {
 		long settlementExpiryTime,
 		long refundExpiryTime
 	) {
-		super(value, settlementExpiryTime, refundExpiryTime);
-		this.state = State.INITIATED;
+		super(id, value, settlementExpiryTime, refundExpiryTime);
+		this.state = State.NEW;
 	}
 	
-	public byte[] provideHtlcRefundTransaction(
-		Transaction htlcRefundTx,
-		byte[] clientMultisigPubKey,
-		Coin value,
-		HTLCKeys keys
+	public SignedTransaction getSignedRefund(
+		Transaction teardownTx,
+		ECKey clientKey,
+		ECKey serverKey
 	) {
-		if (state != State.INITIATED) {
-			throw new IllegalStateException("Server was provided with HTLC refund tx in an invalid state: " + state);
-		}
-		log.info("Provided with refund transaction: {}", htlcRefundTx);
-		// Do basic sanity check
-		htlcRefundTx.verify();
-		// Verify that the refundTx has a single input
-		if (htlcRefundTx.getInputs().size() != 1) {
-			throw new VerificationException(
-				"HTLC refund transaction does not have exactly one input!"
-			);
-		}
-		// Verify that the refundTx has a proper time-lock
-		if (htlcRefundTx.getLockTime() < getRefundExpiryTime()) {
-			throw new VerificationException(
-				"HTLC refund tx has a lock time that is too early!"
-			);
-		}
-		if (htlcRefundTx.getOutputs().size() != 1) {
-			throw new VerificationException(
-				"Htlc refund tx does not have exactly one output!"
-			);
-		}
-		if (htlcRefundTx.getOutput(0).getValue().compareTo(value) != 0) {
-			throw new VerificationException(
-				"Htlc refund tx has an invalid value locked in!"
-			);
-		}
-		// Sign the HTLC refund tx
-		//clientKey = ECKey.fromPublicOnly(clientMultisigPubKey);
-		Script multisigPubKey = ScriptBuilder.createMultiSigOutputScript(
-			2, 
-			ImmutableList.of(keys.getClientPrimaryKey(), keys.getServerKey())
-		);
-		TransactionSignature sig = htlcRefundTx.calculateSignature(
-			0, 
-			keys.getServerKey(), 
-			multisigPubKey, 
-			Transaction.SigHash.ALL, 
+		TransactionOutput htlcOut = teardownTx.getOutput(2);
+		Transaction htlcRefundTx = new Transaction(PARAMS);
+		htlcRefundTx.setLockTime(getRefundExpiryTime());
+		htlcRefundTx.addOutput(htlcOut.getValue(), clientKey.toAddress(PARAMS));
+		htlcRefundTx.addInput(htlcOut);
+		
+		TransactionSignature serverRefundSig = htlcRefundTx.calculateSignature(
+			0,
+			serverKey,
+			htlcOut.getScriptPubKey(),
+			Transaction.SigHash.ALL,
 			false
 		);
-		log.info("Signed HTLC refund transaction.");
-		state = State.WAITING_FOR_HTLC;
-		return sig.encodeToBitcoin();
+		this.state = State.REFUND_SIGNED;
+		return new SignedTransaction(htlcRefundTx, serverRefundSig);
+	}
+	
+	public void storeSignedSettlementTx(
+		Transaction teardownTx,
+		SignedTransaction signedSettleTx
+	) {
+		this.settlementTx = signedSettleTx.getTx();
+		this.clientSettlementTxSig = signedSettleTx.getSig();
+		this.state = State.SETTLE_RECEIVED;
+	}
+	
+	public Transaction getFullSettlementTx(
+		Transaction teardownTx,
+		ECKey serverKey,
+		String secret
+	) {
+		TransactionInput settleTxIn = settlementTx.getInput(0);
+		TransactionOutput htlcOutput = teardownTx.getOutput(2);
+		TransactionSignature serverSig = settlementTx.calculateSignature(
+			0,
+			serverKey, 
+			htlcOutput.getScriptPubKey(), 
+			SigHash.ALL, 
+			false
+		);
+		this.serverSettlementTxSig = serverSig;
+		
+		// Create the script that spends the multi-sig output.
+		ScriptBuilder bld = new ScriptBuilder();
+		bld.data(serverSettlementTxSig.encodeToBitcoin());
+		bld.data(clientSettlementTxSig.encodeToBitcoin());
+		bld.data(secret.getBytes());
+		bld.data(new byte[]{});
+		Script inputScript = bld.build();
+
+		settleTxIn.setScriptSig(inputScript);
+		settleTxIn.verify(htlcOutput);
+	
+		this.state = State.SETTLE_RETRIEVED;
+		return settlementTx;
 	}
 }
  

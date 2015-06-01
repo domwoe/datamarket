@@ -1,7 +1,7 @@
 # Week 9 Progress
 
 ## Completed steps
-1. Started HTLC client and server channel classes that given a reveiced message, checks its type
+1. Started HTLC client and server channel classes that given a received message, checks its type
 and moves the state machines between states.
 2. Completed TCP Server that listens for incoming TCP connections, establishes a micropayment
 channel given parameters and passes Protobuf messages down to the channel classes.
@@ -11,8 +11,7 @@ TCP Server.
 5. Completed full sequence diagram for the HTLC based payments.
 
 ## Next steps
-1. Complete what is left of the client and server channel classes to run a full HTLC based payment on the regtest
-network.
+1. Complete what is left of the client and server channel classes to run a full HTLC based payment on the regtest network.
 2. Create unit tests.
 3. Create class that watches the blockchain and triggers transaction broadcasting at appropiate times.
 

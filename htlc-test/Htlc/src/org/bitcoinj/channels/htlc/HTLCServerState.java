@@ -1,5 +1,7 @@
 package org.bitcoinj.channels.htlc;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 import org.bitcoinj.channels.htlc.HTLCClientState.State;
@@ -30,23 +32,45 @@ public class HTLCServerState extends HTLCState {
 		NEW,
 		REFUND_SIGNED,
 		SETTLE_RECEIVED,
+		FORFEIT_RECEIVED,
 		SETTLE_RETRIEVED
 	}
 	private State state;
 	
 	private Transaction refundTx;
 	
+	private Transaction settlementTx;
 	private TransactionSignature serverSettlementTxSig;
 	private TransactionSignature clientSettlementTxSig;
-	private Transaction settlementTx;
 	
+	private Transaction forfeitTx;
+	private TransactionSignature clientForfeitTxSig;
+	
+	
+	private byte[] secret;
+	private byte[] secretHash;
+	
+	public byte[] getSecretHash() {
+		return secretHash;
+	}
+
 	public HTLCServerState(
-		String id,
-		Coin value, 
+		Coin value,
+		byte[] secret,
 		long settlementExpiryTime,
 		long refundExpiryTime
 	) {
-		super(id, value, settlementExpiryTime, refundExpiryTime);
+		super(value, settlementExpiryTime, refundExpiryTime);
+		this.secret = secret;
+		MessageDigest md = null;
+		try {
+			md = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+
+		md.update(secret);
+		this.secretHash = md.digest(); 
 		this.state = State.NEW;
 	}
 	
@@ -73,12 +97,21 @@ public class HTLCServerState extends HTLCState {
 	}
 	
 	public void storeSignedSettlementTx(
-		Transaction teardownTx,
-		SignedTransaction signedSettleTx
+		Transaction settlementTx,
+		TransactionSignature settlementSig
 	) {
-		this.settlementTx = signedSettleTx.getTx();
-		this.clientSettlementTxSig = signedSettleTx.getSig();
+		this.settlementTx = settlementTx;
+		this.clientSettlementTxSig = settlementSig;
 		this.state = State.SETTLE_RECEIVED;
+	}
+	
+	public void storeSignedForfeitTx(
+		Transaction forfeitTx,
+		TransactionSignature clientForfeitTxSig
+	) {
+		this.forfeitTx = forfeitTx;
+		this.clientForfeitTxSig = clientForfeitTxSig;
+		this.state = State.FORFEIT_RECEIVED;
 	}
 	
 	public Transaction getFullSettlementTx(
@@ -90,8 +123,8 @@ public class HTLCServerState extends HTLCState {
 		TransactionOutput htlcOutput = teardownTx.getOutput(2);
 		TransactionSignature serverSig = settlementTx.calculateSignature(
 			0,
-			serverKey, 
-			htlcOutput.getScriptPubKey(), 
+			serverKey,
+			htlcOutput.getScriptPubKey(),
 			SigHash.ALL, 
 			false
 		);

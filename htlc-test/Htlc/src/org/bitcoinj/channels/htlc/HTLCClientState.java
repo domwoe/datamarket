@@ -1,17 +1,13 @@
 package org.bitcoinj.channels.htlc;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutput;
-import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.script.Script;
@@ -37,7 +33,7 @@ public class HTLCClientState extends HTLCState {
 	}
 	private State state;
 	
-	private final String secret;
+	private final byte[] secretHash;
 	
 	private TransactionOutput teardownTxHTLCOutput;
 	
@@ -58,13 +54,14 @@ public class HTLCClientState extends HTLCState {
 	}
 
 	public HTLCClientState(
-		String secret, 
+		String id,
+		byte[] secretHash, 
 		Coin value,
 		long settlementExpiryTime,
 		long refundExpiryTime
 	) {
-		super(value, settlementExpiryTime, refundExpiryTime);
-		this.secret = secret;
+		super(id, value, settlementExpiryTime, refundExpiryTime);
+		this.secretHash = secretHash;
 		this.state = State.NEW;
 	}
 	
@@ -75,15 +72,7 @@ public class HTLCClientState extends HTLCState {
 		if (this.state != State.NEW) {
 			throw new IllegalStateException("HTLC is in invalid state!");
 		}
-		/* Hash the secret */
-		MessageDigest md = null;
-		try {
-			md = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		md.update(secret.getBytes());
-		byte[] digest = md.digest();
+		
 		byte[] clientPrimaryPubKey = keys.getClientPrimaryKey().getPubKey();
 		byte[] clientSecondaryPubKey = keys.getClientSecondaryKey().getPubKey();
 		byte[] serverPubKey = keys.getServerKey().getPubKey();
@@ -97,7 +86,7 @@ public class HTLCClientState extends HTLCState {
 			bld.op(ScriptOpCodes.OP_CHECKMULTISIG);
 		bld.op(ScriptOpCodes.OP_ELSE);
 			bld.op(ScriptOpCodes.OP_SHA256);
-			bld.data(digest);
+			bld.data(secretHash);
 			bld.op(ScriptOpCodes.OP_EQUALVERIFY);
 			bld.op(ScriptOpCodes.OP_2);
 			bld.data(clientSecondaryPubKey);
@@ -114,12 +103,11 @@ public class HTLCClientState extends HTLCState {
 	}
 	
 	public void signAndStoreRefundTx(
-		SignedTransactionWithHash signedTxWithHash, 
+		Transaction refundTx,
+		TransactionSignature refundSig, 
 		ECKey clientPrimaryKey
 	) {
-		Transaction refundTx = signedTxWithHash.getTx();
 		TransactionInput refundInput = refundTx.getInput(0);
-		TransactionSignature serverRefundSig = signedTxWithHash.getSig();
 		TransactionSignature clientSig = refundTx.calculateSignature(
 			0,
 			clientPrimaryKey,
@@ -132,7 +120,7 @@ public class HTLCClientState extends HTLCState {
 		ScriptBuilder bld = new ScriptBuilder();
 		bld.data(new byte[]{}); // Null dummy
 		bld.data(clientSig.encodeToBitcoin());
-		bld.data(serverRefundSig.encodeToBitcoin());
+		bld.data(refundSig.encodeToBitcoin());
 		bld.op(ScriptOpCodes.OP_1);
 		Script refundInputScript = bld.build();
 		

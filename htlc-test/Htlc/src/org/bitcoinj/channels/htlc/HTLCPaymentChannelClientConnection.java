@@ -3,15 +3,18 @@ package org.bitcoinj.channels.htlc;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
+import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.net.NioClient;
 import org.bitcoinj.net.ProtobufParser;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
+import org.bitcoinj.protocols.channels.PaymentIncrementAck;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -29,6 +32,7 @@ public class HTLCPaymentChannelClientConnection {
 		InetSocketAddress server,
 		int timeoutSeconds,
 		Wallet wallet,
+		TransactionBroadcastScheduler broadcastScheduler,
 		ECKey clientPrimaryKey,
 		ECKey clientSecondaryKey,
 		Coin value,
@@ -41,6 +45,7 @@ public class HTLCPaymentChannelClientConnection {
     	 */
     	channelClient = new HTLCPaymentChannelClient(
 			wallet, 
+			broadcastScheduler,
 			clientPrimaryKey, 
 			clientSecondaryKey,
 			value,
@@ -66,12 +71,15 @@ public class HTLCPaymentChannelClientConnection {
 	            }
 
 				@Override
-				public boolean acceptExpireTime(long arg0) {
-					return true;
+				public boolean acceptExpireTime(long expireTime) {
+					// One extra minute to compensate for time skew and latency
+					return expireTime <= (
+						timeWindow + Utils.currentTimeSeconds() + 60
+					);  
 				}
 
 				@Override
-				public void channelOpen(boolean arg0) {
+				public void channelOpen(boolean wasInitiated) {
 					wireParser.setSocketTimeout(0);
 		            // Inform the API user that we're done and ready to roll.
 	                channelOpenFuture.set(
@@ -137,6 +145,15 @@ public class HTLCPaymentChannelClientConnection {
     public ListenableFuture<HTLCPaymentChannelClientConnection> 
 			getChannelOpenFuture() {
         return channelOpenFuture;
+    }
+    
+    /**
+     * Increments the total value which we pay the server.
+     */
+    public ListenableFuture<PaymentIncrementAck> incrementPayment(
+		Coin size
+	) throws ValueOutOfRangeException, IllegalStateException {
+    	return channelClient.incrementPayment(size, null, null);    	
     }
     
     /**

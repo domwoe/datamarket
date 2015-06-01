@@ -1,14 +1,18 @@
 package org.bitcoinj.channels.htlc;
 
+import static com.google.common.base.Preconditions.checkState;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
+import javax.annotation.concurrent.GuardedBy;
+
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionBroadcaster;
@@ -17,8 +21,6 @@ import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
 import org.slf4j.Logger;
@@ -34,7 +36,6 @@ import com.google.common.util.concurrent.SettableFuture;
 public class HTLCChannelServerState {
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCChannelServerState.class);
-	private static final NetworkParameters PARAMS = RegTestParams.get();
 
 	public enum State {
 		WAITING_FOR_REFUND_TRANSACTION,
@@ -78,6 +79,8 @@ public class HTLCChannelServerState {
 	
 	Map<String, HTLCServerState> htlcMap;
 	
+	private final SecureRandom random;
+	
 	public HTLCChannelServerState(
 			Wallet wallet,
 			ECKey serverKey,
@@ -93,6 +96,7 @@ public class HTLCChannelServerState {
 		this.htlcRefundExpireTime = 
 			new Date().getTime()/1000l + (2*DAILY_MINUTES + minExpireTime)*60;
 		this.broadcaster = broadcaster;
+		this.random = new SecureRandom();
 	}
 	
 	/**
@@ -161,6 +165,8 @@ public class HTLCChannelServerState {
 		provideMultisigContract(
 			final Transaction multisigContract
 	) {
+		checkState(state == State.WAITING_FOR_MULTISIG_CONTRACT);
+		
 		multisigContract.verify();
 		this.multisigContract = multisigContract;
 		this.multisigScript = multisigContract.getOutput(0).getScriptPubKey();
@@ -190,10 +196,8 @@ public class HTLCChannelServerState {
 		final SettableFuture<HTLCChannelServerState> future = 
 			SettableFuture.create();
         Futures.addCallback(
-    		broadcaster.broadcastTransaction(
-				multisigContract).future(), 
-				new FutureCallback<Transaction>() 
-			{
+    		broadcaster.broadcastTransaction(multisigContract).future(), 
+			new FutureCallback<Transaction>() {
     			@Override public void onSuccess(Transaction transaction) {
     				log.info("Successfully broadcast multisig contract {}. " +
     						"Channel now open.", transaction.getHashAsString());
@@ -202,30 +206,33 @@ public class HTLCChannelServerState {
     			}
     			@Override public void onFailure(Throwable throwable) {
     				// Couldn't broadcast the transaction for some reason.
-		            log.error(throwable.toString());
-		            throwable.printStackTrace();
-		            state = State.ERROR;
-		            future.setException(throwable);
-		        }
-			}
+    				log.error(throwable.toString());
+    				throwable.printStackTrace();
+    				state = State.ERROR;
+    				future.setException(throwable);
+    			}
+    		}
 		);
         return future;
+	}
+	
+	private String nextSecret() {
+	    return new BigInteger(130, random).toString(32);
 	}
 	
 	/**
 	 * First method to be called when initializing a new payment
 	 * Creates a new HTLCState object and inserts it into the map
 	 */
-	public void createNewHTLC(
-		String htlcId,
-		Coin value) {
+	public HTLCServerState createNewHTLC(Coin value) {
 		HTLCServerState htlcState = new HTLCServerState(
-			htlcId, 
 			value, 
+			nextSecret().getBytes(),
 			htlcSettlementExpireTime, 
 			htlcRefundExpireTime
 		);
-		htlcMap.put(htlcId, htlcState);
+		htlcMap.put(htlcState.getId(), htlcState);
+		return htlcState;
 	}
 	
 	/**
@@ -235,9 +242,10 @@ public class HTLCChannelServerState {
 	 */
 	public SignedTransactionWithHash getSignedRefundAndTeardownHash(
 		String htlcId,
-		SignedTransaction signedTeardownTx
+		Transaction teardownTx,
+		TransactionSignature clientSig
 	) {
-		this.teardownTx = signedTeardownTx.getTx();
+		this.teardownTx = teardownTx;
 		TransactionSignature serverTeardownSig = teardownTx.calculateSignature(
 			0,
 			serverKey,
@@ -247,7 +255,7 @@ public class HTLCChannelServerState {
 		);
 		// Now create an input script to fully sign the teardownTx
 		Script teardownScriptSig = ScriptBuilder.createMultiSigInputScript(
-			signedTeardownTx.getSig(),
+			clientSig,
 			serverTeardownSig
 		);
 		TransactionInput teardownTxIn = teardownTx.getInput(0);
@@ -269,13 +277,25 @@ public class HTLCChannelServerState {
 	
 	public synchronized void storeHTLCSettlementTx(
 		String htlcId,
-		SignedTransaction signedSettlementTx
+		Transaction settleTx,
+		TransactionSignature settleSig
 	) {
 		HTLCServerState htlcState = htlcMap.get(htlcId);
 		htlcState.storeSignedSettlementTx(
 			teardownTx, 
-			signedSettlementTx
-		);		
+			settleSig
+		);
+		// Update the map
+		htlcMap.put(htlcId, htlcState);
+	}
+	
+	public synchronized void storeHTLCForfeitTx(
+		String htlcId,
+		Transaction forfeitTx,
+		TransactionSignature forfeitSig
+	) {
+		HTLCServerState htlcState = htlcMap.get(htlcId);
+		htlcState.storeSignedForfeitTx(forfeitTx, forfeitSig);
 		// Update the map
 		htlcMap.put(htlcId, htlcState);
 	}
@@ -349,22 +369,29 @@ public class HTLCChannelServerState {
 		}
 		state = State.CLOSING;
 		log.info("Closing channel, broadcasting tx {}", tx);
-		ListenableFuture<Transaction> future = broadcaster.broadcastTransaction(tx).future();
-	    	Futures.addCallback(future, new FutureCallback<Transaction>() {
-	    		@Override public void onSuccess(Transaction transaction) {
-	                log.info("TX {} propagated, channel successfully closed.", transaction.getHash());
-	                state = State.CLOSED;
-	                closedFuture.set(transaction);
-	            }
+		ListenableFuture<Transaction> future = 
+			broadcaster.broadcastTransaction(tx).future();
+		
+    	Futures.addCallback(future, new FutureCallback<Transaction>() {
+    		@Override public void onSuccess(Transaction transaction) {
+                log.info(
+            		"TX {} propagated, channel successfully closed.", 
+            		transaction.getHash()
+        		);
+                state = State.CLOSED;
+                closedFuture.set(transaction);
+            }
 
-	            @Override public void onFailure(Throwable throwable) {
-	                log.error("Failed to settle channel, could not broadcast: {}", throwable.toString());
-	                throwable.printStackTrace();
-	                state = State.ERROR;
-	                closedFuture.setException(throwable);
-	            }
-	        }
-    	);
+            @Override public void onFailure(Throwable throwable) {
+                log.error(
+            		"Failed to settle channel, could not broadcast: {}", 
+            		throwable.toString()
+        		);
+                throwable.printStackTrace();
+                state = State.ERROR;
+                closedFuture.setException(throwable);
+            }
+        });
 	    return closedFuture;
 	}
 	

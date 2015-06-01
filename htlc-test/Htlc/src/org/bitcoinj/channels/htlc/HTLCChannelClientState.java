@@ -1,6 +1,7 @@
 package org.bitcoinj.channels.htlc;
 
-import java.util.Date;
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,8 +32,11 @@ public class HTLCChannelClientState {
 	public enum State {
 		NEW,
 		INITIATED,
+		WAITING_FOR_SIGNED_REFUND,
+		SCHEDULE_BROADCAST,
+		PROVIDE_MULTISIG_CONTRACT_TO_SERVER,
 		READY,
-        CHANNEL_NEW,
+		
         CHANNEL_INITIATED,
         CHANNEL_WAITING_FOR_SIGNED_REFUND,
         CHANNEL_PROVIDE_CONTRACT_TO_SERVER,
@@ -41,6 +45,8 @@ public class HTLCChannelClientState {
         CHANNEL_CLOSED,
     }
     private State state;
+    
+    private TransactionBroadcastScheduler broadcastScheduler;
     
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCChannelClientState.class);
@@ -62,9 +68,9 @@ public class HTLCChannelClientState {
 	private Coin totalValueInHTLCs;
 	
 	private Script multisigScript;
-	
-	private static final long DAILY_MINUTES = 1440;
-	private final long expiryTime;
+
+	private final long DAILY_SECONDS = 86400; 
+	private final long expireTime;
 	private final long htlcSettlementExpiryTime;
 	private final long htlcRefundExpiryTime;
 	
@@ -72,26 +78,39 @@ public class HTLCChannelClientState {
 	
 	public HTLCChannelClientState(
 		Wallet wallet, 
+		TransactionBroadcastScheduler broadcastScheduler,
 		ECKey myPrimaryKey,
 		ECKey mySecondaryKey,
 		ECKey serverMultisigKey,
 		Coin value,
-		long expiryTimeInMins
+		long expiryTimeInSec
 	) {
 		this.clientPrimaryKey = myPrimaryKey;
 		this.clientSecondaryKey = mySecondaryKey;
 		this.serverMultisigKey = serverMultisigKey;
 		this.wallet = wallet;
-		this.expiryTime = new Date().getTime() / 1000l + expiryTimeInMins*60;
-		this.htlcSettlementExpiryTime = 
-			new Date().getTime()/1000l + (DAILY_MINUTES + expiryTimeInMins)*60;
-		this.htlcRefundExpiryTime = 
-			new Date().getTime()/1000l + (2*DAILY_MINUTES + expiryTimeInMins)*60;
+		this.expireTime = expiryTimeInSec;
+		this.htlcSettlementExpiryTime = expiryTimeInSec + DAILY_SECONDS;
+		this.htlcRefundExpiryTime = expiryTimeInSec + 2*DAILY_SECONDS;
 		this.totalValue = this.valueToMe = value;
-		this.setState(State.CHANNEL_NEW);
 		this.htlcMap = new HashMap<String, HTLCClientState>();
 		this.totalValueInHTLCs = Coin.valueOf(0L);
+		this.broadcastScheduler = broadcastScheduler;
+		setState(State.NEW);
 	}
+	
+	/**
+     * Returns true if the tx is a valid settlement transaction.
+     */
+    public synchronized boolean isSettlementTransaction(Transaction tx) {
+        try {
+            tx.verify();
+            tx.getInput(0).verify(multisigContract.getOutput(0));
+            return true;
+        } catch (VerificationException e) {
+            return false;
+        }
+    }
 	
 	/** 
 	 * Creates the initial contract tx 
@@ -129,7 +148,7 @@ public class HTLCChannelClientState {
 		refundTx = new Transaction(PARAMS);
 		// Allow replacement
 		refundTx.addInput(multisigOutput).setSequenceNumber(0);
-		refundTx.setLockTime(expiryTime);
+		refundTx.setLockTime(expireTime);
 		if (totalValue.compareTo(Coin.CENT) < 0) {
 			// Must pay min fee
 			final Coin valueAfterFee = 
@@ -158,17 +177,21 @@ public class HTLCChannelClientState {
 	 * Now sign it with the client key
 	 * @param serverSignature
 	 */
-	public synchronized void provideRefundSignature(byte[] serverSignature) {
+	public synchronized void provideRefundSignature(byte[] serverSignature) 
+			throws VerificationException {
+		checkState(state == State.WAITING_FOR_SIGNED_REFUND);
 		TransactionSignature serverSig = 
 				TransactionSignature.decodeFromBitcoin(serverSignature, true);
-		if (serverSig.sigHashMode() != Transaction.SigHash.ALL || 
-			serverSig.anyoneCanPay()) {
+		if (
+			serverSig.sigHashMode() != Transaction.SigHash.ALL || 
+			serverSig.anyoneCanPay()
+		) {
 			throw new VerificationException(
 				"Refund signature was not SIGHASH_ALL"
 			);
 		}
 		// Sign the refund transaction
-		final TransactionOutput multisigContractOutput = 
+		final TransactionOutput multisigContractOutput =
 			multisigContract.getOutput(0);
 		multisigScript = multisigContractOutput.getScriptPubKey();
 		TransactionSignature mySignature = refundTx.calculateSignature(
@@ -188,9 +211,22 @@ public class HTLCChannelClientState {
         refundInput.setScriptSig(scriptSig);
         refundInput.verify(multisigContractOutput);
         
-        // Skip storing in wallet for now
-        
-        setState(State.CHANNEL_PROVIDE_CONTRACT_TO_SERVER);
+        setState(State.SCHEDULE_BROADCAST);
+	}
+	
+	/**
+	 * Method to be called after completing the refundTx to schedule
+	 * broadcasting of contract and refund
+	 */
+	public synchronized void scheduleBroadcast() {
+		checkState(state == State.SCHEDULE_BROADCAST);
+		broadcastScheduler.scheduleRefund(multisigContract, refundTx);
+		try {
+			wallet.commitTx(multisigContract);
+		} catch (VerificationException e) {
+			throw new RuntimeException(e);
+		}
+		setState(State.PROVIDE_MULTISIG_CONTRACT_TO_SERVER);
 	}
 
 	/**
@@ -200,8 +236,9 @@ public class HTLCChannelClientState {
 	 * @throws ValueOutOfRangeException
 	 */
 	public synchronized SignedTransaction getSignedTeardownTx(
+		String id,
 		Coin amount, 
-		String secret
+		byte[] secretHash
 	) throws ValueOutOfRangeException {
 		
 		checkNotExpired();
@@ -224,9 +261,11 @@ public class HTLCChannelClientState {
 		valueToMe = newValueToMe;
 		totalValueInHTLCs = totalValueInHTLCs.add(amount);
 		this.teardownTx = updateTeardownTx(newValueToMe);
+		
 		// Create new HTLC
 		HTLCClientState htlcState = new HTLCClientState(
-			secret,
+			id,
+			secretHash,
 			amount, 
 			htlcSettlementExpiryTime,
 			htlcRefundExpiryTime
@@ -254,11 +293,16 @@ public class HTLCChannelClientState {
 	 * teardownTx hash.
 	 */
 	public synchronized void finalizeHTLCRefundTx(
-		String htlcId, 
-		SignedTransactionWithHash signedTxWithHash
+		String htlcId,
+		Transaction refundTx,
+		TransactionSignature refundSig
 	) {
 		HTLCClientState htlcState = htlcMap.get(htlcId);
-		htlcState.signAndStoreRefundTx(signedTxWithHash, clientPrimaryKey);
+		htlcState.signAndStoreRefundTx(
+			refundTx,
+			refundSig,
+			clientPrimaryKey
+		);
 	}
 	
 	/**
@@ -273,6 +317,22 @@ public class HTLCChannelClientState {
 			spentTxHash,
 			clientPrimaryKey,
 			serverMultisigKey
+		);
+	}
+	
+	/**
+	 * Called immediately after the settlementTx was created.
+	 * Creates the signed forfeitTx 
+	 * @return
+	 */
+	public synchronized SignedTransaction getHTLCForfeitTx(
+		String htlcId,
+		Sha256Hash spentTxHash
+	) {
+		HTLCClientState htlcState = htlcMap.get(htlcId);
+		return htlcState.createForfeitTx(
+			spentTxHash,
+			clientPrimaryKey
 		);
 	}
 	
@@ -307,22 +367,6 @@ public class HTLCChannelClientState {
 		htlcMap.remove(htlcId);
 		return new SignedTransaction(teardownTx, teardownSig);
 	}
-	
-	/**
-	 * Called immediately after the settlementTx was created.
-	 * Creates the signed forfeitTx 
-	 * @return
-	 */
-	public synchronized SignedTransaction getHTLCForfeitTx(
-		String htlcId,
-		Sha256Hash spentTxHash
-	) {
-		HTLCClientState htlcState = htlcMap.get(htlcId);
-		return htlcState.createForfeitTx(
-			spentTxHash,
-			clientPrimaryKey
-		);
-	}
 		
     public synchronized Transaction getIncompleteRefundTransaction() {
         if (getState() == State.CHANNEL_INITIATED)
@@ -351,7 +395,7 @@ public class HTLCChannelClientState {
 	}
 	
 	private synchronized void checkNotExpired() {
-        if (Utils.currentTimeSeconds() > expiryTime) {
+        if (Utils.currentTimeSeconds() > expireTime) {
             setState(State.CHANNEL_EXPIRED);
             throw new IllegalStateException("Channel expired");
         }

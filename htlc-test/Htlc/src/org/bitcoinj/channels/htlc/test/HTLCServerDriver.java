@@ -43,7 +43,7 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
         System.out.println(appKit.wallet());
         if (appKit.wallet().getImportedKeys().size() == 0) {
         	// Import new key
-        	appKit.wallet().addKey(new ECKey());
+        	appKit.wallet().importKey(new ECKey());
         }
         
         ECKey serverKey = appKit.wallet().getImportedKeys().get(0);

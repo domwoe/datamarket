@@ -5,6 +5,7 @@
 2. Added transaction broadcast scheduler.
 3. Extended the bitcoinj TwoWayChannelMessage protobufs for HTLC messages (getting the HTLC refund signed, moving the transactions and their sigs back and forth between the client and the server).
 Walked the states manually to check message exchange steps.
+4. Integrated the processing of new Protobuf messages in the channel classes.
 
 ## Next steps
 1. Debug the protocol after testing.

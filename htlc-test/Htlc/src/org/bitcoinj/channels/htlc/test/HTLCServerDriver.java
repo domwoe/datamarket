@@ -25,6 +25,7 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
 
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCServerDriver.class);
+	private static final NetworkParameters PARAMS = RegTestParams.get();
 	
 	private WalletAppKit appKit;
 	
@@ -33,9 +34,8 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
 	}
 	
 	public void run() throws Exception {
-		NetworkParameters params = RegTestParams.get();
 		
-        appKit = new WalletAppKit(params, new File("."), "htlc_server");
+        appKit = new WalletAppKit(PARAMS, new File("."), "htlc_server");
         appKit.connectToLocalHost();
         appKit.startAsync();
         appKit.awaitRunning();
@@ -47,6 +47,7 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
         }
         
         ECKey serverKey = appKit.wallet().getImportedKeys().get(0);
+        log.info("Server address: {}", serverKey.toAddress(PARAMS));
         
         new HTLCPaymentChannelServerListener(
     		appKit.peerGroup(), 
@@ -62,7 +63,7 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
 	public ServerConnectionEventHandler onNewConnection(
 		final SocketAddress clientAddress
 	) {
-		System.out.println("New connection initiated");
+		log.info("New connection initiated");
 		return new ServerConnectionEventHandler() {
 			
 			@Override

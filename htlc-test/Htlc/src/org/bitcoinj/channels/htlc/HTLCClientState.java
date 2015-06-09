@@ -16,6 +16,8 @@ import org.bitcoinj.script.ScriptOpCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.ByteString;
+
 public class HTLCClientState extends HTLCState {
 	
 	private static final Logger log = 
@@ -32,8 +34,6 @@ public class HTLCClientState extends HTLCState {
 		FORFEIT_EXPIRED
 	}
 	private State state;
-	
-	private final byte[] secretHash;
 	
 	private TransactionOutput teardownTxHTLCOutput;
 	
@@ -54,14 +54,12 @@ public class HTLCClientState extends HTLCState {
 	}
 
 	public HTLCClientState(
-		String id,
-		byte[] secretHash, 
+		ByteString secretHash, 
 		Coin value,
 		long settlementExpiryTime,
 		long refundExpiryTime
 	) {
-		super(id, value, settlementExpiryTime, refundExpiryTime);
-		this.secretHash = secretHash;
+		super(secretHash, value, settlementExpiryTime, refundExpiryTime);
 		this.state = State.NEW;
 	}
 	
@@ -86,7 +84,7 @@ public class HTLCClientState extends HTLCState {
 			bld.op(ScriptOpCodes.OP_CHECKMULTISIG);
 		bld.op(ScriptOpCodes.OP_ELSE);
 			bld.op(ScriptOpCodes.OP_SHA256);
-			bld.data(secretHash);
+			bld.data(getId().toByteArray());
 			bld.op(ScriptOpCodes.OP_EQUALVERIFY);
 			bld.op(ScriptOpCodes.OP_2);
 			bld.data(clientSecondaryPubKey);
@@ -105,9 +103,16 @@ public class HTLCClientState extends HTLCState {
 	public void signAndStoreRefundTx(
 		Transaction refundTx,
 		TransactionSignature refundSig, 
-		ECKey clientPrimaryKey
-	) {
+		ECKey clientPrimaryKey,
+		Sha256Hash teardownTxHash
+	) {		
 		TransactionInput refundInput = refundTx.getInput(0);
+		
+		log.info("REFUND TX {}", refundTx);
+		ECKey.ECDSASignature clientSig = clientPrimaryKey.sign(teardownTxHash);
+		TransactionSignature clientTs = 
+			new TransactionSignature(clientSig, Transaction.SigHash.ALL, false);
+		/*
 		TransactionSignature clientSig = refundTx.calculateSignature(
 			0,
 			clientPrimaryKey,
@@ -115,11 +120,11 @@ public class HTLCClientState extends HTLCState {
 			Transaction.SigHash.ALL,
 			false
 		);
-		
+		*/
 		// Create the script that spends the multi-sig output.
 		ScriptBuilder bld = new ScriptBuilder();
 		bld.data(new byte[]{}); // Null dummy
-		bld.data(clientSig.encodeToBitcoin());
+		bld.data(clientTs.encodeToBitcoin());
 		bld.data(refundSig.encodeToBitcoin());
 		bld.op(ScriptOpCodes.OP_1);
 		Script refundInputScript = bld.build();
@@ -141,7 +146,7 @@ public class HTLCClientState extends HTLCState {
 		settlementTx.addOutput(getValue(), serverKey.toAddress(PARAMS));
 		settlementTx.addInput(
 			teardownTxHash,
-			3,
+			2,
 			teardownTxHTLCOutput.getScriptPubKey()
 		);
 		
@@ -166,7 +171,7 @@ public class HTLCClientState extends HTLCState {
 		forfeitTx.addOutput(getValue(), clientPrimaryKey.toAddress(PARAMS));
 		forfeitTx.addInput(
 			teardownTxHash, 
-			3,
+			2,
 			teardownTxHTLCOutput.getScriptPubKey()
 		);
 		

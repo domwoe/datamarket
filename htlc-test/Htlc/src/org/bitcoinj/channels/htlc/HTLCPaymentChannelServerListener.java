@@ -98,6 +98,7 @@ public class HTLCPaymentChannelServerListener {
                 		Coin to, 
                 		@Nullable ByteString info
             		) {
+	                	log.info("Call payment increase UP to event handler");
 	                    return eventHandler.paymentIncrease(by, to, info);
 	                }
 	            });
@@ -136,7 +137,6 @@ public class HTLCPaymentChannelServerListener {
 	                    if (eventHandler == null) {
 	                        handler.closeConnection();
 	                    } else {
-	                    	log.info("Connection open should call handler");
 	                        ServerHandler.this.eventHandler = eventHandler;
 	                        paymentChannelManager.connectionOpen();
 	                    }

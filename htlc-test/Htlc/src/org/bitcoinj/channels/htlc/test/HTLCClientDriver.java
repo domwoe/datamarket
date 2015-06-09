@@ -2,6 +2,7 @@ package org.bitcoinj.channels.htlc.test;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 import org.bitcoinj.channels.htlc.HTLCPaymentChannelClientConnection;
@@ -41,6 +42,7 @@ public class HTLCClientDriver {
         appKit.awaitRunning();
 		
         System.out.println(appKit.wallet());
+        appKit.wallet().allowSpendingUnconfirmedTransactions();
         if (appKit.wallet().getImportedKeys().size() < 2) {
         	// Import new keys
         	appKit.wallet().importKey(new ECKey());
@@ -49,13 +51,19 @@ public class HTLCClientDriver {
         
         ECKey primaryKey = appKit.wallet().getImportedKeys().get(0);
         ECKey secondaryKey = appKit.wallet().getImportedKeys().get(1);
-		
+        
+        log.info(
+			"Client addresses: {} {}", 
+    		primaryKey.toAddress(PARAMS), 
+    		secondaryKey.toAddress(PARAMS)
+		);
+
 		final int timeoutSecs = 15;
 		final InetSocketAddress server = 
 			new InetSocketAddress("localhost", 4242);
 		// 10 minutes
 		final long timeWindow = 600L;
-		Coin value = Coin.valueOf(5, 0);
+		Coin value = Coin.valueOf(1, 0);
 		
 		TransactionBroadcastScheduler broadcastScheduler = 
 			new TransactionBroadcastScheduler(appKit.peerGroup());
@@ -71,6 +79,8 @@ public class HTLCClientDriver {
 				value,
 				timeWindow
 			);
+		
+		final CountDownLatch latch = new CountDownLatch(1);
 		Futures.addCallback(
 			client.getChannelOpenFuture(), 
 			new FutureCallback<HTLCPaymentChannelClientConnection>() {
@@ -78,27 +88,30 @@ public class HTLCClientDriver {
 		    		HTLCPaymentChannelClientConnection client
 	    		) {
 			    	log.info("Success! Trying to make micropayments");
+			    	
 			    	final Coin MICROPAYMENT_SIZE = CENT.divide(10);
+			    	
 			    	try {
 			    		Uninterruptibles.getUninterruptibly(
 		    				client.incrementPayment(MICROPAYMENT_SIZE)
-	    				);
+	    				);	    				
 					} catch (
+						ExecutionException |
 						IllegalStateException | 
-						ExecutionException | 
 						ValueOutOfRangeException e
 					) {
 						e.printStackTrace();
 					}	
-			    	 log.info("Closing channel");
-			    	 client.settle();
+			    	log.info("Closing channel");
+			    	client.settle();
+			    	latch.countDown();
 			    }
 			    @Override public void onFailure(Throwable throwable) {
 			    	log.error(throwable.getLocalizedMessage());
+			    	latch.countDown();
 			    }
-		}, Threading.USER_THREAD);
-		
-		
+		}, Threading.USER_THREAD);	
+		latch.await();
 	}
 }
  

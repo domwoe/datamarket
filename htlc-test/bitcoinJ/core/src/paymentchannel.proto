@@ -64,6 +64,10 @@ message TwoWayChannelMessage {
         CLOSE = 9;
 
         // HTLC Payments Start
+        
+        // Use this for HTLCs channel setup; PROVIDE_CONTRACT doesn't work because HTLC needs a fully
+        // signed teardown tx
+        HTLC_PROVIDE_CONTRACT = 17;
 
         // Sent by the client to the server to request a new secret hash for a new HTLC to build
         HTLC_INIT = 12;
@@ -98,6 +102,8 @@ message TwoWayChannelMessage {
     optional Settlement settlement = 9;
 
     // HTLC Payments Start
+    
+    optional HTLCProvideContract htlc_provide_contract = 17;
 
     optional HTLCInit htlc_init = 12;
     optional HTLCInitReply htlc_init_reply = 13;
@@ -249,45 +255,50 @@ message PaymentAck {
 message Settlement {
     // A copy of the fully signed final contract that settles the channel. The client can verify
     // the transaction is correct and then commit it to their wallet.
-    required bytes tx = 3;
+    required bytes tx = 1;
+}
+
+message HTLCProvideContract {
+	required bytes tx = 1;
+	required HTLCSignedTransaction signed_initial_teardown = 2;
 }
 
 message HTLCInit {
-	required string request_id = 1;
+	required bytes request_id = 1;
 	required uint64 value = 2;
 }
 
 message HTLCInitReply {
 	// This is the reply of the server when the client requests a new HTLC (payment increase)
 	// Server replies with secret hash and an HTLC payment UUID
-	required string id = 1;
-	required string client_request_id = 2;
-	required bytes secret_hash = 3;
+	required bytes id = 1;
+	required bytes client_request_id = 2;
 }
 
 message HTLCSignedTransaction {
-	required bytes tx = 1;
-	required bytes signature = 2;
+	optional bytes id = 1;
+	required bytes tx = 2;
+	required bytes signature = 3;
 }
 
 message HTLCProvideSignedTeardown {
 	// This is sent by the client to the server providing the teardownTx with its signature
-	required string id = 1;
+	required bytes id = 1;
 	required HTLCSignedTransaction signed_teardown = 2;
 }
 
 message HTLCSignedRefundWithHash {
 	// This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
 	// message with the signed HTLC refundTx, and the teardownTx hash
-	required string id = 1;
+	required bytes id = 1;
 	required HTLCSignedTransaction signed_refund = 2;
-	required bytes hash = 3;
+	required bytes teardown_hash = 3;
 }
 
 message HTLCSignedSettleAndForfeit {
 	// This is sent by the client to the server after receiving the refund tx 
 	// and the teardown hash
-	required string id = 1;
+	required bytes id = 1;
 	required HTLCSignedTransaction signed_forfeit = 2;
 	required HTLCSignedTransaction signed_settle = 3;
 }

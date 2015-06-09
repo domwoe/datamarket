@@ -6,6 +6,8 @@ import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.RegTestParams;
 
+import com.google.protobuf.ByteString;
+
 public abstract class HTLCState {
 	
 	private static NetworkParameters PARAMS = RegTestParams.get();
@@ -15,27 +17,18 @@ public abstract class HTLCState {
 	private final long settlementExpiryTime;
 	private final long refundExpiryTime;
 	
-	private final String id;
+	private final ByteString secretHash; // Use it as HTLC id
 	
 	protected HTLCState(
-		String id,
+		ByteString id,
 		Coin value,
 		long settlementExpiryTime,
 		long refundExpiryTime
 	) {
-		this.id = id;
+		this.secretHash = id;
 		this.value = value;
 		this.settlementExpiryTime = settlementExpiryTime;
 		this.refundExpiryTime = refundExpiryTime;
-	}
-	
-	protected HTLCState(
-		Coin value,
-		long settlementExpiryTime,
-		long refundExpiryTime
-	) {
-		this(UUID.randomUUID().toString(), value, 
-			settlementExpiryTime, refundExpiryTime);
 	}
 	
 	public static NetworkParameters getParams() {
@@ -54,7 +47,7 @@ public abstract class HTLCState {
 		return refundExpiryTime;
 	}
 
-	public String getId() {
-		return id;
+	public ByteString getId() {
+		return secretHash;
 	}
 }

@@ -1,11 +1,8 @@
 package org.bitcoinj.channels.htlc;
 
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
@@ -24,17 +21,16 @@ import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
+import org.bitcoinj.protocols.channels.PaymentChannelServer;
+import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.pqc.math.linearalgebra.RandUtils;
 
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
-import static com.google.common.base.Preconditions.checkState;
 
 
 /**
@@ -47,7 +43,7 @@ public class HTLCPaymentChannelServer {
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCPaymentChannelServer.class);
 	
-	protected final ReentrantLock lock = Threading.lock("channelserver");
+	protected final ReentrantLock lock = Threading.lock("htlcchannelserver");
 	
 	public final int SERVER_MAJOR_VERSION = 1;
     public final int SERVER_MINOR_VERSION = 0;
@@ -203,9 +199,10 @@ public class HTLCPaymentChannelServer {
             			receiveVersionMessage(msg);
             			return;
             		case PROVIDE_REFUND:
+            			log.info("Received PROVIDE_REFUND");
             			receiveRefundMessage(msg);
             			return;
-            		case PROVIDE_CONTRACT:
+            		case HTLC_PROVIDE_CONTRACT:
             			receiveContractMessage(msg);
             			return;
             		case HTLC_INIT:
@@ -239,8 +236,8 @@ public class HTLCPaymentChannelServer {
                     		CloseReason.REMOTE_SENT_INVALID_MESSAGE
                 		);
             	}
-            } catch (Exception e) {
-            	
+            } catch (IllegalStateException | InsufficientMoneyException e) {
+            	log.error(e.toString());
             }
     	} finally {
     		lock.unlock();
@@ -281,6 +278,8 @@ public class HTLCPaymentChannelServer {
         	Utils.currentTimeSeconds() + clientVersion.getTimeWindowSecs();
         htlcSettlementExpiryTime = expireTime + DAILY_SECONDS;
 		htlcRefundExpiryTime = expireTime + 2*DAILY_SECONDS;
+		
+		step = InitStep.WAITING_ON_UNSIGNED_REFUND;
         
         Protos.Initiate.Builder initiateBuilder = Protos.Initiate.newBuilder()
             .setMultisigKey(ByteString.copyFrom(serverKey.getPubKey()))
@@ -297,10 +296,9 @@ public class HTLCPaymentChannelServer {
     @GuardedBy("lock")
     private void receiveRefundMessage(Protos.TwoWayChannelMessage msg) 	
     		throws VerificationException {
-    	checkState(
-			step == InitStep.WAITING_ON_UNSIGNED_REFUND && 
-			msg.hasProvideRefund()
-		);
+    	
+    	log.info("POTATO");
+    	checkState(step == InitStep.WAITING_ON_UNSIGNED_REFUND);
     	log.info("Got refund transaction, returning signature");
     	
     	Protos.ProvideRefund providedRefund = msg.getProvideRefund();
@@ -334,10 +332,11 @@ public class HTLCPaymentChannelServer {
     		throws VerificationException {
     	checkState(
 			step == InitStep.WAITING_ON_CONTRACT && 
-			msg.hasProvideContract()
+			msg.hasHtlcProvideContract()
 		);
     	log.info("Got contract, broadcasting and responding with CHANNEL_OPEN");
-    	final Protos.ProvideContract providedContract = msg.getProvideContract();
+    	final Protos.HTLCProvideContract providedContract = 
+			msg.getHtlcProvideContract();
     	final Transaction multisigContract = new Transaction(
 			wallet.getParams(), 
 			providedContract.getTx().toByteArray()
@@ -347,20 +346,28 @@ public class HTLCPaymentChannelServer {
     			.addListener(new Runnable() {
     				@Override
     				public void run() {
-    					multisigContractPropogated(
-							providedContract, 
-							multisigContract.getHash()
-						);
+    					try {
+							multisigContractPropogated(
+								providedContract, 
+								multisigContract.getHash()
+							);
+						} catch (ValueOutOfRangeException e) {
+							e.printStackTrace();
+						}
     				}
     			}, Threading.SAME_THREAD);
     }
     
     private void multisigContractPropogated(
-		Protos.ProvideContract providedContract,
+		Protos.HTLCProvideContract providedContract,
 		Sha256Hash contractHash
-	) {
+	) throws ValueOutOfRangeException {
     	lock.lock();
     	try {
+    		receivePaymentMessage(
+				providedContract.getSignedInitialTeardown(),
+				false
+			);
     		conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
     				.setType(Protos.TwoWayChannelMessage.MessageType.CHANNEL_OPEN)
     				.build());
@@ -370,11 +377,48 @@ public class HTLCPaymentChannelServer {
     		lock.unlock();
     	}
     }
+    
+    @GuardedBy("lock")
+    private void receivePaymentMessage(
+		Protos.HTLCSignedTransaction msg,
+		boolean sendAck
+	) throws ValueOutOfRangeException {
+    	log.info("Got a payment update");
+    	
+    	Coin lastBestPayment = state.getBestValueToMe();
+    	Transaction teardownTx = 
+			new Transaction(wallet.getParams(), msg.getTx().toByteArray());
+    	TransactionSignature teardownSig = 
+			TransactionSignature.decodeFromBitcoin(
+				msg.getSignature().toByteArray(), 
+				true
+			);
+    	state.receiveUpdatedTeardown(teardownTx, teardownSig);
+    	Coin bestPaymentChange = 
+			state.getBestValueToMe().subtract(lastBestPayment);
+    	
+    	if (bestPaymentChange.signum() > 0) {
+    		log.info("Calling UP into connection handler");
+    		conn.paymentIncrease(
+				bestPaymentChange, 
+				state.getBestValueToMe(), 
+				null
+			);
+    	}
+    	if (sendAck) {
+	    	// Send the ACK for the payment
+	    	final Protos.TwoWayChannelMessage.Builder ack = 
+				Protos.TwoWayChannelMessage.newBuilder();
+	    	ack.setType(Protos.TwoWayChannelMessage.MessageType.PAYMENT_ACK);
+	    	conn.sendToClient(ack.build());
+    	}    	
+    }
        
     @GuardedBy("lock")
     private void receiveHtlcInitMessage(TwoWayChannelMessage msg) {
+    	log.info("Received HTLC INIT msg, replying with HTLC_INIT_REPLY");
     	final Protos.HTLCInit htlcInitMsg = msg.getHtlcInit();
-    	final String clientRequestId = htlcInitMsg.getRequestId();
+    	final ByteString clientRequestId = htlcInitMsg.getRequestId();
     	final long value = htlcInitMsg.getValue();
     	
     	// Call into the HTLCChannelServerState method
@@ -383,8 +427,7 @@ public class HTLCPaymentChannelServer {
     	Protos.HTLCInitReply.Builder htlcInitReply =
 			Protos.HTLCInitReply.newBuilder()
 				.setId(newHtlcState.getId())
-				.setClientRequestId(clientRequestId)
-				.setSecretHash(ByteString.copyFrom(newHtlcState.getSecretHash()));
+				.setClientRequestId(clientRequestId);
     	conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
     			.setHtlcInitReply(htlcInitReply)
     			.setType(Protos.TwoWayChannelMessage.MessageType.HTLC_INIT_REPLY)
@@ -393,26 +436,30 @@ public class HTLCPaymentChannelServer {
     
     @GuardedBy("lock")
     private void receiveSignedTeardownMessage(TwoWayChannelMessage msg) {
+    	log.info("Received signed teardown message");
+    	
     	final Protos.HTLCProvideSignedTeardown teardownMsg = 
 			msg.getHtlcSignedTeardown();
     	final Protos.HTLCSignedTransaction signedTeardown = 
 			teardownMsg.getSignedTeardown();
-    	String htlcId = teardownMsg.getId();
+    	ByteString htlcId = teardownMsg.getId();
     	Transaction teardownTx = new Transaction(
 			wallet.getParams(), 
 			signedTeardown.getTx().toByteArray()
 		);
+    	
     	TransactionSignature teardownSig = 
 			TransactionSignature.decodeFromBitcoin(
 				signedTeardown.getSignature().toByteArray(), true
 			);
+    	log.info("Signing refund and teardown hash");
     	SignedTransactionWithHash sigTxWithHash = 
 			state.getSignedRefundAndTeardownHash(
 				htlcId, 
 				teardownTx,
 				teardownSig
 			);
-    	
+    	log.info("Done signing refund and teardown hash");
     	Protos.HTLCSignedTransaction.Builder signedRefund = 
 			Protos.HTLCSignedTransaction.newBuilder()
 				.setTx(ByteString.copyFrom(
@@ -425,13 +472,17 @@ public class HTLCPaymentChannelServer {
 			Protos.HTLCSignedRefundWithHash.newBuilder()
 				.setId(htlcId)
 				.setSignedRefund(signedRefund)
-				.setHash(ByteString.copyFrom(
+				.setTeardownHash(ByteString.copyFrom(
 					sigTxWithHash.getSpentTxHash().getBytes()
 				));
     	
+    	log.info("Replying with signed refund");
+    	
     	conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
     			.setHtlcSignedRefundWithHash(htlcSigRefund)
-    			.setType(Protos.TwoWayChannelMessage.MessageType.HTLC_SIGNED_REFUND)
+    			.setType(
+					Protos.TwoWayChannelMessage.MessageType.HTLC_SIGNED_REFUND
+				)
     			.build());	
     }
     
@@ -439,7 +490,7 @@ public class HTLCPaymentChannelServer {
     private void receiveSignedSettleAndForfeitMsg(TwoWayChannelMessage msg) {
     	Protos.HTLCSignedSettleAndForfeit htlcMsg = 
 			msg.getHtlcSignedSettleAndForfeit();
-    	String htlcId = htlcMsg.getId();
+    	ByteString htlcId = htlcMsg.getId();
     	Protos.HTLCSignedTransaction signedSettle = htlcMsg.getSignedSettle();
     	Transaction settleTx = new Transaction(
 			wallet.getParams(), 

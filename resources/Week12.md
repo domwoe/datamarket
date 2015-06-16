@@ -8,7 +8,7 @@
 5. Tested receiver teardown broadcasting at the right time (before channel refundTx becomes valid).
 6. Tested sender HTLC refund Tx broadcasting at the right time.
 7. Tested receiver settlement broadcasting at the right time.
-8. Discussed with Mike Hearn the options for getting a callback on the sender part when the teardownTx is broadcast by the receiver. Seems like the best option is to write a custom filter provider that insert the hash of the teardown Tx's.
+8. Discussed with Mike Hearn the options for getting a callback on the sender part when the teardownTx is broadcast by the receiver. Seems like the best option is to write a custom filter provider that inserts the hash of the teardown Tx's.
 
 
 ## Next steps

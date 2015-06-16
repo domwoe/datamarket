@@ -17,10 +17,10 @@ public abstract class HTLCState {
 	private final long settlementExpiryTime;
 	private final long refundExpiryTime;
 	
-	private final ByteString secretHash; // Use it as HTLC id
+	private final String secretHash; // Use it as HTLC id
 	
 	protected HTLCState(
-		ByteString id,
+		String id,
 		Coin value,
 		long settlementExpiryTime,
 		long refundExpiryTime
@@ -47,7 +47,7 @@ public abstract class HTLCState {
 		return refundExpiryTime;
 	}
 
-	public ByteString getId() {
+	public String getId() {
 		return secretHash;
 	}
 }

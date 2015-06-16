@@ -3,10 +3,12 @@ package org.bitcoinj.channels.htlc;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Transaction.SigHash;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutput;
+import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.script.Script;
@@ -14,7 +16,7 @@ import org.bitcoinj.script.ScriptBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.protobuf.ByteString;
+import static com.google.common.base.Preconditions.checkState;
 
 public class HTLCServerState extends HTLCState {
 
@@ -27,6 +29,7 @@ public class HTLCServerState extends HTLCState {
 		REFUND_SIGNED,
 		SETTLE_RECEIVED,
 		FORFEIT_RECEIVED,
+		FORFEIT_RETRIEVED,
 		SETTLE_RETRIEVED
 	}
 	private State state;
@@ -40,12 +43,12 @@ public class HTLCServerState extends HTLCState {
 	private Transaction forfeitTx;
 	private TransactionSignature clientForfeitTxSig;
 	
-	private ByteString secret;
+	private String secret;
 
 	public HTLCServerState(
 		Coin value,
-		ByteString secret,
-		ByteString secretHash,
+		String secret,
+		String secretHash,
 		long settlementExpiryTime,
 		long refundExpiryTime
 	) {
@@ -54,52 +57,109 @@ public class HTLCServerState extends HTLCState {
 		this.state = State.NEW;
 	}
 	
-	public SignedTransaction getSignedRefund(
+	public SignedTransactionWithHash getSignedRefund(
 		Transaction teardownTx,
 		ECKey clientKey,
 		ECKey serverKey
 	) {
+		checkState(state == State.NEW);
 		// TODO: FIX INDEX! It's not always 2!
 		TransactionOutput htlcOut = teardownTx.getOutput(2);
-		Transaction htlcRefundTx = new Transaction(PARAMS);
-		htlcRefundTx.addOutput(htlcOut.getValue(), clientKey.toAddress(PARAMS));
-		htlcRefundTx.addInput(htlcOut).setSequenceNumber(0);
-		htlcRefundTx.setLockTime(getRefundExpiryTime());
+		refundTx = new Transaction(PARAMS);
+		refundTx.addOutput(htlcOut.getValue(), clientKey.toAddress(PARAMS));
+		refundTx.addInput(htlcOut).setSequenceNumber(0);
+		refundTx.setLockTime(getRefundExpiryTime());
 		
-		TransactionSignature serverRefundSig = htlcRefundTx.calculateSignature(
+		TransactionSignature serverRefundSig = refundTx.calculateSignature(
 			0,
 			serverKey,
 			htlcOut.getScriptPubKey(),
 			Transaction.SigHash.ALL,
 			false
 		);
+		// TODO: Fix index, not always 2!
+		Sha256Hash sighash = refundTx.hashForSignature(
+			0, 
+			teardownTx.getOutput(2).getScriptPubKey(), 
+			Transaction.SigHash.ALL, 
+			false
+		);
 		this.state = State.REFUND_SIGNED;
-		return new SignedTransaction(htlcRefundTx, serverRefundSig);
+		return new SignedTransactionWithHash(refundTx, serverRefundSig, sighash);
 	}
 	
-	public void storeSignedSettlementTx(
+	public void verifyAndStoreSignedSettlementTx(
+		ECKey clientSecondaryKey,
+		Script htlcPubScript,
 		Transaction settlementTx,
-		TransactionSignature settlementSig
+		TransactionSignature settlementClientSig
 	) {
+		checkState(state == State.REFUND_SIGNED);
+		// Verify that the client's signature is correct
+		Sha256Hash sighash = settlementTx.hashForSignature(
+			0, 
+			htlcPubScript, 
+			Transaction.SigHash.ALL, 
+			false
+		);
+		
+		if (!clientSecondaryKey.verify(sighash, settlementClientSig)) {
+			throw new VerificationException(
+				"Client signature does not verify settlement Tx " +
+				settlementTx
+			);
+		}
+		
 		this.settlementTx = settlementTx;
-		this.clientSettlementTxSig = settlementSig;
+		this.clientSettlementTxSig = settlementClientSig;
 		this.state = State.SETTLE_RECEIVED;
 	}
 	
-	public void storeSignedForfeitTx(
+	public void verifyAndStoreSignedForfeitTx(
+		ECKey clientPrimaryKey,
+		Script htlcPubScript,
 		Transaction forfeitTx,
 		TransactionSignature clientForfeitTxSig
 	) {
+		checkState(state == State.SETTLE_RECEIVED);
+		// Verify that the client's signature is correct
+		Sha256Hash sighash = forfeitTx.hashForSignature(
+			0, 
+			htlcPubScript, 
+			Transaction.SigHash.ALL, 
+			false
+		);
+		if (!clientPrimaryKey.verify(sighash, clientForfeitTxSig)) {
+			throw new VerificationException(
+				"Client signature does not verify forfeiture Tx " +	forfeitTx
+			);
+		}
 		this.forfeitTx = forfeitTx;
 		this.clientForfeitTxSig = clientForfeitTxSig;
 		this.state = State.FORFEIT_RECEIVED;
+	} 
+	
+	public SignedTransaction getFullForfeitTx(
+		Transaction teardownTx,
+		ECKey serverKey
+	) {
+		checkState(state == State.FORFEIT_RECEIVED);
+		TransactionSignature serverSig = forfeitTx.calculateSignature(
+			0, 
+			serverKey, 
+			teardownTx.getOutput(2).getScriptPubKey(), 
+			SigHash.ALL,
+			false
+		);
+		this.state = State.FORFEIT_RETRIEVED;
+		return new SignedTransaction(forfeitTx, serverSig);
 	}
 	
 	public Transaction getFullSettlementTx(
 		Transaction teardownTx,
-		ECKey serverKey,
-		String secret
+		ECKey serverKey
 	) {
+		checkState(state == State.FORFEIT_RETRIEVED);
 		TransactionInput settleTxIn = settlementTx.getInput(0);
 		TransactionOutput htlcOutput = teardownTx.getOutput(2);
 		TransactionSignature serverSig = settlementTx.calculateSignature(
@@ -111,7 +171,7 @@ public class HTLCServerState extends HTLCState {
 		);
 		this.serverSettlementTxSig = serverSig;
 		
-		// Create the script that spends the multi-sig output.
+		// Create the script that spends the multisig output.
 		ScriptBuilder bld = new ScriptBuilder();
 		bld.data(serverSettlementTxSig.encodeToBitcoin());
 		bld.data(clientSettlementTxSig.encodeToBitcoin());
@@ -125,5 +185,13 @@ public class HTLCServerState extends HTLCState {
 		this.state = State.SETTLE_RETRIEVED;
 		return settlementTx;
 	}
+	
+	public Transaction getSettlementTx() {
+		return settlementTx;
+	}
+	
+	public String getSecret() {
+		return secret;
+	}
 }
- 
+  

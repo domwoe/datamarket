@@ -6,6 +6,7 @@ import java.net.SocketAddress;
 import javax.annotation.Nullable;
 
 import org.bitcoinj.channels.htlc.HTLCPaymentChannelServerListener;
+import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
@@ -49,8 +50,11 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
         ECKey serverKey = appKit.wallet().getImportedKeys().get(0);
         log.info("Server address: {}", serverKey.toAddress(PARAMS));
         
+        TransactionBroadcastScheduler broadcastScheduler = 
+    		new TransactionBroadcastScheduler(appKit.peerGroup());
+        
         new HTLCPaymentChannelServerListener(
-    		appKit.peerGroup(), 
+    		broadcastScheduler, 
     		appKit.wallet(), 
     		serverKey, 
     		15, 

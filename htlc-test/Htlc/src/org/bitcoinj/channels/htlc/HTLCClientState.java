@@ -1,7 +1,12 @@
 package org.bitcoinj.channels.htlc;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.GetHeadersMessage;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
@@ -16,9 +21,13 @@ import org.bitcoinj.script.ScriptOpCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.Hashing;
 import com.google.protobuf.ByteString;
 
 public class HTLCClientState extends HTLCState {
+	
+	// TODO: ADD STATE VALIDATION FOR EACH STEP
 	
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCClientState.class);
@@ -31,7 +40,8 @@ public class HTLCClientState extends HTLCState {
 		SETTLE_CREATED,
 		FORFEIT_CREATED,
 		SETTLE_EXPIRED,
-		FORFEIT_EXPIRED
+		FORFEIT_EXPIRED,
+		SETTLEABLE
 	}
 	private State state;
 	
@@ -54,7 +64,7 @@ public class HTLCClientState extends HTLCState {
 	}
 
 	public HTLCClientState(
-		ByteString secretHash, 
+		String secretHash, 
 		Coin value,
 		long settlementExpiryTime,
 		long refundExpiryTime
@@ -84,7 +94,7 @@ public class HTLCClientState extends HTLCState {
 			bld.op(ScriptOpCodes.OP_CHECKMULTISIG);
 		bld.op(ScriptOpCodes.OP_ELSE);
 			bld.op(ScriptOpCodes.OP_SHA256);
-			bld.data(getId().toByteArray());
+			bld.data(getId().getBytes());
 			bld.op(ScriptOpCodes.OP_EQUALVERIFY);
 			bld.op(ScriptOpCodes.OP_2);
 			bld.data(clientSecondaryPubKey);
@@ -112,15 +122,7 @@ public class HTLCClientState extends HTLCState {
 		ECKey.ECDSASignature clientSig = clientPrimaryKey.sign(teardownTxHash);
 		TransactionSignature clientTs = 
 			new TransactionSignature(clientSig, Transaction.SigHash.ALL, false);
-		/*
-		TransactionSignature clientSig = refundTx.calculateSignature(
-			0,
-			clientPrimaryKey,
-			teardownTxHTLCOutput.getScriptPubKey(),
-			Transaction.SigHash.ALL,
-			false
-		);
-		*/
+		
 		// Create the script that spends the multi-sig output.
 		ScriptBuilder bld = new ScriptBuilder();
 		bld.data(new byte[]{}); // Null dummy
@@ -130,7 +132,12 @@ public class HTLCClientState extends HTLCState {
 		Script refundInputScript = bld.build();
 		
 		refundInput.setScriptSig(refundInputScript);
-		refundInput.verify(teardownTxHTLCOutput);
+		
+		refundInputScript.correctlySpends(
+			refundTx, 
+			0,
+			teardownTxHTLCOutput.getScriptPubKey()
+		);
 		
 		this.refundTx = refundTx;
 		this.state = State.REFUND_VERIFIED;
@@ -138,22 +145,32 @@ public class HTLCClientState extends HTLCState {
 	
 	public SignedTransaction createSettlementTx(
 		Sha256Hash teardownTxHash,
-		ECKey clientPrimaryKey,
+		ECKey clientSecondaryKey,
 		ECKey serverKey
 	) {
+		Script htlcPubScript = teardownTxHTLCOutput.getScriptPubKey();
 		Transaction settlementTx = new Transaction(PARAMS);
-		settlementTx.setLockTime(getSettlementExpiryTime());
 		settlementTx.addOutput(getValue(), serverKey.toAddress(PARAMS));
 		settlementTx.addInput(
 			teardownTxHash,
 			2,
-			teardownTxHTLCOutput.getScriptPubKey()
-		);
+			htlcPubScript
+		).setSequenceNumber(0);
+		settlementTx.setLockTime(getSettlementExpiryTime());
+		
+		log.info("Settlement TX: {}", settlementTx);
+		log.info("Settlement htlcPubScript: {}", htlcPubScript);
+		log.info("Settlement TX HASH: {}", settlementTx.hashForSignature(
+			0, 
+			htlcPubScript, 
+			Transaction.SigHash.ALL, 
+			false
+		));
 		
 		TransactionSignature clientSig = settlementTx.calculateSignature(
 			0,
-			clientPrimaryKey, 
-			teardownTxHTLCOutput.getScriptPubKey(), 
+			clientSecondaryKey, 
+			htlcPubScript, 
 			SigHash.ALL, 
 			false
 		);
@@ -167,18 +184,19 @@ public class HTLCClientState extends HTLCState {
 		Sha256Hash teardownTxHash,
 		ECKey clientPrimaryKey
 	) {
+		Script htlcPubScript = teardownTxHTLCOutput.getScriptPubKey();
 		Transaction forfeitTx = new Transaction(PARAMS);
 		forfeitTx.addOutput(getValue(), clientPrimaryKey.toAddress(PARAMS));
 		forfeitTx.addInput(
 			teardownTxHash, 
 			2,
-			teardownTxHTLCOutput.getScriptPubKey()
+			htlcPubScript
 		);
 		
 		TransactionSignature clientSig = forfeitTx.calculateSignature(
 			0,
 			clientPrimaryKey, 
-			teardownTxHTLCOutput.getScriptPubKey(), 
+			htlcPubScript, 
 			SigHash.ALL, 
 			false
 		);
@@ -186,5 +204,12 @@ public class HTLCClientState extends HTLCState {
 		this.forfeitTx = forfeitTx;
 		this.state = State.FORFEIT_CREATED;
 		return new SignedTransaction(forfeitTx, clientSig);
+	}
+	
+	public boolean verifySecret(String secret) {
+		final String hashedSecret = Hashing.sha256()
+	        .hashString(secret, Charsets.UTF_8)
+	        .toString();
+		return hashedSecret.equals(getId());
 	}
 }

@@ -1,5 +1,6 @@
 package org.bitcoinj.channels.htlc;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,10 @@ import org.bitcoinj.core.TransactionBroadcaster;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 /**
  * This class maintains a set of transactions that need to be broadcasted
@@ -38,34 +43,71 @@ public class TransactionBroadcastScheduler {
 		this.broadcastScheduleMap = new HashMap<Transaction, TimerTask>();
 	}
 	
-	public void scheduleRefund(
-		final Transaction contractTx, 
-		final Transaction refundTx
+	/**
+	 * Simple wrapper for broadcast future 
+	 */
+	public ListenableFuture<Transaction> broadcastTransaction(
+		final Transaction tx
 	) {
+		return peerGroup.broadcastTransaction(tx).future();
+	}
+	
+	public void updateSchedule(
+		Transaction oldTx, 
+		Transaction newTx, 
+		long delay
+	) {
+		removeTransaction(oldTx);
+		scheduleTransaction(newTx, delay);
+	}
+	
+	public void scheduleTransaction(final Transaction tx, final long delay) {
 		lock.lock();
 		try {
+			log.info("Scheduled TX: {} at {}", tx, new Date(delay*1000));
 			TimerTask timerTask = new TimerTask() {
 				@Override
 				public void run() {
-					removeTransaction(refundTx);
-					peerGroup.broadcastTransaction(contractTx);
-					peerGroup.broadcastTransaction(refundTx);
+					log.info("Broadcasting Tx");
+					ListenableFuture<Transaction> future = 
+						peerGroup.broadcastTransaction(tx).future();
+					Futures.addCallback(
+						future,
+						new FutureCallback<Transaction>() {
+							@Override public void onSuccess(
+								Transaction transaction
+							) {
+								log.info("TX {} propagated", tx);
+							}
+							@Override public void onFailure(
+								Throwable throwable
+							) {
+								log.error(
+									"Failed to broadcast tx {}", 
+									throwable.toString()
+								);
+							}
+						}
+					);
+					log.info("Removing after broadcast");
+					removeTransaction(tx);
 				}
 			};
-			// Store so we can cancel later
-			broadcastScheduleMap.put(refundTx, timerTask);
+			// Store so we can cancel later if needed
+			broadcastScheduleMap.put(tx, timerTask);
 			timeoutHandler.schedule(
 				timerTask,
-				refundTx.getLockTime()
+				new Date(delay*1000)
 			);
 		} finally {
 			lock.unlock();
 		}
 	}
 	
-	private void removeTransaction(Transaction tx) {
+	public void removeTransaction(Transaction tx) {
 		lock.lock();
 		try {
+			log.info("Removing Tx: {} from scheduler", tx);
 			broadcastScheduleMap.get(tx).cancel();
 			broadcastScheduleMap.remove(tx);
 		} finally {

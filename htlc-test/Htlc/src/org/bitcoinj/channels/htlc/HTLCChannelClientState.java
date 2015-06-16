@@ -3,14 +3,12 @@ package org.bitcoinj.channels.htlc;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
-import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.TransactionInput;
@@ -19,7 +17,6 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
@@ -28,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
-import com.google.protobuf.ByteString;
 
 public class HTLCChannelClientState {
 	
@@ -57,6 +53,7 @@ public class HTLCChannelClientState {
 	private Transaction multisigContract;
 	private Transaction refundTx;
 	private Transaction teardownTx;
+	private int currentHTLCOutputIndex;
 	
 	private final Coin totalValue;
 	private Coin valueToMe;
@@ -65,12 +62,17 @@ public class HTLCChannelClientState {
 	
 	private Script multisigScript;
 
-	private final long DAILY_SECONDS = 86400; 
+	/**
+	 * Time when to broadcast the teardownTx before the channel refundTx
+	 * becomes valid and can be used by the sending counterpart (in minutes
+	 * before refundTx timelock)
+	 */
+	private final long TIME_DELTA = 2;
 	private final long expireTime;
 	private final long htlcSettlementExpiryTime;
 	private final long htlcRefundExpiryTime;
 	
-	private Map<ByteString, HTLCClientState> htlcMap;
+	private Map<String, HTLCClientState> htlcMap;
 	
 	public HTLCChannelClientState(
 		Wallet wallet, 
@@ -86,12 +88,13 @@ public class HTLCChannelClientState {
 		this.serverMultisigKey = serverMultisigKey;
 		this.wallet = wallet;
 		this.expireTime = expiryTimeInSec;
-		this.htlcSettlementExpiryTime = expiryTimeInSec + DAILY_SECONDS;
-		this.htlcRefundExpiryTime = expiryTimeInSec + 2*DAILY_SECONDS;
+		this.htlcSettlementExpiryTime = expiryTimeInSec + TIME_DELTA*60;
+		this.htlcRefundExpiryTime = expiryTimeInSec + 2*TIME_DELTA*60;
 		this.totalValue = this.valueToMe = value;
-		this.htlcMap = new HashMap<ByteString, HTLCClientState>();
+		this.htlcMap = new HashMap<String, HTLCClientState>();
 		this.totalValueInHTLCs = Coin.valueOf(0L);
 		this.broadcastScheduler = broadcastScheduler;
+		this.currentHTLCOutputIndex = 2;
 		setState(State.NEW);
 	}
 	
@@ -219,14 +222,15 @@ public class HTLCChannelClientState {
 	}
 	
 	/**
-	 * Method to be called after completing the refundTx to schedule
+	 * Method to be called after completing the channel refundTx to schedule
 	 * broadcasting of contract and refund
 	 */
 	public synchronized void scheduleBroadcast() {
 		checkState(state == State.SCHEDULE_BROADCAST);
-		broadcastScheduler.scheduleRefund(multisigContract, refundTx);
+		broadcastScheduler.scheduleTransaction(refundTx, refundTx.getLockTime());
 		try {
-			wallet.commitTx(multisigContract);
+		//	wallet.commitTx(multisigContract);
+			//wallet.commitTx(refundTx);
 		} catch (VerificationException e) {
 			throw new RuntimeException(e);
 		}
@@ -272,11 +276,12 @@ public class HTLCChannelClientState {
 	 * @throws ValueOutOfRangeException
 	 */
 	public synchronized SignedTransaction getSignedTeardownTx(
-		ByteString hashId,
+		String hashId,
 		Coin amount
 	) throws ValueOutOfRangeException {
 		
 		checkNotExpired();
+		log.info("Amount: {}", amount);
 		if (amount.signum() < 0) {
 		    throw new ValueOutOfRangeException("Tried to decrement payment");
 		}
@@ -323,7 +328,10 @@ public class HTLCChannelClientState {
 			false
 		);
 		
-		log.info("HTLCCHANNEL STATE Teardown input: {}", teardownTx.getInput(0).getConnectedOutput().getScriptPubKey());
+		log.info(
+			"HTLCCHANNEL STATE Teardown input: {}", 
+			teardownTx.getInput(0).getConnectedOutput().getScriptPubKey()
+		);
 		
 		return new SignedTransaction(teardownTx, teardownSig);
     }
@@ -333,7 +341,7 @@ public class HTLCChannelClientState {
 	 * teardownTx hash.
 	 */
 	public synchronized void finalizeHTLCRefundTx(
-		ByteString htlcId,
+		String htlcId,
 		Transaction refundTx,
 		TransactionSignature refundSig,
 		Sha256Hash teardownHash
@@ -347,19 +355,25 @@ public class HTLCChannelClientState {
 			clientPrimaryKey,
 			teardownHash
 		);
+		// And now schedule the HTLC refund broadcast, but cancel it 
+		// if the HTLC gets settled in the meanwhile
+		broadcastScheduler.scheduleTransaction(
+			htlcState.getRefundTx(), 
+			htlcRefundExpiryTime
+		);
 	}
 	
 	/**
 	 * Called after finalizeHTLCRefundTx() to create the signed settlement Tx
 	 */
 	public synchronized SignedTransaction getHTLCSettlementTx(
-		ByteString htlcId,
+		String htlcId,
 		Sha256Hash spentTxHash
 	) {
 		HTLCClientState htlcState = htlcMap.get(htlcId);
 		return htlcState.createSettlementTx(
 			spentTxHash,
-			clientPrimaryKey,
+			clientSecondaryKey,
 			serverMultisigKey
 		);
 	}
@@ -370,7 +384,7 @@ public class HTLCChannelClientState {
 	 * @return
 	 */
 	public synchronized SignedTransaction getHTLCForfeitTx(
-		ByteString htlcId,
+		String htlcId,
 		Sha256Hash spentTxHash
 	) {
 		HTLCClientState htlcState = htlcMap.get(htlcId);
@@ -380,38 +394,62 @@ public class HTLCChannelClientState {
 		);
 	}
 	
-	/**
-	 * Call this method when server sends us a secret; if it matches the 
-	 * stored secret, create a new teardownTx, sign it and send it to the
-	 * server
-	 */
-	public synchronized SignedTransaction removeHTLCAndUpdateTeardownTx(
-		ByteString htlcId
+	public synchronized boolean verifyHTLCForfeitTx(
+		String htlcId,
+		Transaction forfeitTx,
+		TransactionSignature forfeitSig
 	) {
-		// Add index to be stored in the HTLCState so we know which output to remove
-		// USE 2 for now
+		// TODO: Dummy for now, add logic for checking signature of forfeitTX
+		return true;
+	}
+	
+	public synchronized void cancelHTLCRefundTxBroadcast(String htlcId) {
+		HTLCClientState htlcState = htlcMap.get(htlcId);
+		broadcastScheduler.removeTransaction(htlcState.getRefundTx());
+	}
+	
+	/**
+	 * Called when the server ACK's that the HTLC can be settled at any time now
+	 */
+	public synchronized SignedTransaction attemptSettle(
+		String htlcId,
+		String secret
+	) {
+		HTLCClientState htlcState = htlcMap.get(htlcId);
+		if (htlcState.verifySecret(secret)) {
+			log.info("Secret verified");
+			// Hash matches, we can remove the HTLC and update the teardownTx
+			return removeHTLCAndUpdateTeardownTx(htlcState);
+		}
+		log.info("Secret verification failed");
+		return null;
+	}
+	
+	private synchronized SignedTransaction removeHTLCAndUpdateTeardownTx(
+		HTLCClientState htlcState
+	) {
 		// TODO: ADD HTLCState validation
-		TransactionOutput serverOutput = teardownTx.getOutput(1);
-		TransactionOutput htlcOutput = teardownTx.getOutput(2);
+		Coin htlcValue = htlcState.getValue();
+		Coin valueToServer = teardownTx.getOutput(1).getValue();
+		totalValueInHTLCs = totalValueInHTLCs.subtract(htlcValue);
 		teardownTx.clearOutputs();
 		teardownTx.addOutput(
 			valueToMe, 
 			clientPrimaryKey.toAddress(wallet.getParams())
 		);
 		teardownTx.addOutput(
-			serverOutput.getValue().add(htlcOutput.getValue()),
+			valueToServer.add(htlcValue),
 			serverMultisigKey.toAddress(wallet.getParams())
 		);
-		totalValueInHTLCs = totalValueInHTLCs.subtract(htlcOutput.getValue());
 		TransactionSignature teardownSig = teardownTx.calculateSignature(
 			0,
 			clientPrimaryKey,
-			multisigContract.getOutput(0).getScriptPubKey(),
+			multisigScript,
 			Transaction.SigHash.ALL,
 			false
 		);
 		// Remove HTLC from map
-		htlcMap.remove(htlcId);
+		htlcMap.remove(htlcState.getId());
 		return new SignedTransaction(teardownTx, teardownSig);
 	}
 		

@@ -14,6 +14,8 @@ import javax.annotation.Nullable;
 import net.jcip.annotations.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoin.paymentchannel.Protos.HTLCPaymentAck;
+import org.bitcoinj.core.BitcoinSerializer;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
@@ -62,11 +64,10 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 	@GuardedBy("lock") private HTLCChannelClientState state;
 	
 	@GuardedBy("lock")
-	private Map<ByteString, SettableFuture<PaymentIncrementAck> > 
-		paymentAckFutureMap;
+	private Map<String, SettableFuture<PaymentIncrementAck> > paymentAckFutureMap;
 	
 	@GuardedBy("lock")
-	private Map<ByteString, Coin> paymentValueMap; 
+	private Map<String, Coin> paymentValueMap; 
 	
 	private enum InitStep {
 		WAITING_FOR_CONNECTION_OPEN,
@@ -96,7 +97,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	ECKey clientSecondaryKey,
     	Coin value,
     	long timeWindow,
-    	ClientConnection  conn
+    	ClientConnection conn
 	) {
     	this.wallet = wallet;
     	this.broadcastScheduler = broadcastScheduler;
@@ -106,8 +107,8 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	this.timeWindow = timeWindow;
     	this.conn = conn;
     	this.paymentAckFutureMap = 
-			new HashMap<ByteString, SettableFuture<PaymentIncrementAck>>();
-    	this.paymentValueMap = new HashMap<ByteString, Coin>();
+			new HashMap<String, SettableFuture<PaymentIncrementAck>>();
+    	this.paymentValueMap = new HashMap<String, Coin>();
     }
     
     /**
@@ -186,6 +187,13 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
         			return;
         		case HTLC_SIGNED_REFUND:
         			receiveHtlcSignedRefundWithHash(msg);
+        			return;
+        		case HTLC_REVEAL_SECRET:
+        			receiveHtlcSecret(msg);
+        			return;
+        		case HTLC_PAYMENT_ACK:
+        			receiveHtlcPaymentAck(msg);
+        			return;
         		case CLOSE:
         			receiveClose(msg);
         			return;
@@ -318,7 +326,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	state.provideRefundSignature(returnedRefund.getSignature().toByteArray());
     	step = InitStep.WAITING_FOR_CHANNEL_OPEN;
     	
-    	// Schedule the broadcast of the contract and the refund;
+    	// Schedule the broadcast of the channel refund;
     	// Ensure the tx is safely stored in the wallet
     	state.scheduleBroadcast();
     	
@@ -374,21 +382,27 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	ByteString requestId = htlcInitReply.getClientRequestId();
     	ByteString hashId = htlcInitReply.getId();
     	
+    	String id = new String(hashId.toByteArray());
+    	String reqIdString = new String(requestId.toByteArray());
+    	
+    	log.info("ID: {}", id);
+    	log.info("REQ ID: {}", reqIdString);
+    	
     	// Update the key in the map to only use one id from now on
     	SettableFuture<PaymentIncrementAck> paymentAckFuture = 
-			paymentAckFutureMap.get(requestId);
-    	paymentAckFutureMap.remove(requestId);
-    	paymentAckFutureMap.put(htlcInitReply.getId(), paymentAckFuture);
-    	// Let's set the future to return early in the protocol
+			paymentAckFutureMap.get(reqIdString);
+    	paymentAckFutureMap.remove(reqIdString);
+    	paymentAckFutureMap.put(id, paymentAckFuture);
     	
-    	Coin storedValue = paymentValueMap.get(requestId);
-    	paymentValueMap.remove(requestId);
+    	Coin storedValue = paymentValueMap.get(reqIdString);
+    	paymentValueMap.remove(reqIdString);
+    	paymentValueMap.put(id, storedValue);
     	
     	log.info("Received htlc INIT REPLY.");
     	
     	try {
     		SignedTransaction signedTx = state.getSignedTeardownTx(
-    			hashId, 
+    			id, 
 				storedValue
 			);
     		Protos.HTLCSignedTransaction.Builder signedTeardown =
@@ -443,16 +457,18 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	
     	log.info("Server teardown hash: {}", teardownHash);
     	
+    	String id = new String(htlcId.toByteArray());
+    	
     	// finalize the HTLC refund and store it in the state
-    	state.finalizeHTLCRefundTx(htlcId, refundTx, refundSig, teardownHash);
+    	state.finalizeHTLCRefundTx(id, refundTx, refundSig,	teardownHash);
     	
     	SignedTransaction signedForfeit = state.getHTLCForfeitTx(
-			htlcId, 
+			id,
 			teardownHash
 		);
     	
     	SignedTransaction signedSettlement = state.getHTLCSettlementTx(
-			htlcId, 
+			id, 
 			teardownHash
 		);
     	
@@ -477,6 +493,9 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	Protos.HTLCSignedSettleAndForfeit.Builder sigSettleForfeit = 
 			Protos.HTLCSignedSettleAndForfeit.newBuilder()
 				.setId(htlcId)
+				.setClientSecondaryKey(
+					ByteString.copyFrom(clientSecondaryKey.getPubKey())
+				)
 				.setSignedForfeit(signedForfeitMsg)
 				.setSignedSettle(signedSettleMsg);
     	
@@ -488,6 +507,78 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 		);
     	
     	conn.sendToServer(serverMsg.build());
+    }
+    
+    @GuardedBy("lock")
+    private void receiveHtlcSecret(Protos.TwoWayChannelMessage msg) {
+    	checkState(step == InitStep.CHANNEL_OPEN);
+    	log.info("Received htlcSecret. Attempting to settle");
+    	Protos.HTLCRevealSecret revealMsg = msg.getHtlcRevealSecret();
+    	ByteString htlcId = revealMsg.getId();
+    	ByteString secret = revealMsg.getSecret();
+    	Protos.HTLCSignedTransaction signedForfeit = 
+			revealMsg.getSignedForfeit();
+    	Transaction forfeitTx = new Transaction(
+			wallet.getParams(),
+			signedForfeit.getTx().toByteArray()
+		);
+    	TransactionSignature forfeitSig = 
+			TransactionSignature.decodeFromBitcoin(
+				signedForfeit.getSignature().toByteArray(), 
+				true
+			);
+    	String id = new String(htlcId.toByteArray());
+    	String secretString = new String(secret.toByteArray());
+    	
+    	// Verify the signed forfeit
+    	if (!state.verifyHTLCForfeitTx(id, forfeitTx, forfeitSig)) {
+    		// Send error msg to server and return
+    		return;
+    	}
+    	
+    	
+    	SignedTransaction signedTeardown = state.attemptSettle(
+			new String(htlcId.toByteArray()), 
+			new String(secret.toByteArray())
+		);
+    	if (signedTeardown != null) {
+    		// We have an updated teardown, send it to the server
+    		Protos.HTLCSignedTransaction.Builder signedTeardownMsg = 
+				Protos.HTLCSignedTransaction.newBuilder()
+					.setTx(ByteString.copyFrom(
+						signedTeardown.getTx().bitcoinSerialize()
+					))
+					.setSignature(ByteString.copyFrom(
+						signedTeardown.getSig().encodeToBitcoin()
+					));
+    		Protos.HTLCUpdateTeardown.Builder upTeardownMsg = 
+				Protos.HTLCUpdateTeardown.newBuilder()
+					.setId(htlcId)
+					.setSignedTeardown(signedTeardownMsg);
+    		final Protos.TwoWayChannelMessage.Builder channelMsg = 
+				Protos.TwoWayChannelMessage.newBuilder();
+    		channelMsg.setHtlcUpdateTeardown(upTeardownMsg);
+    		channelMsg.setType(
+				Protos.TwoWayChannelMessage.MessageType.HTLC_UPDATE_TEARDOWN
+			);
+    		conn.sendToServer(channelMsg.build());
+    	}
+    }
+    
+    @GuardedBy("lock")
+    private void receiveHtlcPaymentAck(Protos.TwoWayChannelMessage msg) {
+    	checkState(step == InitStep.CHANNEL_OPEN);
+    	log.info("Received HTLC payment ACK message");
+    	Protos.HTLCPaymentAck ack = msg.getHtlcPaymentAck();
+    	ByteString htlcId = ack.getId();
+    	String id = new String(htlcId.toByteArray());
+    	Coin value = paymentValueMap.remove(id);
+    	// This will cancel the broadcast of the HTLC refund Tx
+    	state.cancelHTLCRefundTxBroadcast(id);
+    	// Let's set the future - we are done with this HTLC
+    	SettableFuture<PaymentIncrementAck> future = 
+			paymentAckFutureMap.get(id);
+    	future.set(new PaymentIncrementAck(value, htlcId));
     }
     
     @GuardedBy("lock")
@@ -551,8 +642,9 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 			// This UUID will be mirrored back by the server
 			ByteString requestId = 
 				ByteString.copyFrom(UUID.randomUUID().toString().getBytes());
-			paymentAckFutureMap.put(requestId, incrementPaymentFuture);
-			paymentValueMap.put(requestId, value);
+			String reqIdString = new String(requestId.toByteArray());
+			paymentAckFutureMap.put(reqIdString, incrementPaymentFuture);
+			paymentValueMap.put(reqIdString, value);
 			
 			Protos.HTLCInit.Builder htlcInitMsg = Protos.HTLCInit.newBuilder()
 					.setRequestId(requestId)

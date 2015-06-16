@@ -38,7 +38,7 @@ public class HTLCPaymentChannelServerListener {
 			LoggerFactory.getLogger(HTLCPaymentChannelServerListener.class);
 	private final Wallet wallet;
 	private final ECKey serverKey;
-	private final TransactionBroadcaster broadcaster;
+	private final TransactionBroadcastScheduler broadcaster;
 	
 	 // The event handler factory which creates new 
 	// ServerConnectionEventHandler per connection
@@ -170,7 +170,7 @@ public class HTLCPaymentChannelServerListener {
     }
     
     public HTLCPaymentChannelServerListener(
-		TransactionBroadcaster broadcaster,
+		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
 		ECKey serverKey,
 		final int timeoutSeconds,

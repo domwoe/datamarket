@@ -3,6 +3,7 @@ package org.bitcoinj.channels.htlc;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
@@ -134,7 +135,7 @@ public class HTLCPaymentChannelServer {
     
     // The wallet and peergroup which are used to complete/broadcast transactions
     private final Wallet wallet;
-    private final TransactionBroadcaster broadcaster;
+    private final TransactionBroadcastScheduler broadcaster;
     
     // The key used for multisig in this channel
     @GuardedBy("lock") private final ECKey serverKey;
@@ -148,11 +149,9 @@ public class HTLCPaymentChannelServer {
     private final long DAILY_SECONDS = 86400;
     // The time this channel expires (ie the refund transaction's locktime)
     @GuardedBy("lock") private long expireTime;
-    @GuardedBy("lock") private long htlcSettlementExpiryTime;
-	@GuardedBy("lock") private long htlcRefundExpiryTime;
     
     public HTLCPaymentChannelServer(
-		TransactionBroadcaster broadcaster,
+		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
 		ECKey serverKey,
 		Coin minAcceptedChannelSize,
@@ -214,6 +213,9 @@ public class HTLCPaymentChannelServer {
             		case HTLC_SIGNED_SETTLE_FORFEIT:
             			receiveSignedSettleAndForfeitMsg(msg);
             			return;
+            		case HTLC_UPDATE_TEARDOWN:
+            			receiveUpdatedTeardownMsg(msg);
+            			return;
             		case CLOSE:
             			receiveCloseMessage();
             			return;
@@ -236,7 +238,11 @@ public class HTLCPaymentChannelServer {
                     		CloseReason.REMOTE_SENT_INVALID_MESSAGE
                 		);
             	}
-            } catch (IllegalStateException | InsufficientMoneyException e) {
+            } catch (
+        		IllegalStateException | 
+        		InsufficientMoneyException | 
+        		UnsupportedEncodingException e
+    		) {
             	log.error(e.toString());
             }
     	} finally {
@@ -276,8 +282,6 @@ public class HTLCPaymentChannelServer {
         
         expireTime = 
         	Utils.currentTimeSeconds() + clientVersion.getTimeWindowSecs();
-        htlcSettlementExpiryTime = expireTime + DAILY_SECONDS;
-		htlcRefundExpiryTime = expireTime + 2*DAILY_SECONDS;
 		
 		step = InitStep.WAITING_ON_UNSIGNED_REFUND;
         
@@ -383,7 +387,7 @@ public class HTLCPaymentChannelServer {
 		Protos.HTLCSignedTransaction msg,
 		boolean sendAck
 	) throws ValueOutOfRangeException {
-    	log.info("Got a payment update");
+    	log.info("Got a payment message");
     	
     	Coin lastBestPayment = state.getBestValueToMe();
     	Transaction teardownTx = 
@@ -393,7 +397,7 @@ public class HTLCPaymentChannelServer {
 				msg.getSignature().toByteArray(), 
 				true
 			);
-    	state.receiveUpdatedTeardown(teardownTx, teardownSig);
+    	state.receiveInitialTeardown(teardownTx, teardownSig);
     	Coin bestPaymentChange = 
 			state.getBestValueToMe().subtract(lastBestPayment);
     	
@@ -415,7 +419,8 @@ public class HTLCPaymentChannelServer {
     }
        
     @GuardedBy("lock")
-    private void receiveHtlcInitMessage(TwoWayChannelMessage msg) {
+    private void receiveHtlcInitMessage(TwoWayChannelMessage msg) 
+    		throws UnsupportedEncodingException {
     	log.info("Received HTLC INIT msg, replying with HTLC_INIT_REPLY");
     	final Protos.HTLCInit htlcInitMsg = msg.getHtlcInit();
     	final ByteString clientRequestId = htlcInitMsg.getRequestId();
@@ -426,7 +431,7 @@ public class HTLCPaymentChannelServer {
     	
     	Protos.HTLCInitReply.Builder htlcInitReply =
 			Protos.HTLCInitReply.newBuilder()
-				.setId(newHtlcState.getId())
+				.setId(ByteString.copyFrom(newHtlcState.getId().getBytes()))
 				.setClientRequestId(clientRequestId);
     	conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
     			.setHtlcInitReply(htlcInitReply)
@@ -443,6 +448,7 @@ public class HTLCPaymentChannelServer {
     	final Protos.HTLCSignedTransaction signedTeardown = 
 			teardownMsg.getSignedTeardown();
     	ByteString htlcId = teardownMsg.getId();
+    	String id = new String(htlcId.toByteArray());
     	Transaction teardownTx = new Transaction(
 			wallet.getParams(), 
 			signedTeardown.getTx().toByteArray()
@@ -455,7 +461,7 @@ public class HTLCPaymentChannelServer {
     	log.info("Signing refund and teardown hash");
     	SignedTransactionWithHash sigTxWithHash = 
 			state.getSignedRefundAndTeardownHash(
-				htlcId, 
+				id, 
 				teardownTx,
 				teardownSig
 			);
@@ -491,7 +497,14 @@ public class HTLCPaymentChannelServer {
     	Protos.HTLCSignedSettleAndForfeit htlcMsg = 
 			msg.getHtlcSignedSettleAndForfeit();
     	ByteString htlcId = htlcMsg.getId();
+    	String id = new String(htlcId.toByteArray());
     	Protos.HTLCSignedTransaction signedSettle = htlcMsg.getSignedSettle();
+    	
+    	ECKey clientSecondaryKey = ECKey.fromPublicOnly(
+			htlcMsg.getClientSecondaryKey().toByteArray()
+		);
+    	state.setClientSecondaryKey(clientSecondaryKey);
+    	
     	Transaction settleTx = new Transaction(
 			wallet.getParams(), 
 			signedSettle.getTx().toByteArray()
@@ -500,8 +513,9 @@ public class HTLCPaymentChannelServer {
 			signedSettle.getSignature().toByteArray(), 
 			true
 		);
-    	state.storeHTLCSettlementTx(
-			htlcId, 
+    	
+    	state.finalizeHTLCSettlementTx(
+			id, 
 			settleTx,
 			settleSig
 		);
@@ -515,11 +529,70 @@ public class HTLCPaymentChannelServer {
 			signedForfeit.getSignature().toByteArray(), 
 			true
 		);
-    	state.storeHTLCForfeitTx(
-    		htlcId,
+    	state.finalizeHTLCForfeitTx(
+    		id,
     		forfeitTx,
     		forfeitSig
 		);
+    	
+    	// If we already have the secret for this HTLC, let's settle it early;
+    	// We also send the client the forfeitTx, in case later the server
+    	// wants to use an older teardown
+    	String secret = state.getSecretForHTLC(id);
+    	if (secret != null) {
+    		SignedTransaction fullySignedForfeit = state.getFullForfeitTx(id);
+    		Protos.HTLCSignedTransaction.Builder signedForfeitMsg = 
+				Protos.HTLCSignedTransaction.newBuilder()
+					.setTx(ByteString.copyFrom(
+						fullySignedForfeit.getTx().bitcoinSerialize()
+					))
+					.setSignature(ByteString.copyFrom(
+						fullySignedForfeit.getSig().encodeToBitcoin()
+					));
+    		
+    		Protos.HTLCRevealSecret.Builder revealMsg = 
+				Protos.HTLCRevealSecret.newBuilder()
+					.setId(htlcId)
+					.setSecret(ByteString.copyFrom(secret.getBytes()))
+					.setSignedForfeit(signedForfeitMsg);
+    		final Protos.TwoWayChannelMessage.Builder channelMsg = 
+				Protos.TwoWayChannelMessage.newBuilder();
+    		channelMsg.setType(
+				Protos.TwoWayChannelMessage.MessageType.HTLC_REVEAL_SECRET
+			);
+    		channelMsg.setHtlcRevealSecret(revealMsg);
+    		conn.sendToClient(channelMsg.build());
+    	}
+    }
+    
+    @GuardedBy("lock")
+    private void receiveUpdatedTeardownMsg(TwoWayChannelMessage msg) {
+    	Protos.HTLCUpdateTeardown updatedTeardownMsg = 
+			msg.getHtlcUpdateTeardown();
+    	Protos.HTLCSignedTransaction signedTeardown = 
+			updatedTeardownMsg.getSignedTeardown();
+    	ByteString htlcId = updatedTeardownMsg.getId();
+    	String id = new String(htlcId.toByteArray());
+    	Transaction teardownTx = new Transaction(
+			wallet.getParams(),
+			signedTeardown.getTx().toByteArray()
+		);
+    	TransactionSignature teardownSig = 
+			TransactionSignature.decodeFromBitcoin(
+				signedTeardown.getSignature().toByteArray(), 
+				true
+			);
+    	if (state.removeHTLCAndUpdateTeardownTx(id, teardownTx, teardownSig)) {
+    		// We ACK the payment
+    		Protos.HTLCPaymentAck.Builder ackMsg = 
+				Protos.HTLCPaymentAck.newBuilder()
+					.setId(htlcId);
+    		final Protos.TwoWayChannelMessage.Builder ack = 
+				Protos.TwoWayChannelMessage.newBuilder();
+    		ack.setType(Protos.TwoWayChannelMessage.MessageType.HTLC_PAYMENT_ACK);
+    		ack.setHtlcPaymentAck(ackMsg);
+    		conn.sendToClient(ack.build());    		
+    	}
     }
     
     @GuardedBy("lock")

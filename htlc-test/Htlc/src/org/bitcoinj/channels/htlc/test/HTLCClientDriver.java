@@ -1,6 +1,7 @@
 package org.bitcoinj.channels.htlc.test;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -12,7 +13,9 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
+import org.bitcoinj.protocols.channels.PaymentIncrementAck;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
+import org.bitcoinj.protocols.channels.PaymentChannelClientState.IncrementedPayment;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +30,9 @@ public class HTLCClientDriver {
 	private static final org.slf4j.Logger log = 
 		LoggerFactory.getLogger(HTLCClientDriver.class);
 	private static final NetworkParameters PARAMS = RegTestParams.get();
+	private final Coin MICROPAYMENT_SIZE = CENT.divide(10);
+	
+	private CountDownLatch latch;
 	
 	private WalletAppKit appKit;
 	
@@ -62,7 +68,7 @@ public class HTLCClientDriver {
 		final InetSocketAddress server = 
 			new InetSocketAddress("localhost", 4242);
 		// 10 minutes
-		final long timeWindow = 600L;
+		final long timeWindow = 300L;
 		Coin value = Coin.valueOf(1, 0);
 		
 		TransactionBroadcastScheduler broadcastScheduler = 
@@ -70,7 +76,7 @@ public class HTLCClientDriver {
 		
 		HTLCPaymentChannelClientConnection client = 
 			new HTLCPaymentChannelClientConnection(
-				server, 
+				server,
 				timeoutSecs,
 				appKit.wallet(),
 				broadcastScheduler,
@@ -79,39 +85,55 @@ public class HTLCClientDriver {
 				value,
 				timeWindow
 			);
-		
-		final CountDownLatch latch = new CountDownLatch(1);
+		latch = new CountDownLatch(1);
 		Futures.addCallback(
 			client.getChannelOpenFuture(), 
 			new FutureCallback<HTLCPaymentChannelClientConnection>() {
 			    @Override public void onSuccess(
-		    		HTLCPaymentChannelClientConnection client
+		    		final HTLCPaymentChannelClientConnection client
 	    		) {
-			    	log.info("Success! Trying to make micropayments");
-			    	
-			    	final Coin MICROPAYMENT_SIZE = CENT.divide(10);
-			    	
+			    	/*
+			    	log.info("Success! Trying to make micropayments");			    	
 			    	try {
-			    		Uninterruptibles.getUninterruptibly(
-		    				client.incrementPayment(MICROPAYMENT_SIZE)
-	    				);	    				
-					} catch (
-						ExecutionException |
-						IllegalStateException | 
-						ValueOutOfRangeException e
-					) {
+						paymentIncrementCallback(client);
+					} catch (IllegalStateException | ValueOutOfRangeException e) {
 						e.printStackTrace();
-					}	
-			    	log.info("Closing channel");
-			    	client.settle();
-			    	latch.countDown();
+					}
+					*/
 			    }
 			    @Override public void onFailure(Throwable throwable) {
 			    	log.error(throwable.getLocalizedMessage());
-			    	latch.countDown();
 			    }
-		}, Threading.USER_THREAD);	
+		}, Threading.USER_THREAD);
 		latch.await();
+	}
+	
+	private void paymentIncrementCallback(
+		final HTLCPaymentChannelClientConnection client
+	) throws IllegalStateException, ValueOutOfRangeException {
+		Futures.addCallback(
+			client.incrementPayment(MICROPAYMENT_SIZE), 
+			new FutureCallback<PaymentIncrementAck>() {
+				@Override public void onSuccess(PaymentIncrementAck ack) {
+					try {
+						log.info(
+							"Successfully made payment {} {}", 
+							new String(ack.getInfo().toByteArray(), "UTF-8"), 
+							ack.getValue()
+						);
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					log.info("Closing channel");
+			    	client.settle();
+			    //	latch.countDown();
+				}
+				@Override public void onFailure(Throwable throwable) {
+					log.error(throwable.getLocalizedMessage());
+				//	latch.countDown();
+				}
+			}
+		);
 	}
 }
  

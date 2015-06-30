@@ -1,5 +1,6 @@
 package org.bitcoinj.channels.htlc;
 
+import static com.google.common.base.Preconditions.checkState;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -77,9 +78,7 @@ public class HTLCClientState extends HTLCState {
 		Transaction teardownTx, 
 		HTLCKeys keys
 	) {
-		if (this.state != State.NEW) {
-			throw new IllegalStateException("HTLC is in invalid state!");
-		}
+		checkState(state == State.NEW);
 		
 		byte[] clientPrimaryPubKey = keys.getClientPrimaryKey().getPubKey();
 		byte[] clientSecondaryPubKey = keys.getClientSecondaryKey().getPubKey();
@@ -206,7 +205,12 @@ public class HTLCClientState extends HTLCState {
 		return new SignedTransaction(forfeitTx, clientSig);
 	}
 	
+	public void makeSettleable() {
+		this.state = State.SETTLEABLE;
+	}
+	
 	public boolean verifySecret(String secret) {
+		checkState(state == State.SETTLEABLE);
 		final String hashedSecret = Hashing.sha256()
 	        .hashString(secret, Charsets.UTF_8)
 	        .toString();

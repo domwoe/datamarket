@@ -255,45 +255,59 @@ public final class Protos {
      */
     org.bitcoin.paymentchannel.Protos.HTLCSignedSettleAndForfeitOrBuilder getHtlcSignedSettleAndForfeitOrBuilder();
 
-    // optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;
+    // optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;
     /**
-     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+     * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+     */
+    boolean hasHtlcSetupComplete();
+    /**
+     * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+     */
+    org.bitcoin.paymentchannel.Protos.HTLCSetupComplete getHtlcSetupComplete();
+    /**
+     * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+     */
+    org.bitcoin.paymentchannel.Protos.HTLCSetupCompleteOrBuilder getHtlcSetupCompleteOrBuilder();
+
+    // optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;
+    /**
+     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
      */
     boolean hasHtlcRevealSecret();
     /**
-     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCRevealSecret getHtlcRevealSecret();
     /**
-     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCRevealSecretOrBuilder getHtlcRevealSecretOrBuilder();
 
-    // optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;
+    // optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;
     /**
-     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
      */
     boolean hasHtlcUpdateTeardown();
     /**
-     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown getHtlcUpdateTeardown();
     /**
-     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardownOrBuilder getHtlcUpdateTeardownOrBuilder();
 
-    // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;
+    // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
      */
     boolean hasHtlcPaymentAck();
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCPaymentAck getHtlcPaymentAck();
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder getHtlcPaymentAckOrBuilder();
 
@@ -485,7 +499,7 @@ public final class Protos {
             }
             case 82: {
               org.bitcoin.paymentchannel.Protos.Error.Builder subBuilder = null;
-              if (((bitField0_ & 0x00080000) == 0x00080000)) {
+              if (((bitField0_ & 0x00100000) == 0x00100000)) {
                 subBuilder = error_.toBuilder();
               }
               error_ = input.readMessage(org.bitcoin.paymentchannel.Protos.Error.PARSER, extensionRegistry);
@@ -493,7 +507,7 @@ public final class Protos {
                 subBuilder.mergeFrom(error_);
                 error_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00080000;
+              bitField0_ |= 0x00100000;
               break;
             }
             case 90: {
@@ -588,8 +602,21 @@ public final class Protos {
               break;
             }
             case 146: {
-              org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.Builder subBuilder = null;
+              org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder subBuilder = null;
               if (((bitField0_ & 0x00010000) == 0x00010000)) {
+                subBuilder = htlcSetupComplete_.toBuilder();
+              }
+              htlcSetupComplete_ = input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(htlcSetupComplete_);
+                htlcSetupComplete_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00010000;
+              break;
+            }
+            case 154: {
+              org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.Builder subBuilder = null;
+              if (((bitField0_ & 0x00020000) == 0x00020000)) {
                 subBuilder = htlcRevealSecret_.toBuilder();
               }
               htlcRevealSecret_ = input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.PARSER, extensionRegistry);
@@ -597,12 +624,12 @@ public final class Protos {
                 subBuilder.mergeFrom(htlcRevealSecret_);
                 htlcRevealSecret_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00010000;
+              bitField0_ |= 0x00020000;
               break;
             }
-            case 154: {
+            case 162: {
               org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.Builder subBuilder = null;
-              if (((bitField0_ & 0x00020000) == 0x00020000)) {
+              if (((bitField0_ & 0x00040000) == 0x00040000)) {
                 subBuilder = htlcUpdateTeardown_.toBuilder();
               }
               htlcUpdateTeardown_ = input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.PARSER, extensionRegistry);
@@ -610,12 +637,12 @@ public final class Protos {
                 subBuilder.mergeFrom(htlcUpdateTeardown_);
                 htlcUpdateTeardown_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00020000;
+              bitField0_ |= 0x00040000;
               break;
             }
-            case 162: {
+            case 170: {
               org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder subBuilder = null;
-              if (((bitField0_ & 0x00040000) == 0x00040000)) {
+              if (((bitField0_ & 0x00080000) == 0x00080000)) {
                 subBuilder = htlcPaymentAck_.toBuilder();
               }
               htlcPaymentAck_ = input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.PARSER, extensionRegistry);
@@ -623,7 +650,7 @@ public final class Protos {
                 subBuilder.mergeFrom(htlcPaymentAck_);
                 htlcPaymentAck_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00040000;
+              bitField0_ |= 0x00080000;
               break;
             }
           }
@@ -773,17 +800,21 @@ public final class Protos {
        */
       HTLC_SIGNED_SETTLE_FORFEIT(15, 17),
       /**
-       * <code>HTLC_REVEAL_SECRET = 18;</code>
+       * <code>HTLC_SETUP_COMPLETE = 18;</code>
        */
-      HTLC_REVEAL_SECRET(16, 18),
+      HTLC_SETUP_COMPLETE(16, 18),
       /**
-       * <code>HTLC_UPDATE_TEARDOWN = 19;</code>
+       * <code>HTLC_REVEAL_SECRET = 19;</code>
        */
-      HTLC_UPDATE_TEARDOWN(17, 19),
+      HTLC_REVEAL_SECRET(17, 19),
       /**
-       * <code>HTLC_PAYMENT_ACK = 20;</code>
+       * <code>HTLC_UPDATE_TEARDOWN = 20;</code>
        */
-      HTLC_PAYMENT_ACK(18, 20),
+      HTLC_UPDATE_TEARDOWN(18, 20),
+      /**
+       * <code>HTLC_PAYMENT_ACK = 21;</code>
+       */
+      HTLC_PAYMENT_ACK(19, 21),
       /**
        * <code>ERROR = 10;</code>
        *
@@ -794,7 +825,7 @@ public final class Protos {
        * because the protocol may not run over TCP.
        * </pre>
        */
-      ERROR(19, 10),
+      ERROR(20, 10),
       ;
 
       /**
@@ -900,17 +931,21 @@ public final class Protos {
        */
       public static final int HTLC_SIGNED_SETTLE_FORFEIT_VALUE = 17;
       /**
-       * <code>HTLC_REVEAL_SECRET = 18;</code>
+       * <code>HTLC_SETUP_COMPLETE = 18;</code>
        */
-      public static final int HTLC_REVEAL_SECRET_VALUE = 18;
+      public static final int HTLC_SETUP_COMPLETE_VALUE = 18;
       /**
-       * <code>HTLC_UPDATE_TEARDOWN = 19;</code>
+       * <code>HTLC_REVEAL_SECRET = 19;</code>
        */
-      public static final int HTLC_UPDATE_TEARDOWN_VALUE = 19;
+      public static final int HTLC_REVEAL_SECRET_VALUE = 19;
       /**
-       * <code>HTLC_PAYMENT_ACK = 20;</code>
+       * <code>HTLC_UPDATE_TEARDOWN = 20;</code>
        */
-      public static final int HTLC_PAYMENT_ACK_VALUE = 20;
+      public static final int HTLC_UPDATE_TEARDOWN_VALUE = 20;
+      /**
+       * <code>HTLC_PAYMENT_ACK = 21;</code>
+       */
+      public static final int HTLC_PAYMENT_ACK_VALUE = 21;
       /**
        * <code>ERROR = 10;</code>
        *
@@ -944,9 +979,10 @@ public final class Protos {
           case 15: return HTLC_SIGNED_TEARDOWN;
           case 16: return HTLC_SIGNED_REFUND;
           case 17: return HTLC_SIGNED_SETTLE_FORFEIT;
-          case 18: return HTLC_REVEAL_SECRET;
-          case 19: return HTLC_UPDATE_TEARDOWN;
-          case 20: return HTLC_PAYMENT_ACK;
+          case 18: return HTLC_SETUP_COMPLETE;
+          case 19: return HTLC_REVEAL_SECRET;
+          case 20: return HTLC_UPDATE_TEARDOWN;
+          case 21: return HTLC_PAYMENT_ACK;
           case 10: return ERROR;
           default: return null;
         }
@@ -1370,67 +1406,89 @@ public final class Protos {
       return htlcSignedSettleAndForfeit_;
     }
 
-    // optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;
-    public static final int HTLC_REVEAL_SECRET_FIELD_NUMBER = 18;
-    private org.bitcoin.paymentchannel.Protos.HTLCRevealSecret htlcRevealSecret_;
+    // optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;
+    public static final int HTLC_SETUP_COMPLETE_FIELD_NUMBER = 18;
+    private org.bitcoin.paymentchannel.Protos.HTLCSetupComplete htlcSetupComplete_;
     /**
-     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+     * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
      */
-    public boolean hasHtlcRevealSecret() {
+    public boolean hasHtlcSetupComplete() {
       return ((bitField0_ & 0x00010000) == 0x00010000);
     }
     /**
-     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+     * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+     */
+    public org.bitcoin.paymentchannel.Protos.HTLCSetupComplete getHtlcSetupComplete() {
+      return htlcSetupComplete_;
+    }
+    /**
+     * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+     */
+    public org.bitcoin.paymentchannel.Protos.HTLCSetupCompleteOrBuilder getHtlcSetupCompleteOrBuilder() {
+      return htlcSetupComplete_;
+    }
+
+    // optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;
+    public static final int HTLC_REVEAL_SECRET_FIELD_NUMBER = 19;
+    private org.bitcoin.paymentchannel.Protos.HTLCRevealSecret htlcRevealSecret_;
+    /**
+     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
+     */
+    public boolean hasHtlcRevealSecret() {
+      return ((bitField0_ & 0x00020000) == 0x00020000);
+    }
+    /**
+     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
      */
     public org.bitcoin.paymentchannel.Protos.HTLCRevealSecret getHtlcRevealSecret() {
       return htlcRevealSecret_;
     }
     /**
-     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+     * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
      */
     public org.bitcoin.paymentchannel.Protos.HTLCRevealSecretOrBuilder getHtlcRevealSecretOrBuilder() {
       return htlcRevealSecret_;
     }
 
-    // optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;
-    public static final int HTLC_UPDATE_TEARDOWN_FIELD_NUMBER = 19;
+    // optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;
+    public static final int HTLC_UPDATE_TEARDOWN_FIELD_NUMBER = 20;
     private org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown htlcUpdateTeardown_;
     /**
-     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
      */
     public boolean hasHtlcUpdateTeardown() {
-      return ((bitField0_ & 0x00020000) == 0x00020000);
+      return ((bitField0_ & 0x00040000) == 0x00040000);
     }
     /**
-     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
      */
     public org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown getHtlcUpdateTeardown() {
       return htlcUpdateTeardown_;
     }
     /**
-     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+     * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
      */
     public org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardownOrBuilder getHtlcUpdateTeardownOrBuilder() {
       return htlcUpdateTeardown_;
     }
 
-    // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;
-    public static final int HTLC_PAYMENT_ACK_FIELD_NUMBER = 20;
+    // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;
+    public static final int HTLC_PAYMENT_ACK_FIELD_NUMBER = 21;
     private org.bitcoin.paymentchannel.Protos.HTLCPaymentAck htlcPaymentAck_;
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
      */
     public boolean hasHtlcPaymentAck() {
-      return ((bitField0_ & 0x00040000) == 0x00040000);
+      return ((bitField0_ & 0x00080000) == 0x00080000);
     }
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
      */
     public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck getHtlcPaymentAck() {
       return htlcPaymentAck_;
     }
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
      */
     public org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder getHtlcPaymentAckOrBuilder() {
       return htlcPaymentAck_;
@@ -1443,7 +1501,7 @@ public final class Protos {
      * <code>optional .paymentchannels.Error error = 10;</code>
      */
     public boolean hasError() {
-      return ((bitField0_ & 0x00080000) == 0x00080000);
+      return ((bitField0_ & 0x00100000) == 0x00100000);
     }
     /**
      * <code>optional .paymentchannels.Error error = 10;</code>
@@ -1475,6 +1533,7 @@ public final class Protos {
       htlcSignedTeardown_ = org.bitcoin.paymentchannel.Protos.HTLCProvideSignedTeardown.getDefaultInstance();
       htlcSignedRefundWithHash_ = org.bitcoin.paymentchannel.Protos.HTLCSignedRefundWithHash.getDefaultInstance();
       htlcSignedSettleAndForfeit_ = org.bitcoin.paymentchannel.Protos.HTLCSignedSettleAndForfeit.getDefaultInstance();
+      htlcSetupComplete_ = org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance();
       htlcRevealSecret_ = org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.getDefaultInstance();
       htlcUpdateTeardown_ = org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.getDefaultInstance();
       htlcPaymentAck_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
@@ -1573,6 +1632,12 @@ public final class Protos {
           return false;
         }
       }
+      if (hasHtlcSetupComplete()) {
+        if (!getHtlcSetupComplete().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
       if (hasHtlcRevealSecret()) {
         if (!getHtlcRevealSecret().isInitialized()) {
           memoizedIsInitialized = 0;
@@ -1625,7 +1690,7 @@ public final class Protos {
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         output.writeMessage(9, settlement_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00100000) == 0x00100000)) {
         output.writeMessage(10, error_);
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
@@ -1650,13 +1715,16 @@ public final class Protos {
         output.writeMessage(17, htlcSignedSettleAndForfeit_);
       }
       if (((bitField0_ & 0x00010000) == 0x00010000)) {
-        output.writeMessage(18, htlcRevealSecret_);
+        output.writeMessage(18, htlcSetupComplete_);
       }
       if (((bitField0_ & 0x00020000) == 0x00020000)) {
-        output.writeMessage(19, htlcUpdateTeardown_);
+        output.writeMessage(19, htlcRevealSecret_);
       }
       if (((bitField0_ & 0x00040000) == 0x00040000)) {
-        output.writeMessage(20, htlcPaymentAck_);
+        output.writeMessage(20, htlcUpdateTeardown_);
+      }
+      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+        output.writeMessage(21, htlcPaymentAck_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1703,7 +1771,7 @@ public final class Protos {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(9, settlement_);
       }
-      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+      if (((bitField0_ & 0x00100000) == 0x00100000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(10, error_);
       }
@@ -1737,15 +1805,19 @@ public final class Protos {
       }
       if (((bitField0_ & 0x00010000) == 0x00010000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(18, htlcRevealSecret_);
+          .computeMessageSize(18, htlcSetupComplete_);
       }
       if (((bitField0_ & 0x00020000) == 0x00020000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(19, htlcUpdateTeardown_);
+          .computeMessageSize(19, htlcRevealSecret_);
       }
       if (((bitField0_ & 0x00040000) == 0x00040000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(20, htlcPaymentAck_);
+          .computeMessageSize(20, htlcUpdateTeardown_);
+      }
+      if (((bitField0_ & 0x00080000) == 0x00080000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(21, htlcPaymentAck_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1876,6 +1948,7 @@ public final class Protos {
           getHtlcSignedTeardownFieldBuilder();
           getHtlcSignedRefundWithHashFieldBuilder();
           getHtlcSignedSettleAndForfeitFieldBuilder();
+          getHtlcSetupCompleteFieldBuilder();
           getHtlcRevealSecretFieldBuilder();
           getHtlcUpdateTeardownFieldBuilder();
           getHtlcPaymentAckFieldBuilder();
@@ -1980,30 +2053,36 @@ public final class Protos {
           htlcSignedSettleAndForfeitBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00008000);
+        if (htlcSetupCompleteBuilder_ == null) {
+          htlcSetupComplete_ = org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance();
+        } else {
+          htlcSetupCompleteBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00010000);
         if (htlcRevealSecretBuilder_ == null) {
           htlcRevealSecret_ = org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.getDefaultInstance();
         } else {
           htlcRevealSecretBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00020000);
         if (htlcUpdateTeardownBuilder_ == null) {
           htlcUpdateTeardown_ = org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.getDefaultInstance();
         } else {
           htlcUpdateTeardownBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00020000);
+        bitField0_ = (bitField0_ & ~0x00040000);
         if (htlcPaymentAckBuilder_ == null) {
           htlcPaymentAck_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
         } else {
           htlcPaymentAckBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00040000);
+        bitField0_ = (bitField0_ & ~0x00080000);
         if (errorBuilder_ == null) {
           error_ = org.bitcoin.paymentchannel.Protos.Error.getDefaultInstance();
         } else {
           errorBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00080000);
+        bitField0_ = (bitField0_ & ~0x00100000);
         return this;
       }
 
@@ -2159,29 +2238,37 @@ public final class Protos {
         if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
           to_bitField0_ |= 0x00010000;
         }
+        if (htlcSetupCompleteBuilder_ == null) {
+          result.htlcSetupComplete_ = htlcSetupComplete_;
+        } else {
+          result.htlcSetupComplete_ = htlcSetupCompleteBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+          to_bitField0_ |= 0x00020000;
+        }
         if (htlcRevealSecretBuilder_ == null) {
           result.htlcRevealSecret_ = htlcRevealSecret_;
         } else {
           result.htlcRevealSecret_ = htlcRevealSecretBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
-          to_bitField0_ |= 0x00020000;
+        if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
+          to_bitField0_ |= 0x00040000;
         }
         if (htlcUpdateTeardownBuilder_ == null) {
           result.htlcUpdateTeardown_ = htlcUpdateTeardown_;
         } else {
           result.htlcUpdateTeardown_ = htlcUpdateTeardownBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
-          to_bitField0_ |= 0x00040000;
+        if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
+          to_bitField0_ |= 0x00080000;
         }
         if (htlcPaymentAckBuilder_ == null) {
           result.htlcPaymentAck_ = htlcPaymentAck_;
         } else {
           result.htlcPaymentAck_ = htlcPaymentAckBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
-          to_bitField0_ |= 0x00080000;
+        if (((from_bitField0_ & 0x00100000) == 0x00100000)) {
+          to_bitField0_ |= 0x00100000;
         }
         if (errorBuilder_ == null) {
           result.error_ = error_;
@@ -2251,6 +2338,9 @@ public final class Protos {
         }
         if (other.hasHtlcSignedSettleAndForfeit()) {
           mergeHtlcSignedSettleAndForfeit(other.getHtlcSignedSettleAndForfeit());
+        }
+        if (other.hasHtlcSetupComplete()) {
+          mergeHtlcSetupComplete(other.getHtlcSetupComplete());
         }
         if (other.hasHtlcRevealSecret()) {
           mergeHtlcRevealSecret(other.getHtlcRevealSecret());
@@ -2353,6 +2443,12 @@ public final class Protos {
         }
         if (hasHtlcSignedSettleAndForfeit()) {
           if (!getHtlcSignedSettleAndForfeit().isInitialized()) {
+            
+            return false;
+          }
+        }
+        if (hasHtlcSetupComplete()) {
+          if (!getHtlcSetupComplete().isInitialized()) {
             
             return false;
           }
@@ -4248,18 +4344,135 @@ public final class Protos {
         return htlcSignedSettleAndForfeitBuilder_;
       }
 
-      // optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;
+      // optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;
+      private org.bitcoin.paymentchannel.Protos.HTLCSetupComplete htlcSetupComplete_ = org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          org.bitcoin.paymentchannel.Protos.HTLCSetupComplete, org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder, org.bitcoin.paymentchannel.Protos.HTLCSetupCompleteOrBuilder> htlcSetupCompleteBuilder_;
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public boolean hasHtlcSetupComplete() {
+        return ((bitField0_ & 0x00010000) == 0x00010000);
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCSetupComplete getHtlcSetupComplete() {
+        if (htlcSetupCompleteBuilder_ == null) {
+          return htlcSetupComplete_;
+        } else {
+          return htlcSetupCompleteBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public Builder setHtlcSetupComplete(org.bitcoin.paymentchannel.Protos.HTLCSetupComplete value) {
+        if (htlcSetupCompleteBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          htlcSetupComplete_ = value;
+          onChanged();
+        } else {
+          htlcSetupCompleteBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00010000;
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public Builder setHtlcSetupComplete(
+          org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder builderForValue) {
+        if (htlcSetupCompleteBuilder_ == null) {
+          htlcSetupComplete_ = builderForValue.build();
+          onChanged();
+        } else {
+          htlcSetupCompleteBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00010000;
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public Builder mergeHtlcSetupComplete(org.bitcoin.paymentchannel.Protos.HTLCSetupComplete value) {
+        if (htlcSetupCompleteBuilder_ == null) {
+          if (((bitField0_ & 0x00010000) == 0x00010000) &&
+              htlcSetupComplete_ != org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance()) {
+            htlcSetupComplete_ =
+              org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.newBuilder(htlcSetupComplete_).mergeFrom(value).buildPartial();
+          } else {
+            htlcSetupComplete_ = value;
+          }
+          onChanged();
+        } else {
+          htlcSetupCompleteBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00010000;
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public Builder clearHtlcSetupComplete() {
+        if (htlcSetupCompleteBuilder_ == null) {
+          htlcSetupComplete_ = org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance();
+          onChanged();
+        } else {
+          htlcSetupCompleteBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00010000);
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder getHtlcSetupCompleteBuilder() {
+        bitField0_ |= 0x00010000;
+        onChanged();
+        return getHtlcSetupCompleteFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCSetupCompleteOrBuilder getHtlcSetupCompleteOrBuilder() {
+        if (htlcSetupCompleteBuilder_ != null) {
+          return htlcSetupCompleteBuilder_.getMessageOrBuilder();
+        } else {
+          return htlcSetupComplete_;
+        }
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCSetupComplete htlc_setup_complete = 18;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.bitcoin.paymentchannel.Protos.HTLCSetupComplete, org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder, org.bitcoin.paymentchannel.Protos.HTLCSetupCompleteOrBuilder> 
+          getHtlcSetupCompleteFieldBuilder() {
+        if (htlcSetupCompleteBuilder_ == null) {
+          htlcSetupCompleteBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.bitcoin.paymentchannel.Protos.HTLCSetupComplete, org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder, org.bitcoin.paymentchannel.Protos.HTLCSetupCompleteOrBuilder>(
+                  htlcSetupComplete_,
+                  getParentForChildren(),
+                  isClean());
+          htlcSetupComplete_ = null;
+        }
+        return htlcSetupCompleteBuilder_;
+      }
+
+      // optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;
       private org.bitcoin.paymentchannel.Protos.HTLCRevealSecret htlcRevealSecret_ = org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
           org.bitcoin.paymentchannel.Protos.HTLCRevealSecret, org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.Builder, org.bitcoin.paymentchannel.Protos.HTLCRevealSecretOrBuilder> htlcRevealSecretBuilder_;
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public boolean hasHtlcRevealSecret() {
-        return ((bitField0_ & 0x00010000) == 0x00010000);
+        return ((bitField0_ & 0x00020000) == 0x00020000);
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCRevealSecret getHtlcRevealSecret() {
         if (htlcRevealSecretBuilder_ == null) {
@@ -4269,7 +4482,7 @@ public final class Protos {
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public Builder setHtlcRevealSecret(org.bitcoin.paymentchannel.Protos.HTLCRevealSecret value) {
         if (htlcRevealSecretBuilder_ == null) {
@@ -4281,11 +4494,11 @@ public final class Protos {
         } else {
           htlcRevealSecretBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public Builder setHtlcRevealSecret(
           org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.Builder builderForValue) {
@@ -4295,15 +4508,15 @@ public final class Protos {
         } else {
           htlcRevealSecretBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public Builder mergeHtlcRevealSecret(org.bitcoin.paymentchannel.Protos.HTLCRevealSecret value) {
         if (htlcRevealSecretBuilder_ == null) {
-          if (((bitField0_ & 0x00010000) == 0x00010000) &&
+          if (((bitField0_ & 0x00020000) == 0x00020000) &&
               htlcRevealSecret_ != org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.getDefaultInstance()) {
             htlcRevealSecret_ =
               org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.newBuilder(htlcRevealSecret_).mergeFrom(value).buildPartial();
@@ -4314,11 +4527,11 @@ public final class Protos {
         } else {
           htlcRevealSecretBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00020000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public Builder clearHtlcRevealSecret() {
         if (htlcRevealSecretBuilder_ == null) {
@@ -4327,19 +4540,19 @@ public final class Protos {
         } else {
           htlcRevealSecretBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00020000);
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.Builder getHtlcRevealSecretBuilder() {
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00020000;
         onChanged();
         return getHtlcRevealSecretFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCRevealSecretOrBuilder getHtlcRevealSecretOrBuilder() {
         if (htlcRevealSecretBuilder_ != null) {
@@ -4349,7 +4562,7 @@ public final class Protos {
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 18;</code>
+       * <code>optional .paymentchannels.HTLCRevealSecret htlc_reveal_secret = 19;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           org.bitcoin.paymentchannel.Protos.HTLCRevealSecret, org.bitcoin.paymentchannel.Protos.HTLCRevealSecret.Builder, org.bitcoin.paymentchannel.Protos.HTLCRevealSecretOrBuilder> 
@@ -4365,18 +4578,18 @@ public final class Protos {
         return htlcRevealSecretBuilder_;
       }
 
-      // optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;
+      // optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;
       private org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown htlcUpdateTeardown_ = org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
           org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown, org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.Builder, org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardownOrBuilder> htlcUpdateTeardownBuilder_;
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public boolean hasHtlcUpdateTeardown() {
-        return ((bitField0_ & 0x00020000) == 0x00020000);
+        return ((bitField0_ & 0x00040000) == 0x00040000);
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown getHtlcUpdateTeardown() {
         if (htlcUpdateTeardownBuilder_ == null) {
@@ -4386,7 +4599,7 @@ public final class Protos {
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public Builder setHtlcUpdateTeardown(org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown value) {
         if (htlcUpdateTeardownBuilder_ == null) {
@@ -4398,11 +4611,11 @@ public final class Protos {
         } else {
           htlcUpdateTeardownBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00040000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public Builder setHtlcUpdateTeardown(
           org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.Builder builderForValue) {
@@ -4412,15 +4625,15 @@ public final class Protos {
         } else {
           htlcUpdateTeardownBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00040000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public Builder mergeHtlcUpdateTeardown(org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown value) {
         if (htlcUpdateTeardownBuilder_ == null) {
-          if (((bitField0_ & 0x00020000) == 0x00020000) &&
+          if (((bitField0_ & 0x00040000) == 0x00040000) &&
               htlcUpdateTeardown_ != org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.getDefaultInstance()) {
             htlcUpdateTeardown_ =
               org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.newBuilder(htlcUpdateTeardown_).mergeFrom(value).buildPartial();
@@ -4431,11 +4644,11 @@ public final class Protos {
         } else {
           htlcUpdateTeardownBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00040000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public Builder clearHtlcUpdateTeardown() {
         if (htlcUpdateTeardownBuilder_ == null) {
@@ -4444,19 +4657,19 @@ public final class Protos {
         } else {
           htlcUpdateTeardownBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00020000);
+        bitField0_ = (bitField0_ & ~0x00040000);
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.Builder getHtlcUpdateTeardownBuilder() {
-        bitField0_ |= 0x00020000;
+        bitField0_ |= 0x00040000;
         onChanged();
         return getHtlcUpdateTeardownFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardownOrBuilder getHtlcUpdateTeardownOrBuilder() {
         if (htlcUpdateTeardownBuilder_ != null) {
@@ -4466,7 +4679,7 @@ public final class Protos {
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 19;</code>
+       * <code>optional .paymentchannels.HTLCUpdateTeardown htlc_update_teardown = 20;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown, org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardown.Builder, org.bitcoin.paymentchannel.Protos.HTLCUpdateTeardownOrBuilder> 
@@ -4482,18 +4695,18 @@ public final class Protos {
         return htlcUpdateTeardownBuilder_;
       }
 
-      // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;
+      // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;
       private org.bitcoin.paymentchannel.Protos.HTLCPaymentAck htlcPaymentAck_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
           org.bitcoin.paymentchannel.Protos.HTLCPaymentAck, org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder, org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder> htlcPaymentAckBuilder_;
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public boolean hasHtlcPaymentAck() {
-        return ((bitField0_ & 0x00040000) == 0x00040000);
+        return ((bitField0_ & 0x00080000) == 0x00080000);
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck getHtlcPaymentAck() {
         if (htlcPaymentAckBuilder_ == null) {
@@ -4503,7 +4716,7 @@ public final class Protos {
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public Builder setHtlcPaymentAck(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck value) {
         if (htlcPaymentAckBuilder_ == null) {
@@ -4515,11 +4728,11 @@ public final class Protos {
         } else {
           htlcPaymentAckBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00080000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public Builder setHtlcPaymentAck(
           org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder builderForValue) {
@@ -4529,15 +4742,15 @@ public final class Protos {
         } else {
           htlcPaymentAckBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00080000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public Builder mergeHtlcPaymentAck(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck value) {
         if (htlcPaymentAckBuilder_ == null) {
-          if (((bitField0_ & 0x00040000) == 0x00040000) &&
+          if (((bitField0_ & 0x00080000) == 0x00080000) &&
               htlcPaymentAck_ != org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance()) {
             htlcPaymentAck_ =
               org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.newBuilder(htlcPaymentAck_).mergeFrom(value).buildPartial();
@@ -4548,11 +4761,11 @@ public final class Protos {
         } else {
           htlcPaymentAckBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00080000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public Builder clearHtlcPaymentAck() {
         if (htlcPaymentAckBuilder_ == null) {
@@ -4561,19 +4774,19 @@ public final class Protos {
         } else {
           htlcPaymentAckBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00040000);
+        bitField0_ = (bitField0_ & ~0x00080000);
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder getHtlcPaymentAckBuilder() {
-        bitField0_ |= 0x00040000;
+        bitField0_ |= 0x00080000;
         onChanged();
         return getHtlcPaymentAckFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       public org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder getHtlcPaymentAckOrBuilder() {
         if (htlcPaymentAckBuilder_ != null) {
@@ -4583,7 +4796,7 @@ public final class Protos {
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 20;</code>
+       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           org.bitcoin.paymentchannel.Protos.HTLCPaymentAck, org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder, org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder> 
@@ -4607,7 +4820,7 @@ public final class Protos {
        * <code>optional .paymentchannels.Error error = 10;</code>
        */
       public boolean hasError() {
-        return ((bitField0_ & 0x00080000) == 0x00080000);
+        return ((bitField0_ & 0x00100000) == 0x00100000);
       }
       /**
        * <code>optional .paymentchannels.Error error = 10;</code>
@@ -4632,7 +4845,7 @@ public final class Protos {
         } else {
           errorBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00080000;
+        bitField0_ |= 0x00100000;
         return this;
       }
       /**
@@ -4646,7 +4859,7 @@ public final class Protos {
         } else {
           errorBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00080000;
+        bitField0_ |= 0x00100000;
         return this;
       }
       /**
@@ -4654,7 +4867,7 @@ public final class Protos {
        */
       public Builder mergeError(org.bitcoin.paymentchannel.Protos.Error value) {
         if (errorBuilder_ == null) {
-          if (((bitField0_ & 0x00080000) == 0x00080000) &&
+          if (((bitField0_ & 0x00100000) == 0x00100000) &&
               error_ != org.bitcoin.paymentchannel.Protos.Error.getDefaultInstance()) {
             error_ =
               org.bitcoin.paymentchannel.Protos.Error.newBuilder(error_).mergeFrom(value).buildPartial();
@@ -4665,7 +4878,7 @@ public final class Protos {
         } else {
           errorBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00080000;
+        bitField0_ |= 0x00100000;
         return this;
       }
       /**
@@ -4678,14 +4891,14 @@ public final class Protos {
         } else {
           errorBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00080000);
+        bitField0_ = (bitField0_ & ~0x00100000);
         return this;
       }
       /**
        * <code>optional .paymentchannels.Error error = 10;</code>
        */
       public org.bitcoin.paymentchannel.Protos.Error.Builder getErrorBuilder() {
-        bitField0_ |= 0x00080000;
+        bitField0_ |= 0x00100000;
         onChanged();
         return getErrorFieldBuilder().getBuilder();
       }
@@ -14992,6 +15205,445 @@ public final class Protos {
     // @@protoc_insertion_point(class_scope:paymentchannels.HTLCSignedSettleAndForfeit)
   }
 
+  public interface HTLCSetupCompleteOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // required bytes id = 1;
+    /**
+     * <code>required bytes id = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client to ACK the successful HTLC setup
+     * </pre>
+     */
+    boolean hasId();
+    /**
+     * <code>required bytes id = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client to ACK the successful HTLC setup
+     * </pre>
+     */
+    com.google.protobuf.ByteString getId();
+  }
+  /**
+   * Protobuf type {@code paymentchannels.HTLCSetupComplete}
+   */
+  public static final class HTLCSetupComplete extends
+      com.google.protobuf.GeneratedMessage
+      implements HTLCSetupCompleteOrBuilder {
+    // Use HTLCSetupComplete.newBuilder() to construct.
+    private HTLCSetupComplete(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private HTLCSetupComplete(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final HTLCSetupComplete defaultInstance;
+    public static HTLCSetupComplete getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public HTLCSetupComplete getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private HTLCSetupComplete(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readBytes();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCSetupComplete_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCSetupComplete_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.class, org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<HTLCSetupComplete> PARSER =
+        new com.google.protobuf.AbstractParser<HTLCSetupComplete>() {
+      public HTLCSetupComplete parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new HTLCSetupComplete(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<HTLCSetupComplete> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // required bytes id = 1;
+    public static final int ID_FIELD_NUMBER = 1;
+    private com.google.protobuf.ByteString id_;
+    /**
+     * <code>required bytes id = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client to ACK the successful HTLC setup
+     * </pre>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required bytes id = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client to ACK the successful HTLC setup
+     * </pre>
+     */
+    public com.google.protobuf.ByteString getId() {
+      return id_;
+    }
+
+    private void initFields() {
+      id_ = com.google.protobuf.ByteString.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      if (!hasId()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, id_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, id_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.bitcoin.paymentchannel.Protos.HTLCSetupComplete prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code paymentchannels.HTLCSetupComplete}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.bitcoin.paymentchannel.Protos.HTLCSetupCompleteOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCSetupComplete_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCSetupComplete_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.class, org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.Builder.class);
+      }
+
+      // Construct using org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCSetupComplete_descriptor;
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCSetupComplete getDefaultInstanceForType() {
+        return org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance();
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCSetupComplete build() {
+        org.bitcoin.paymentchannel.Protos.HTLCSetupComplete result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCSetupComplete buildPartial() {
+        org.bitcoin.paymentchannel.Protos.HTLCSetupComplete result = new org.bitcoin.paymentchannel.Protos.HTLCSetupComplete(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.bitcoin.paymentchannel.Protos.HTLCSetupComplete) {
+          return mergeFrom((org.bitcoin.paymentchannel.Protos.HTLCSetupComplete)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.bitcoin.paymentchannel.Protos.HTLCSetupComplete other) {
+        if (other == org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          setId(other.getId());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasId()) {
+          
+          return false;
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.bitcoin.paymentchannel.Protos.HTLCSetupComplete parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.bitcoin.paymentchannel.Protos.HTLCSetupComplete) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // required bytes id = 1;
+      private com.google.protobuf.ByteString id_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>required bytes id = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client to ACK the successful HTLC setup
+       * </pre>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required bytes id = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client to ACK the successful HTLC setup
+       * </pre>
+       */
+      public com.google.protobuf.ByteString getId() {
+        return id_;
+      }
+      /**
+       * <code>required bytes id = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client to ACK the successful HTLC setup
+       * </pre>
+       */
+      public Builder setId(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required bytes id = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client to ACK the successful HTLC setup
+       * </pre>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = getDefaultInstance().getId();
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:paymentchannels.HTLCSetupComplete)
+    }
+
+    static {
+      defaultInstance = new HTLCSetupComplete(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:paymentchannels.HTLCSetupComplete)
+  }
+
   public interface HTLCRevealSecretOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -17855,6 +18507,11 @@ public final class Protos {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_paymentchannels_HTLCSignedSettleAndForfeit_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_paymentchannels_HTLCSetupComplete_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_paymentchannels_HTLCSetupComplete_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_paymentchannels_HTLCRevealSecret_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -17884,7 +18541,7 @@ public final class Protos {
   static {
     java.lang.String[] descriptorData = {
       "\n\024paymentchannel.proto\022\017paymentchannels\"" +
-      "\342\014\n\024TwoWayChannelMessage\022?\n\004type\030\001 \002(\01621" +
+      "\274\r\n\024TwoWayChannelMessage\022?\n\004type\030\001 \002(\01621" +
       ".paymentchannels.TwoWayChannelMessage.Me" +
       "ssageType\0226\n\016client_version\030\002 \001(\0132\036.paym" +
       "entchannels.ClientVersion\0226\n\016server_vers" +
@@ -17908,71 +18565,74 @@ public final class Protos {
       "with_hash\030\020 \001(\0132).paymentchannels.HTLCSi" +
       "gnedRefundWithHash\022S\n\036htlc_signed_settle" +
       "_and_forfeit\030\021 \001(\0132+.paymentchannels.HTL" +
-      "CSignedSettleAndForfeit\022=\n\022htlc_reveal_s" +
-      "ecret\030\022 \001(\0132!.paymentchannels.HTLCReveal" +
-      "Secret\022A\n\024htlc_update_teardown\030\023 \001(\0132#.p" +
-      "aymentchannels.HTLCUpdateTeardown\0229\n\020htl" +
-      "c_payment_ack\030\024 \001(\0132\037.paymentchannels.HT",
-      "LCPaymentAck\022%\n\005error\030\n \001(\0132\026.paymentcha" +
-      "nnels.Error\"\246\003\n\013MessageType\022\022\n\016CLIENT_VE" +
-      "RSION\020\001\022\022\n\016SERVER_VERSION\020\002\022\014\n\010INITIATE\020" +
-      "\003\022\022\n\016PROVIDE_REFUND\020\004\022\021\n\rRETURN_REFUND\020\005" +
-      "\022\024\n\020PROVIDE_CONTRACT\020\006\022\020\n\014CHANNEL_OPEN\020\007" +
-      "\022\022\n\016UPDATE_PAYMENT\020\010\022\017\n\013PAYMENT_ACK\020\013\022\t\n" +
-      "\005CLOSE\020\t\022\031\n\025HTLC_PROVIDE_CONTRACT\020\014\022\r\n\tH" +
-      "TLC_INIT\020\r\022\023\n\017HTLC_INIT_REPLY\020\016\022\030\n\024HTLC_" +
-      "SIGNED_TEARDOWN\020\017\022\026\n\022HTLC_SIGNED_REFUND\020" +
-      "\020\022\036\n\032HTLC_SIGNED_SETTLE_FORFEIT\020\021\022\026\n\022HTL",
-      "C_REVEAL_SECRET\020\022\022\030\n\024HTLC_UPDATE_TEARDOW" +
-      "N\020\023\022\024\n\020HTLC_PAYMENT_ACK\020\024\022\t\n\005ERROR\020\n\"y\n\r" +
-      "ClientVersion\022\r\n\005major\030\001 \002(\005\022\020\n\005minor\030\002 " +
-      "\001(\005:\0010\022&\n\036previous_channel_contract_hash" +
-      "\030\003 \001(\014\022\037\n\020time_window_secs\030\004 \001(\004:\00586340\"" +
-      "0\n\rServerVersion\022\r\n\005major\030\001 \002(\005\022\020\n\005minor" +
-      "\030\002 \001(\005:\0010\"r\n\010Initiate\022\024\n\014multisig_key\030\001 " +
-      "\002(\014\022!\n\031min_accepted_channel_size\030\002 \002(\004\022\030" +
-      "\n\020expire_time_secs\030\003 \002(\004\022\023\n\013min_payment\030" +
-      "\004 \002(\004\"1\n\rProvideRefund\022\024\n\014multisig_key\030\001",
-      " \002(\014\022\n\n\002tx\030\002 \002(\014\"!\n\014ReturnRefund\022\021\n\tsign" +
-      "ature\030\001 \002(\014\"V\n\017ProvideContract\022\n\n\002tx\030\001 \002" +
-      "(\014\0227\n\017initial_payment\030\002 \002(\0132\036.paymentcha" +
-      "nnels.UpdatePayment\"M\n\rUpdatePayment\022\033\n\023" +
-      "client_change_value\030\001 \002(\004\022\021\n\tsignature\030\002" +
-      " \002(\014\022\014\n\004info\030\003 \001(\014\"\032\n\nPaymentAck\022\014\n\004info" +
-      "\030\001 \001(\014\"\030\n\nSettlement\022\n\n\002tx\030\001 \002(\014\"j\n\023HTLC" +
-      "ProvideContract\022\n\n\002tx\030\001 \002(\014\022G\n\027signed_in" +
-      "itial_teardown\030\002 \002(\0132&.paymentchannels.H" +
-      "TLCSignedTransaction\"-\n\010HTLCInit\022\022\n\nrequ",
-      "est_id\030\001 \002(\014\022\r\n\005value\030\002 \002(\004\"6\n\rHTLCInitR" +
-      "eply\022\n\n\002id\030\001 \002(\014\022\031\n\021client_request_id\030\002 " +
-      "\002(\014\"B\n\025HTLCSignedTransaction\022\n\n\002id\030\001 \001(\014" +
-      "\022\n\n\002tx\030\002 \002(\014\022\021\n\tsignature\030\003 \002(\014\"h\n\031HTLCP" +
-      "rovideSignedTeardown\022\n\n\002id\030\001 \002(\014\022?\n\017sign" +
-      "ed_teardown\030\002 \002(\0132&.paymentchannels.HTLC" +
-      "SignedTransaction\"|\n\030HTLCSignedRefundWit" +
-      "hHash\022\n\n\002id\030\001 \002(\014\022=\n\rsigned_refund\030\002 \002(\013" +
-      "2&.paymentchannels.HTLCSignedTransaction" +
-      "\022\025\n\rteardown_hash\030\003 \002(\014\"\305\001\n\032HTLCSignedSe",
-      "ttleAndForfeit\022\n\n\002id\030\001 \002(\014\022\034\n\024client_sec" +
-      "ondary_key\030\002 \002(\014\022>\n\016signed_forfeit\030\003 \002(\013" +
-      "2&.paymentchannels.HTLCSignedTransaction" +
-      "\022=\n\rsigned_settle\030\004 \002(\0132&.paymentchannel" +
-      "s.HTLCSignedTransaction\"n\n\020HTLCRevealSec" +
-      "ret\022\n\n\002id\030\001 \002(\014\022\016\n\006secret\030\002 \002(\014\022>\n\016signe" +
-      "d_forfeit\030\003 \002(\0132&.paymentchannels.HTLCSi" +
-      "gnedTransaction\"a\n\022HTLCUpdateTeardown\022\n\n" +
-      "\002id\030\001 \002(\014\022?\n\017signed_teardown\030\002 \002(\0132&.pay" +
-      "mentchannels.HTLCSignedTransaction\"\034\n\016HT",
-      "LCPaymentAck\022\n\n\002id\030\001 \002(\014\"\251\002\n\005Error\0225\n\004co" +
-      "de\030\001 \001(\0162 .paymentchannels.Error.ErrorCo" +
-      "de:\005OTHER\022\023\n\013explanation\030\002 \001(\t\022\026\n\016expect" +
-      "ed_value\030\003 \001(\004\"\273\001\n\tErrorCode\022\013\n\007TIMEOUT\020" +
-      "\001\022\020\n\014SYNTAX_ERROR\020\002\022\031\n\025NO_ACCEPTABLE_VER" +
-      "SION\020\003\022\023\n\017BAD_TRANSACTION\020\004\022\034\n\030TIME_WIND" +
-      "OW_UNACCEPTABLE\020\005\022\033\n\027CHANNEL_VALUE_TOO_L" +
-      "ARGE\020\006\022\031\n\025MIN_PAYMENT_TOO_LARGE\020\007\022\t\n\005OTH" +
-      "ER\020\010B$\n\032org.bitcoin.paymentchannelB\006Prot" +
-      "os"
+      "CSignedSettleAndForfeit\022?\n\023htlc_setup_co" +
+      "mplete\030\022 \001(\0132\".paymentchannels.HTLCSetup" +
+      "Complete\022=\n\022htlc_reveal_secret\030\023 \001(\0132!.p" +
+      "aymentchannels.HTLCRevealSecret\022A\n\024htlc_" +
+      "update_teardown\030\024 \001(\0132#.paymentchannels.",
+      "HTLCUpdateTeardown\0229\n\020htlc_payment_ack\030\025" +
+      " \001(\0132\037.paymentchannels.HTLCPaymentAck\022%\n" +
+      "\005error\030\n \001(\0132\026.paymentchannels.Error\"\277\003\n" +
+      "\013MessageType\022\022\n\016CLIENT_VERSION\020\001\022\022\n\016SERV" +
+      "ER_VERSION\020\002\022\014\n\010INITIATE\020\003\022\022\n\016PROVIDE_RE" +
+      "FUND\020\004\022\021\n\rRETURN_REFUND\020\005\022\024\n\020PROVIDE_CON" +
+      "TRACT\020\006\022\020\n\014CHANNEL_OPEN\020\007\022\022\n\016UPDATE_PAYM" +
+      "ENT\020\010\022\017\n\013PAYMENT_ACK\020\013\022\t\n\005CLOSE\020\t\022\031\n\025HTL" +
+      "C_PROVIDE_CONTRACT\020\014\022\r\n\tHTLC_INIT\020\r\022\023\n\017H" +
+      "TLC_INIT_REPLY\020\016\022\030\n\024HTLC_SIGNED_TEARDOWN",
+      "\020\017\022\026\n\022HTLC_SIGNED_REFUND\020\020\022\036\n\032HTLC_SIGNE" +
+      "D_SETTLE_FORFEIT\020\021\022\027\n\023HTLC_SETUP_COMPLET" +
+      "E\020\022\022\026\n\022HTLC_REVEAL_SECRET\020\023\022\030\n\024HTLC_UPDA" +
+      "TE_TEARDOWN\020\024\022\024\n\020HTLC_PAYMENT_ACK\020\025\022\t\n\005E" +
+      "RROR\020\n\"y\n\rClientVersion\022\r\n\005major\030\001 \002(\005\022\020" +
+      "\n\005minor\030\002 \001(\005:\0010\022&\n\036previous_channel_con" +
+      "tract_hash\030\003 \001(\014\022\037\n\020time_window_secs\030\004 \001" +
+      "(\004:\00586340\"0\n\rServerVersion\022\r\n\005major\030\001 \002(" +
+      "\005\022\020\n\005minor\030\002 \001(\005:\0010\"r\n\010Initiate\022\024\n\014multi" +
+      "sig_key\030\001 \002(\014\022!\n\031min_accepted_channel_si",
+      "ze\030\002 \002(\004\022\030\n\020expire_time_secs\030\003 \002(\004\022\023\n\013mi" +
+      "n_payment\030\004 \002(\004\"1\n\rProvideRefund\022\024\n\014mult" +
+      "isig_key\030\001 \002(\014\022\n\n\002tx\030\002 \002(\014\"!\n\014ReturnRefu" +
+      "nd\022\021\n\tsignature\030\001 \002(\014\"V\n\017ProvideContract" +
+      "\022\n\n\002tx\030\001 \002(\014\0227\n\017initial_payment\030\002 \002(\0132\036." +
+      "paymentchannels.UpdatePayment\"M\n\rUpdateP" +
+      "ayment\022\033\n\023client_change_value\030\001 \002(\004\022\021\n\ts" +
+      "ignature\030\002 \002(\014\022\014\n\004info\030\003 \001(\014\"\032\n\nPaymentA" +
+      "ck\022\014\n\004info\030\001 \001(\014\"\030\n\nSettlement\022\n\n\002tx\030\001 \002" +
+      "(\014\"j\n\023HTLCProvideContract\022\n\n\002tx\030\001 \002(\014\022G\n",
+      "\027signed_initial_teardown\030\002 \002(\0132&.payment" +
+      "channels.HTLCSignedTransaction\"-\n\010HTLCIn" +
+      "it\022\022\n\nrequest_id\030\001 \002(\014\022\r\n\005value\030\002 \002(\004\"6\n" +
+      "\rHTLCInitReply\022\n\n\002id\030\001 \002(\014\022\031\n\021client_req" +
+      "uest_id\030\002 \002(\014\"B\n\025HTLCSignedTransaction\022\n" +
+      "\n\002id\030\001 \001(\014\022\n\n\002tx\030\002 \002(\014\022\021\n\tsignature\030\003 \002(" +
+      "\014\"h\n\031HTLCProvideSignedTeardown\022\n\n\002id\030\001 \002" +
+      "(\014\022?\n\017signed_teardown\030\002 \002(\0132&.paymentcha" +
+      "nnels.HTLCSignedTransaction\"|\n\030HTLCSigne" +
+      "dRefundWithHash\022\n\n\002id\030\001 \002(\014\022=\n\rsigned_re",
+      "fund\030\002 \002(\0132&.paymentchannels.HTLCSignedT" +
+      "ransaction\022\025\n\rteardown_hash\030\003 \002(\014\"\305\001\n\032HT" +
+      "LCSignedSettleAndForfeit\022\n\n\002id\030\001 \002(\014\022\034\n\024" +
+      "client_secondary_key\030\002 \002(\014\022>\n\016signed_for" +
+      "feit\030\003 \002(\0132&.paymentchannels.HTLCSignedT" +
+      "ransaction\022=\n\rsigned_settle\030\004 \002(\0132&.paym" +
+      "entchannels.HTLCSignedTransaction\"\037\n\021HTL" +
+      "CSetupComplete\022\n\n\002id\030\001 \002(\014\"n\n\020HTLCReveal" +
+      "Secret\022\n\n\002id\030\001 \002(\014\022\016\n\006secret\030\002 \002(\014\022>\n\016si" +
+      "gned_forfeit\030\003 \002(\0132&.paymentchannels.HTL",
+      "CSignedTransaction\"a\n\022HTLCUpdateTeardown" +
+      "\022\n\n\002id\030\001 \002(\014\022?\n\017signed_teardown\030\002 \002(\0132&." +
+      "paymentchannels.HTLCSignedTransaction\"\034\n" +
+      "\016HTLCPaymentAck\022\n\n\002id\030\001 \002(\014\"\251\002\n\005Error\0225\n" +
+      "\004code\030\001 \001(\0162 .paymentchannels.Error.Erro" +
+      "rCode:\005OTHER\022\023\n\013explanation\030\002 \001(\t\022\026\n\016exp" +
+      "ected_value\030\003 \001(\004\"\273\001\n\tErrorCode\022\013\n\007TIMEO" +
+      "UT\020\001\022\020\n\014SYNTAX_ERROR\020\002\022\031\n\025NO_ACCEPTABLE_" +
+      "VERSION\020\003\022\023\n\017BAD_TRANSACTION\020\004\022\034\n\030TIME_W" +
+      "INDOW_UNACCEPTABLE\020\005\022\033\n\027CHANNEL_VALUE_TO",
+      "O_LARGE\020\006\022\031\n\025MIN_PAYMENT_TOO_LARGE\020\007\022\t\n\005" +
+      "OTHER\020\010B$\n\032org.bitcoin.paymentchannelB\006P" +
+      "rotos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -17984,7 +18644,7 @@ public final class Protos {
           internal_static_paymentchannels_TwoWayChannelMessage_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_TwoWayChannelMessage_descriptor,
-              new java.lang.String[] { "Type", "ClientVersion", "ServerVersion", "Initiate", "ProvideRefund", "ReturnRefund", "ProvideContract", "UpdatePayment", "PaymentAck", "Settlement", "HtlcProvideContract", "HtlcInit", "HtlcInitReply", "HtlcSignedTeardown", "HtlcSignedRefundWithHash", "HtlcSignedSettleAndForfeit", "HtlcRevealSecret", "HtlcUpdateTeardown", "HtlcPaymentAck", "Error", });
+              new java.lang.String[] { "Type", "ClientVersion", "ServerVersion", "Initiate", "ProvideRefund", "ReturnRefund", "ProvideContract", "UpdatePayment", "PaymentAck", "Settlement", "HtlcProvideContract", "HtlcInit", "HtlcInitReply", "HtlcSignedTeardown", "HtlcSignedRefundWithHash", "HtlcSignedSettleAndForfeit", "HtlcSetupComplete", "HtlcRevealSecret", "HtlcUpdateTeardown", "HtlcPaymentAck", "Error", });
           internal_static_paymentchannels_ClientVersion_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_paymentchannels_ClientVersion_fieldAccessorTable = new
@@ -18081,26 +18741,32 @@ public final class Protos {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCSignedSettleAndForfeit_descriptor,
               new java.lang.String[] { "Id", "ClientSecondaryKey", "SignedForfeit", "SignedSettle", });
-          internal_static_paymentchannels_HTLCRevealSecret_descriptor =
+          internal_static_paymentchannels_HTLCSetupComplete_descriptor =
             getDescriptor().getMessageTypes().get(17);
+          internal_static_paymentchannels_HTLCSetupComplete_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_paymentchannels_HTLCSetupComplete_descriptor,
+              new java.lang.String[] { "Id", });
+          internal_static_paymentchannels_HTLCRevealSecret_descriptor =
+            getDescriptor().getMessageTypes().get(18);
           internal_static_paymentchannels_HTLCRevealSecret_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCRevealSecret_descriptor,
               new java.lang.String[] { "Id", "Secret", "SignedForfeit", });
           internal_static_paymentchannels_HTLCUpdateTeardown_descriptor =
-            getDescriptor().getMessageTypes().get(18);
+            getDescriptor().getMessageTypes().get(19);
           internal_static_paymentchannels_HTLCUpdateTeardown_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCUpdateTeardown_descriptor,
               new java.lang.String[] { "Id", "SignedTeardown", });
           internal_static_paymentchannels_HTLCPaymentAck_descriptor =
-            getDescriptor().getMessageTypes().get(19);
+            getDescriptor().getMessageTypes().get(20);
           internal_static_paymentchannels_HTLCPaymentAck_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCPaymentAck_descriptor,
               new java.lang.String[] { "Id", });
           internal_static_paymentchannels_Error_descriptor =
-            getDescriptor().getMessageTypes().get(20);
+            getDescriptor().getMessageTypes().get(21);
           internal_static_paymentchannels_Error_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_Error_descriptor,

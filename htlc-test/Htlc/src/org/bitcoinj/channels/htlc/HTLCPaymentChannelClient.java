@@ -4,9 +4,16 @@ package org.bitcoinj.channels.htlc;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
@@ -15,6 +22,8 @@ import net.jcip.annotations.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoin.paymentchannel.Protos.HTLCPaymentAck;
+import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
+import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
 import org.bitcoinj.core.BitcoinSerializer;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
@@ -51,6 +60,8 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 	private static final int CLIENT_MAJOR_VERSION = 1;
 	private final int CLIENT_MINOR_VERSION = 0;
 	private static final int SERVER_MAJOR_VERSION = 1;
+	private final int MAX_MESSAGES = 10;
+	private final int MAX_HTLCS = 5;
 	 
 	private final ECKey clientPrimaryKey;
 	private final ECKey clientSecondaryKey;
@@ -58,17 +69,23 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 	private final long timeWindow;
 	@GuardedBy("lock") private long minPayment;
 	
-	protected final ReentrantLock lock = Threading.lock("htlcchannelclient");
-	 
+	private final ReentrantLock lock = Threading.lock("htlcchannelclient");
+	private final HTLCBlockingQueue blockingQueue;
+	private final AtomicBoolean busyProcessing;
+
 	@GuardedBy("lock") private final ClientConnection conn;
 	@GuardedBy("lock") private HTLCChannelClientState state;
 	
 	@GuardedBy("lock")
-	private Map<String, SettableFuture<PaymentIncrementAck> > paymentAckFutureMap;
+	private Map<String, SettableFuture<PaymentIncrementAck> > 
+		paymentAckFutureMap;
 	
 	@GuardedBy("lock")
-	private Map<String, Coin> paymentValueMap; 
+	private Map<String, Coin> paymentValueMap;
 	
+	@GuardedBy("lock")
+	private List<Protos.TwoWayChannelMessage> batchMsgs;
+		
 	private enum InitStep {
 		WAITING_FOR_CONNECTION_OPEN,
         WAITING_FOR_VERSION_NEGOTIATION,
@@ -109,6 +126,8 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	this.paymentAckFutureMap = 
 			new HashMap<String, SettableFuture<PaymentIncrementAck>>();
     	this.paymentValueMap = new HashMap<String, Coin>();
+    	this.busyProcessing = new AtomicBoolean();
+    	this.blockingQueue = new HTLCBlockingQueue(MAX_MESSAGES, MAX_HTLCS);
     }
     
     /**
@@ -129,7 +148,9 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
                     .setMinor(CLIENT_MINOR_VERSION)
                     .setTimeWindowSecs(timeWindow);
     		conn.sendToServer(Protos.TwoWayChannelMessage.newBuilder()
-                    .setType(Protos.TwoWayChannelMessage.MessageType.CLIENT_VERSION)
+                    .setType(
+                		Protos.TwoWayChannelMessage.MessageType.CLIENT_VERSION
+            		)
                     .setClientVersion(versionNegotiationBuilder)
                     .build());
     	} finally {
@@ -138,93 +159,135 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     }
     
     @Override
-    public void receiveMessage(Protos.TwoWayChannelMessage msg) 
-    		throws InsufficientMoneyException {
+    public void receiveMessage(Protos.TwoWayChannelMessage msg) {
     	lock.lock();
-        try {
-        	Protos.Error.Builder errorBuilder;
-            CloseReason closeReason;
-        	switch (msg.getType()) {
-        		case SERVER_VERSION:
-        			checkState(
-        				step == InitStep.WAITING_FOR_VERSION_NEGOTIATION && 
-        				msg.hasServerVersion()
-    				);
-        			if (msg.getServerVersion().getMajor() != SERVER_MAJOR_VERSION) {
-        				errorBuilder = Protos.Error.newBuilder()
-    						.setCode(Protos.Error.ErrorCode.NO_ACCEPTABLE_VERSION);
-        				closeReason = CloseReason.NO_ACCEPTABLE_VERSION;
-        				break;
-        			}
-        			log.info("Got version handshake, awaiting INITIATE");
-        			step = InitStep.WAITING_FOR_INITIATE;
-                    return;
-        		case INITIATE:
-        			checkState(
-    					step == InitStep.WAITING_FOR_INITIATE && 
-    					msg.hasInitiate()
-					);
-        			Protos.Initiate initiate = msg.getInitiate();
-        			errorBuilder = Protos.Error.newBuilder();
-        			closeReason = receiveInitiate(initiate, value, errorBuilder);
-        			if (closeReason == null) {
-        				log.error("Refund sent to server");
-        				return;
-        			}
-        			log.error(
-    					"Initiate failed with error: {}", 
-    					errorBuilder.build().toString()
-					);
-        			break;
-        		case RETURN_REFUND:
-        			receiveRefund(msg);
-        			return;
-        		case CHANNEL_OPEN:
-        			receiveChannelOpen();
-        			return;
-        		case HTLC_INIT_REPLY:
-        			receiveHtlcInitReply(msg);
-        			return;
-        		case HTLC_SIGNED_REFUND:
-        			receiveHtlcSignedRefundWithHash(msg);
-        			return;
-        		case HTLC_REVEAL_SECRET:
-        			receiveHtlcSecret(msg);
-        			return;
-        		case HTLC_PAYMENT_ACK:
-        			receiveHtlcPaymentAck(msg);
-        			return;
-        		case CLOSE:
-        			receiveClose(msg);
-        			return;
-        		case ERROR:
-        			checkState(msg.hasError());
-        			 log.error(
-    					 "Server sent ERROR {} with explanation {}", 
-    					 msg.getError().getCode().name(),
-                         msg.getError().hasExplanation() ? 
-                    		 msg.getError().getExplanation() : ""
-        			 );
-                     conn.destroyConnection(CloseReason.REMOTE_SENT_ERROR);
-                     return;
-        		default:
-                    log.error(
-                		"Got unknown message type or type that " +
-                		"doesn't apply to clients."
-    				);
-                    errorBuilder = Protos.Error.newBuilder()
-                		.setCode(Protos.Error.ErrorCode.SYNTAX_ERROR);
-                    closeReason = CloseReason.REMOTE_SENT_INVALID_MESSAGE;
-                    break;
-        	}
-        	conn.sendToServer(Protos.TwoWayChannelMessage.newBuilder()
-    			.setError(errorBuilder)
-                .setType(Protos.TwoWayChannelMessage.MessageType.ERROR)
-                .build());
-        	conn.destroyConnection(closeReason);
-        } finally {
-        	lock.unlock();
-        }
+    	try {
+    		processOrQueueMessage(msg);
+    	} catch (ValueOutOfRangeException e) {
+			e.printStackTrace();
+		} finally {
+    		lock.unlock();
+    	}
+    }
+    
+    private void processOrQueueMessage(Protos.TwoWayChannelMessage msg) 
+    		throws ValueOutOfRangeException {
+    	// If we are busy atm and the msg is not relevant for this batch of 
+    	// processing, we can just queue up the message
+    	if (busyProcessing.get() && !messageRelevant(msg)) {
+    		blockingQueue.put(msg);
+    	} else {
+    		processMessage(msg);
+    	}
+    }
+    
+    /**
+     * This method filters out which message type we receive are relevant
+     * for this batch of processing
+     * @param msg
+     * @return
+     */
+    private boolean messageRelevant(Protos.TwoWayChannelMessage msg) {
+    	Protos.TwoWayChannelMessage.MessageType type = msg.getType();
+    	return (
+			type == MessageType.HTLC_INIT_REPLY || 
+			type == MessageType.HTLC_SIGNED_REFUND ||
+			type == MessageType.HTLC_SETUP_COMPLETE
+		);
+    }
+
+    private void processMessage(Protos.TwoWayChannelMessage msg)
+    		throws ValueOutOfRangeException {
+       	Protos.Error.Builder errorBuilder;
+        CloseReason closeReason;
+            
+    	switch (msg.getType()) {
+    		case SERVER_VERSION:
+    			checkState(
+    				step == InitStep.WAITING_FOR_VERSION_NEGOTIATION && 
+    				msg.hasServerVersion()
+				);
+    			if (
+					msg.getServerVersion().getMajor() != 
+					SERVER_MAJOR_VERSION
+				) {
+    				errorBuilder = Protos.Error.newBuilder()
+						.setCode(
+							Protos.Error.ErrorCode.NO_ACCEPTABLE_VERSION
+						);
+    				closeReason = CloseReason.NO_ACCEPTABLE_VERSION;
+    				break;
+    			}
+    			log.info("Got version handshake, awaiting INITIATE");
+    			step = InitStep.WAITING_FOR_INITIATE;
+                return;
+    		case INITIATE:
+    			checkState(
+					step == InitStep.WAITING_FOR_INITIATE && 
+					msg.hasInitiate()
+				);
+    			Protos.Initiate initiate = msg.getInitiate();
+    			errorBuilder = Protos.Error.newBuilder();
+    			closeReason = 
+					receiveInitiate(initiate, value, errorBuilder);
+    			if (closeReason == null) {
+    				log.error("Refund sent to server");
+    				return;
+    			}
+    			log.error(
+					"Initiate failed with error: {}", 
+					errorBuilder.build().toString()
+				);
+    			break;
+    		case RETURN_REFUND:
+    			receiveRefund(msg);
+    			return;
+    		case CHANNEL_OPEN:
+    			receiveChannelOpen();
+    			return;
+    		case HTLC_INIT_REPLY:
+    			receiveHTLCInitReply(msg);
+    			return;
+    		case HTLC_SIGNED_REFUND:
+    			receiveHTLCSignedRefundWithHash(msg);
+    			return;
+    		case HTLC_SETUP_COMPLETE:
+    			receiveHTLCSetupComplete(msg);
+    			// Add method that processes all queue accumulated messages
+    		case HTLC_REVEAL_SECRET:
+    			receiveHTLCSecret(msg);
+    			return;
+    		case HTLC_PAYMENT_ACK:
+				receiveHTLCPaymentAck(msg);
+    			return;
+    		case CLOSE:
+    			receiveClose(msg);
+    			return;
+    		case ERROR:
+    			checkState(msg.hasError());
+    			 log.error(
+					 "Server sent ERROR {} with explanation {}", 
+					 msg.getError().getCode().name(),
+                     msg.getError().hasExplanation() ? 
+                		 msg.getError().getExplanation() : ""
+    			 );
+                 conn.destroyConnection(CloseReason.REMOTE_SENT_ERROR);
+                 return;
+    		default:
+                log.error(
+            		"Got unknown message type or type that " +
+            		"doesn't apply to clients."
+				);
+                errorBuilder = Protos.Error.newBuilder()
+            		.setCode(Protos.Error.ErrorCode.SYNTAX_ERROR);
+                closeReason = CloseReason.REMOTE_SENT_INVALID_MESSAGE;
+                break;
+    	}
+    	conn.sendToServer(Protos.TwoWayChannelMessage.newBuilder()
+			.setError(errorBuilder)
+            .setType(Protos.TwoWayChannelMessage.MessageType.ERROR)
+            .build());
+    	conn.destroyConnection(closeReason);
     }
     
     @Nullable
@@ -328,7 +391,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	
     	// Schedule the broadcast of the channel refund;
     	// Ensure the tx is safely stored in the wallet
-    	state.scheduleBroadcast();
+    	state.scheduleRefundTxBroadcast();
     	
     	Protos.HTLCProvideContract.Builder contractMsg = 
 			Protos.HTLCProvideContract.newBuilder()
@@ -351,8 +414,6 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 					.setSignature(
 						ByteString.copyFrom(signedTx.getSig().encodeToBitcoin())
 					);
-    		Transaction tst = new Transaction(wallet.getParams(),
-    				signedTeardown.getTx().toByteArray());
     		contractMsg.setSignedInitialTeardown(signedTeardown);
     	} catch (ValueOutOfRangeException e) {
     		throw new IllegalStateException(e);
@@ -376,7 +437,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     }
     
     @GuardedBy("lock")
-    private void receiveHtlcInitReply(Protos.TwoWayChannelMessage msg) {
+    private void receiveHTLCInitReply(Protos.TwoWayChannelMessage msg) {
     	checkState(step == InitStep.CHANNEL_OPEN);
     	Protos.HTLCInitReply htlcInitReply = msg.getHtlcInitReply();
     	ByteString requestId = htlcInitReply.getClientRequestId();
@@ -433,7 +494,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     } 
     
     @GuardedBy("lock")
-    private void receiveHtlcSignedRefundWithHash(
+    private void receiveHTLCSignedRefundWithHash(
 		Protos.TwoWayChannelMessage msg
 	) {
     	checkState(step == InitStep.CHANNEL_OPEN);
@@ -507,10 +568,68 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 		);
     	
     	conn.sendToServer(serverMsg.build());
+    	// we can unset the flag here
+    	busyProcessing.set(false);
     }
     
     @GuardedBy("lock")
-    private void receiveHtlcSecret(Protos.TwoWayChannelMessage msg) {
+    private void receiveHTLCSetupComplete(Protos.TwoWayChannelMessage msg) 
+    		throws ValueOutOfRangeException {
+    	checkState(step == InitStep.CHANNEL_OPEN);
+    	ByteString htlcId = msg.getHtlcSetupComplete().getId();
+    	log.info("received HTLC setup complete for {}", htlcId);
+    	state.makeSettleable(new String(htlcId.toByteArray()));
+    	if (state.doneWithSetup()) {
+    		processNextBatch();
+    	}
+    }
+    
+    @GuardedBy("lock")
+    private void processNextBatch() throws ValueOutOfRangeException {
+    	
+    	batchMsgs = blockingQueue.getAll();
+    	
+    	if (batchMsgs.size() == 0) {
+    		busyProcessing.set(false);
+    		return;
+    	}
+    	
+    	String htlcId;
+    	
+    	for (Protos.TwoWayChannelMessage msg: batchMsgs) {    		
+    		switch (msg.getType()) {
+    			case HTLC_INIT:
+    				Protos.HTLCInit initMsg = msg.getHtlcInit();
+    				htlcId = 
+						new String(initMsg.getRequestId().toByteArray());
+    				Coin amount = Coin.valueOf(initMsg.getValue());
+    				state.getSignedTeardownTx(htlcId, amount);
+    				
+    				batchMsgs.remove(msg);
+    				break;
+    			case HTLC_REVEAL_SECRET:
+    				Protos.HTLCRevealSecret revealMsg = 
+    					msg.getHtlcRevealSecret();
+    				htlcId = new String(revealMsg.getId().toByteArray());
+    				String secret = 
+						new String(revealMsg.getSecret().toByteArray());
+    				state.attemptSettle(htlcId, secret);
+    				
+    				batchMsgs.remove(msg);
+    				break;
+    			default:
+    				break;
+    		}
+    	}
+    	// At this point we should have an updated teardown with all
+    	// modifications that were in the queue. Let's send all needed data
+    	// to the server
+    	
+    }
+    
+    @GuardedBy("lock")
+    private void receiveHTLCSecret(Protos.TwoWayChannelMessage msg) 
+    		throws ValueOutOfRangeException {
     	checkState(step == InitStep.CHANNEL_OPEN);
     	log.info("Received htlcSecret. Attempting to settle");
     	Protos.HTLCRevealSecret revealMsg = msg.getHtlcRevealSecret();
@@ -522,13 +641,12 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 			wallet.getParams(),
 			signedForfeit.getTx().toByteArray()
 		);
-    	TransactionSignature forfeitSig = 
+    	TransactionSignature forfeitSig =
 			TransactionSignature.decodeFromBitcoin(
 				signedForfeit.getSignature().toByteArray(), 
 				true
 			);
     	String id = new String(htlcId.toByteArray());
-    	String secretString = new String(secret.toByteArray());
     	
     	// Verify the signed forfeit
     	if (!state.verifyHTLCForfeitTx(id, forfeitTx, forfeitSig)) {
@@ -536,9 +654,8 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     		return;
     	}
     	
-    	
     	SignedTransaction signedTeardown = state.attemptSettle(
-			new String(htlcId.toByteArray()), 
+			new String(htlcId.toByteArray()),
 			new String(secret.toByteArray())
 		);
     	if (signedTeardown != null) {
@@ -566,7 +683,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     }
     
     @GuardedBy("lock")
-    private void receiveHtlcPaymentAck(Protos.TwoWayChannelMessage msg) {
+    private void receiveHTLCPaymentAck(Protos.TwoWayChannelMessage msg) {
     	checkState(step == InitStep.CHANNEL_OPEN);
     	log.info("Received HTLC payment ACK message");
     	Protos.HTLCPaymentAck ack = msg.getHtlcPaymentAck();
@@ -575,6 +692,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	Coin value = paymentValueMap.remove(id);
     	// This will cancel the broadcast of the HTLC refund Tx
     	state.cancelHTLCRefundTxBroadcast(id);
+    	state.removeHTLCFromState(id);
     	// Let's set the future - we are done with this HTLC
     	SettableFuture<PaymentIncrementAck> future = 
 			paymentAckFutureMap.get(id);
@@ -626,6 +744,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 		lock.lock();
 		try {
 			checkState(step == InitStep.CHANNEL_OPEN);
+						
 			final SettableFuture<PaymentIncrementAck> incrementPaymentFuture = 
 				SettableFuture.create();
 			
@@ -650,13 +769,22 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 					.setRequestId(requestId)
 					.setValue(value.getValue());
 			
-			// At this step we have to first generate a message to the server
-			// to request an HTLC id and secret hash
-			conn.sendToServer(Protos.TwoWayChannelMessage.newBuilder()
+			final TwoWayChannelMessage initMsg = 
+				Protos.TwoWayChannelMessage.newBuilder()
 					.setHtlcInit(htlcInitMsg)
 					.setType(Protos.TwoWayChannelMessage.MessageType.HTLC_INIT)
-					.build());
-
+					.build();
+			
+			if (busyProcessing.get()) {
+				// Queue up
+				blockingQueue.put(initMsg);
+			} else {
+				// At this step we have to first generate a message to the server
+				// to request an HTLC id and secret hash
+				busyProcessing.set(true); // Processing a single-update batch
+				conn.sendToServer(initMsg);
+			}
+	
 			return incrementPaymentFuture;
 		} finally {
 			lock.unlock();

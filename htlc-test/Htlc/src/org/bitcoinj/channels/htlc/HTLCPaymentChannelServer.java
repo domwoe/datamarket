@@ -301,7 +301,6 @@ public class HTLCPaymentChannelServer {
     private void receiveRefundMessage(Protos.TwoWayChannelMessage msg) 	
     		throws VerificationException {
     	
-    	log.info("POTATO");
     	checkState(step == InitStep.WAITING_ON_UNSIGNED_REFUND);
     	log.info("Got refund transaction, returning signature");
     	
@@ -368,7 +367,7 @@ public class HTLCPaymentChannelServer {
 	) throws ValueOutOfRangeException {
     	lock.lock();
     	try {
-    		receivePaymentMessage(
+    		receiveInitialPaymentMessage(
 				providedContract.getSignedInitialTeardown(),
 				false
 			);
@@ -383,15 +382,17 @@ public class HTLCPaymentChannelServer {
     }
     
     @GuardedBy("lock")
-    private void receivePaymentMessage(
+    private void receiveInitialPaymentMessage(
 		Protos.HTLCSignedTransaction msg,
 		boolean sendAck
 	) throws ValueOutOfRangeException {
     	log.info("Got a payment message");
     	
     	Coin lastBestPayment = state.getBestValueToMe();
-    	Transaction teardownTx = 
-			new Transaction(wallet.getParams(), msg.getTx().toByteArray());
+    	Transaction teardownTx = new Transaction(
+			wallet.getParams(), 
+			msg.getTx().toByteArray()
+		);
     	TransactionSignature teardownSig = 
 			TransactionSignature.decodeFromBitcoin(
 				msg.getSignature().toByteArray(), 
@@ -402,7 +403,6 @@ public class HTLCPaymentChannelServer {
 			state.getBestValueToMe().subtract(lastBestPayment);
     	
     	if (bestPaymentChange.signum() > 0) {
-    		log.info("Calling UP into connection handler");
     		conn.paymentIncrease(
 				bestPaymentChange, 
 				state.getBestValueToMe(), 
@@ -535,11 +535,24 @@ public class HTLCPaymentChannelServer {
     		forfeitSig
 		);
     	
+    	// Let's ACK the successful setup
+    	Protos.HTLCSetupComplete.Builder setupMsg = 
+			Protos.HTLCSetupComplete.newBuilder()
+				.setId(htlcId);
+    	final Protos.TwoWayChannelMessage.Builder htlcSetupMsg =
+			Protos.TwoWayChannelMessage.newBuilder()
+				.setType(
+					Protos.TwoWayChannelMessage.MessageType.HTLC_SETUP_COMPLETE
+				);
+    	conn.sendToClient(htlcSetupMsg.build());
+  	
+    	// TODO: MOVE this to a separate method
     	// If we already have the secret for this HTLC, let's settle it early;
     	// We also send the client the forfeitTx, in case later the server
     	// wants to use an older teardown
     	String secret = state.getSecretForHTLC(id);
     	if (secret != null) {
+    		log.info("SERVER Attempt to settle");
     		SignedTransaction fullySignedForfeit = state.getFullForfeitTx(id);
     		Protos.HTLCSignedTransaction.Builder signedForfeitMsg = 
 				Protos.HTLCSignedTransaction.newBuilder()

@@ -30,7 +30,7 @@ public class HTLCClientDriver {
 	private static final org.slf4j.Logger log = 
 		LoggerFactory.getLogger(HTLCClientDriver.class);
 	private static final NetworkParameters PARAMS = RegTestParams.get();
-	private final Coin MICROPAYMENT_SIZE = CENT.divide(10);
+	private final Coin MICROPAYMENT_SIZE = CENT;
 	
 	private CountDownLatch latch;
 	
@@ -92,14 +92,15 @@ public class HTLCClientDriver {
 			    @Override public void onSuccess(
 		    		final HTLCPaymentChannelClientConnection client
 	    		) {
-			    	/*
-			    	log.info("Success! Trying to make micropayments");			    	
+			    	log.info("Channel open! Trying to make micropayments");			    	
 			    	try {
 						paymentIncrementCallback(client);
-					} catch (IllegalStateException | ValueOutOfRangeException e) {
+					} catch (
+						IllegalStateException | 
+						ValueOutOfRangeException e
+					) {
 						e.printStackTrace();
 					}
-					*/
 			    }
 			    @Override public void onFailure(Throwable throwable) {
 			    	log.error(throwable.getLocalizedMessage());
@@ -126,11 +127,11 @@ public class HTLCClientDriver {
 					}
 					log.info("Closing channel");
 			    	client.settle();
-			    //	latch.countDown();
+			    	latch.countDown();
 				}
 				@Override public void onFailure(Throwable throwable) {
 					log.error(throwable.getLocalizedMessage());
-				//	latch.countDown();
+					latch.countDown();
 				}
 			}
 		);

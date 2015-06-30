@@ -1223,7 +1223,6 @@ public class Transaction extends ChildMessage implements Serializable {
         Coin valueOut = Coin.ZERO;
         HashSet<TransactionOutPoint> outpoints = new HashSet<TransactionOutPoint>();
         for (TransactionInput input : inputs) {
-	        System.out.println("EXOUTPOINT: " + input.getOutpoint());
             if (outpoints.contains(input.getOutpoint()))
                 throw new VerificationException.DuplicatedOutPoint();
             outpoints.add(input.getOutpoint());

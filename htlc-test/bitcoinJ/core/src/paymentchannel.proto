@@ -75,9 +75,10 @@ message TwoWayChannelMessage {
         HTLC_SIGNED_TEARDOWN = 15;
         HTLC_SIGNED_REFUND = 16;
         HTLC_SIGNED_SETTLE_FORFEIT = 17;
-        HTLC_REVEAL_SECRET = 18;
-        HTLC_UPDATE_TEARDOWN = 19;
-        HTLC_PAYMENT_ACK = 20;
+        HTLC_SETUP_COMPLETE = 18;
+        HTLC_REVEAL_SECRET = 19;
+        HTLC_UPDATE_TEARDOWN = 20;
+        HTLC_PAYMENT_ACK = 21;
 
         // HTLC Payments End
 
@@ -113,9 +114,10 @@ message TwoWayChannelMessage {
     optional HTLCProvideSignedTeardown htlc_signed_teardown = 15;
     optional HTLCSignedRefundWithHash htlc_signed_refund_with_hash = 16;
     optional HTLCSignedSettleAndForfeit htlc_signed_settle_and_forfeit = 17;
-    optional HTLCRevealSecret htlc_reveal_secret = 18;
-    optional HTLCUpdateTeardown htlc_update_teardown = 19;
-    optional HTLCPaymentAck htlc_payment_ack = 20;
+    optional HTLCSetupComplete htlc_setup_complete = 18;
+    optional HTLCRevealSecret htlc_reveal_secret = 19;
+    optional HTLCUpdateTeardown htlc_update_teardown = 20;
+    optional HTLCPaymentAck htlc_payment_ack = 21;
 
     // HTLC Payments End
 
@@ -308,6 +310,11 @@ message HTLCSignedSettleAndForfeit {
 	required bytes client_secondary_key = 2;
 	required HTLCSignedTransaction signed_forfeit = 3;
 	required HTLCSignedTransaction signed_settle = 4;
+}
+
+message HTLCSetupComplete {
+	// This is sent by the server to the client to ACK the successful HTLC setup
+	required bytes id = 1;
 }
 
 message HTLCRevealSecret {

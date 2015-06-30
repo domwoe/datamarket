@@ -285,9 +285,10 @@ public class HTLCChannelServerState {
 		teardownInput.verify(multisigContract.getOutput(0));
 		
 		// Update teardown in the broadcast scheduler
-		broadcaster.scheduleTransaction(newTeardownTx, htlcTeardownExpireTime);
+		log.info("TEARDOWN NOW IS: {}", newTeardownTx);
 		this.teardownTx = newTeardownTx;
 		this.teardownClientSig = teardownSig;
+		broadcaster.scheduleTransaction(teardownTx, htlcTeardownExpireTime);
 		
 	}
 	
@@ -329,14 +330,6 @@ public class HTLCChannelServerState {
 		TransactionSignature clientSig
 	) {
 		// TODO: add verification that this indeed increases the value
-		// Update the teardown in the broadcast scheduler
-		broadcaster.updateSchedule(
-			this.teardownTx, 
-			teardownTx, 
-			htlcTeardownExpireTime
-		);
-		this.teardownTx = teardownTx;
-		this.teardownClientSig = clientSig;
 		TransactionSignature serverTeardownSig = teardownTx.calculateSignature(
 			0,
 			serverKey,
@@ -352,6 +345,19 @@ public class HTLCChannelServerState {
 		TransactionInput teardownTxIn = teardownTx.getInput(0);
 		teardownTxIn.setScriptSig(teardownScriptSig);
 		teardownTxIn.verify(multisigContract.getOutput(0));
+		
+		// Update the teardown in the broadcast scheduler
+		// IMPORTANT: Only use this after signing - else Transaction hash is wrong!
+		broadcaster.updateSchedule(
+			this.teardownTx, 
+			teardownTx, 
+			htlcTeardownExpireTime
+		);
+		
+		this.teardownTx = teardownTx;
+		this.teardownClientSig = clientSig;
+		
+		log.info("RECEIVED UPDATED TEARDOWN TX {}", this.teardownTx);
 		
 		HTLCServerState htlcState = htlcMap.get(htlcId);
 		SignedTransactionWithHash signedRefundTx = 
@@ -431,20 +437,22 @@ public class HTLCChannelServerState {
 	 */
 	public boolean removeHTLCAndUpdateTeardownTx(
 		String htlcId,
-		Transaction teardownTx,
+		Transaction newTeardownTx,
 		TransactionSignature teardownSig
 	) {
 		// TODO: Add HTLCState validation and check the new teardown values
 		HTLCServerState htlcState = htlcMap.get(htlcId);
 		htlcMap.remove(htlcId);
+		log.info("ATTEMPTING TO UPDATE BROADCAST FOR TEARDOWN {}", teardownTx);
 		broadcaster.updateSchedule(
-			this.teardownTx, 
-			teardownTx, 
+			teardownTx,
+			newTeardownTx, 
 			htlcTeardownExpireTime
 		);
-		// Cancel the settlement broadcast
-		broadcaster.removeTransaction(htlcState.getSettlementTx());
-		this.teardownTx = teardownTx;
+		// TODO: Cancel the settlement broadcast/ Add proper scheduling with full settlement
+		// transaction
+		// broadcaster.removeTransaction(htlcState.getSettlementTx());
+		this.teardownTx = newTeardownTx;
 		this.teardownClientSig = teardownSig;
 		htlcMap.remove(htlcId);
 		return true;

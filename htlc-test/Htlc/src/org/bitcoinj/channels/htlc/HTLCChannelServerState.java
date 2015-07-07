@@ -4,8 +4,10 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bitcoinj.core.Coin;
@@ -326,10 +328,12 @@ public class HTLCChannelServerState {
 	 */
 	public SignedTransactionWithHash getSignedRefundAndTeardownHash(
 		String htlcId,
+		Integer htlcIdx,
 		Transaction teardownTx,
 		TransactionSignature clientSig
 	) {
-		// TODO: add verification that this indeed increases the value
+		// TODO: add verification that this indeed increases the value and the ids
+		// truly correspond to the indices
 		TransactionSignature serverTeardownSig = teardownTx.calculateSignature(
 			0,
 			serverKey,
@@ -361,9 +365,14 @@ public class HTLCChannelServerState {
 		
 		HTLCServerState htlcState = htlcMap.get(htlcId);
 		SignedTransactionWithHash signedRefundTx = 
-			htlcState.getSignedRefund(teardownTx, clientPrimaryKey, serverKey);
+			htlcState.getSignedRefund(
+				teardownTx,
+				htlcIdx,
+				clientPrimaryKey,
+				serverKey
+			);
 		// Update the map
-		htlcMap.put(htlcId, htlcState);
+		htlcMap.put(htlcId, htlcState);	
 		
 		return signedRefundTx;
 	}

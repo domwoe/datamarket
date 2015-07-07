@@ -7,41 +7,32 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.bitcoin.paymentchannel.Protos;
-
-public class HTLCBlockingQueue {
+public class HTLCBlockingQueue<T> {
 	
-	private Queue<Protos.TwoWayChannelMessage> q = 
-		new LinkedList<Protos.TwoWayChannelMessage>();
+	private Queue<T> q = new LinkedList<T>();
 	
 	private final Condition isFullCondition;
 	private final Condition isEmptyCondition;
 	private final Lock lock;
 	
 	private final int limit;
-	private final int htlcLimit;
-	private int htlcs;
 	
-	public HTLCBlockingQueue(int limit, int maxHTLCs) {
+	public HTLCBlockingQueue(int limit) {
 		this.limit = limit;
-		this.htlcLimit = maxHTLCs;
 		this.lock = new ReentrantLock();
 		this.isFullCondition = lock.newCondition();
 		this.isEmptyCondition = lock.newCondition();
 	}
 	
-	public void put(Protos.TwoWayChannelMessage msg) {
+	public void put(T msg) {
 		lock.lock();
 		try {
-			while (isFull() || isHTLCFull()) {
+			while (isFull()) {
 				try {
 					isFullCondition.await();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			}
-			if (isInitMsg(msg)) {
-				htlcs++;
 			}
 			q.add(msg);
 			isEmptyCondition.signalAll();
@@ -50,8 +41,8 @@ public class HTLCBlockingQueue {
 		}
 	}
 	
-	public Protos.TwoWayChannelMessage get() {
-		Protos.TwoWayChannelMessage msg = null;
+	public T get() {
+		T msg = null;
 		lock.lock();
 		try {
 			while (isEmpty()) {
@@ -61,9 +52,6 @@ public class HTLCBlockingQueue {
 					e.printStackTrace();
 				}
 				msg = q.poll();
-				if (isInitMsg(msg)) {
-					htlcs--;
-				}
 				isFullCondition.signalAll();
 			}
 		} finally {
@@ -72,19 +60,18 @@ public class HTLCBlockingQueue {
 		return msg;
 	}
 	
-	public List<Protos.TwoWayChannelMessage> getAll() {
-		List<Protos.TwoWayChannelMessage> elements = new LinkedList<>();
+	public List<T> getAll() {
+		List<T> elements = new LinkedList<T>();
 		lock.lock();
 		try {
 			while (!q.isEmpty()) {
-				Protos.TwoWayChannelMessage msg = q.poll();
+				T msg = q.poll();
 				elements.add(msg);
 			}
 			/**
 			 * Signal that we can add new elements to the queue since it's empty
 			 * and we can accumulate the next batch
 			 */
-			htlcs = 0;
 			isFullCondition.signalAll();
 		} finally {
 			lock.unlock();
@@ -92,20 +79,11 @@ public class HTLCBlockingQueue {
 		return elements;
 	}
 	
-	private boolean isInitMsg(Protos.TwoWayChannelMessage msg) {
-		return 
-			msg.getType() == Protos.TwoWayChannelMessage.MessageType.HTLC_INIT;
-	}
-	
-	private boolean isEmpty() {
+	public boolean isEmpty() {
 		return q.size() == 0;
 	}
 	
 	private boolean isFull() {
 		return q.size() == limit;
-	}
-	
-	private boolean isHTLCFull() {
-		return htlcs == htlcLimit;
-	}
+	} 
 }

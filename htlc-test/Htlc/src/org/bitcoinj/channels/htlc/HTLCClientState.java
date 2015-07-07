@@ -50,7 +50,13 @@ public class HTLCClientState extends HTLCState {
 	
 	private Transaction refundTx;
 	private Transaction settlementTx;
+	
 	private Transaction forfeitTx;
+	private TransactionSignature forfeitTxSig;
+	
+	public boolean isSettleable() {
+		return state == State.SETTLEABLE;
+	}
 
 	public Transaction getRefundTx() {
 		return refundTx;
@@ -62,6 +68,18 @@ public class HTLCClientState extends HTLCState {
 
 	public Transaction getForfeitTx() {
 		return forfeitTx;
+	}
+	
+	public void setHTLCOutput(TransactionOutput htlcOutput) {
+		this.teardownTxHTLCOutput = htlcOutput;
+	}
+	
+	public TransactionOutput getHTLCOutput() {
+		return teardownTxHTLCOutput;
+	}
+	
+	public int getIndex() {
+		return teardownTxHTLCOutput.getIndex();
 	}
 
 	public HTLCClientState(
@@ -203,6 +221,29 @@ public class HTLCClientState extends HTLCState {
 		this.forfeitTx = forfeitTx;
 		this.state = State.FORFEIT_CREATED;
 		return new SignedTransaction(forfeitTx, clientSig);
+	}
+	
+	public Transaction verifyAndFinalizeForfeit(
+		Transaction forfeitTx,
+		TransactionSignature forfeitServerSig
+	) {
+				
+		ScriptBuilder bld = new ScriptBuilder();
+		bld.data(new byte[]{});
+		bld.data(forfeitTxSig.encodeToBitcoin());
+		bld.data(forfeitServerSig.encodeToBitcoin());
+		bld.op(ScriptOpCodes.OP_1);
+		Script forfeitInputScript = bld.build();
+		
+		TransactionInput forfeitInput = forfeitTx.getInput(0);
+		forfeitInput.setScriptSig(forfeitInputScript);
+		
+		forfeitInputScript.correctlySpends(
+			refundTx, 
+			0,
+			teardownTxHTLCOutput.getScriptPubKey()
+		);
+		return forfeitTx;
 	}
 	
 	public void makeSettleable() {

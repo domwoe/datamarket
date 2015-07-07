@@ -199,8 +199,9 @@ public class HTLCPaymentChannelServerListener {
 	        		int port
 	    		) {
 	                return new ServerHandler(
-	                		new InetSocketAddress(inetAddress, port), 
-	                		timeoutSeconds).socketProtobufHandler;
+                		new InetSocketAddress(inetAddress, port), 
+                		timeoutSeconds
+            		).socketProtobufHandler;
 	            }
         	}, 
         	new InetSocketAddress(port)

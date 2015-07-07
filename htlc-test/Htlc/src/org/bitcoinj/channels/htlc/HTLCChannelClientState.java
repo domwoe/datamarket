@@ -3,8 +3,10 @@ package org.bitcoinj.channels.htlc;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,8 +57,6 @@ public class HTLCChannelClientState {
 	private final int CLIENT_OUT_IDX = 1;
 	
 	private final int MAX_HTLCS = 5;
-	private int htlcOutputs;
-	private int htlcOutputIdx;
 	
 	private Wallet wallet;
 	
@@ -67,6 +67,7 @@ public class HTLCChannelClientState {
 	private Transaction multisigContract;
 	private Transaction refundTx;
 	private Transaction teardownTx;
+	private Transaction teardownTxSnapshot; // Keep tx from before update round
 	
 	private final Coin totalValue;
 	private Coin valueToMe;
@@ -92,7 +93,7 @@ public class HTLCChannelClientState {
 	 * This stores the hash of the previously seen teardown transactions;
 	 * It maps to the HTLCs' forfeiture transactions
 	 */
-	private Map<Sha256Hash, LinkedList<Transaction> > teardownForfeitureTxMap;
+	private Map<Sha256Hash, List<Transaction> > teardownForfeitureTxMap;
 	
 	public HTLCChannelClientState(
 		Wallet wallet, 
@@ -114,16 +115,10 @@ public class HTLCChannelClientState {
 		this.htlcMap = new HashMap<String, HTLCClientState>();
 		this.htlcSet = new HashSet<HTLCClientState>();
 		this.teardownForfeitureTxMap = 
-			new LinkedHashMap<Sha256Hash, LinkedList<Transaction> >();
+			new LinkedHashMap<Sha256Hash, List<Transaction> >();
 		this.totalValueInHTLCs = Coin.valueOf(0L);
 		this.broadcastScheduler = broadcastScheduler;
-		this.htlcOutputs = 0;
-		this.htlcOutputIdx = 2;
 		setState(State.NEW);
-	}
-	
-	public boolean isMaxHTLCsReached() {
-		return htlcOutputs == MAX_HTLCS;
 	}
 	
 	/**
@@ -316,7 +311,11 @@ public class HTLCChannelClientState {
 		valueToMe = newValueToMe;
 		
 		// This will update the teardown Tx field
-		updateTeardownTx(newValueToMe);
+		teardownTx = new Transaction(wallet.getParams());
+		teardownTx.addInput(multisigContract.getOutput(0)).setSequenceNumber(0);
+		teardownTx.addOutput(totalValue.subtract(valueToMe), serverMultisigKey);
+		teardownTx.addOutput(valueToMe, clientPrimaryKey);
+		
 		log.info("Teardown hash: {}", teardownTx.getHash());
 		// Now construct the signature on the teardown Tx
 		TransactionSignature teardownSig = teardownTx.calculateSignature(
@@ -330,6 +329,71 @@ public class HTLCChannelClientState {
 		log.info("Teardown connected output: {}", multisigScript);
 		log.info("Teardown input hash: {}", teardownTx.getInput(0).hashCode());
 		return new SignedTransaction(teardownTx, teardownSig);
+	}
+	
+	/**
+	 * @throws ValueOutOfRangeException
+	 */
+	public synchronized int updateTeardownTxWithHTLC(
+		String hashId,
+		Coin amount
+	) throws ValueOutOfRangeException {
+		checkNotExpired();
+		log.info("Amount: {}", amount);
+		if (amount.signum() < 0) {
+		    throw new ValueOutOfRangeException("Tried to decrement payment");
+		}
+		Coin newValueToMe = valueToMe.subtract(amount);
+		if (newValueToMe.compareTo(Transaction.MIN_NONDUST_OUTPUT) < 0 && 
+				newValueToMe.signum() > 0) {
+		    log.info(
+	    		"New value being sent back as change was smaller " +
+		    	"than minimum nondust output, sending all"
+			);
+		    amount = valueToMe;
+		    newValueToMe = Coin.ZERO;
+		}
+		if (newValueToMe.signum() < 0) {
+		    throw new ValueOutOfRangeException(
+	    		"Channel has too little money to pay " + amount + " satoshis"
+    		);
+		}
+		valueToMe = newValueToMe;
+		totalValueInHTLCs = totalValueInHTLCs.add(amount);
+		
+		// Create new HTLC
+		HTLCClientState htlcState = new HTLCClientState(
+			hashId,
+			amount,
+			htlcSettlementExpiryTime,
+			htlcRefundExpiryTime
+		);
+		final Coin valueAfterFee = 	
+			newValueToMe.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
+		if (Transaction.MIN_NONDUST_OUTPUT.compareTo(valueAfterFee) > 0) {
+			throw new ValueOutOfRangeException(
+				"Value after fee too small to use!"
+			);
+		}
+		// Update client and server values
+		teardownTx.getOutput(CLIENT_OUT_IDX).setValue(valueAfterFee);
+		teardownTx.getOutput(SERVER_OUT_IDX).setValue(
+			totalValue.subtract(newValueToMe).subtract(totalValueInHTLCs)
+		);
+		teardownTx = htlcState.addHTLCOutput(
+			teardownTx,
+			new HTLCKeys(
+				clientPrimaryKey, 
+				clientSecondaryKey, 
+				serverMultisigKey
+			)
+		);
+		
+		htlcSet.add(htlcState);
+		htlcMap.put(hashId, htlcState);		
+		log.info("Created fresh teardown tx {}", teardownTx);
+		
+		return htlcState.getHTLCOutput().getIndex();
 	}
 
 	/**
@@ -380,9 +444,6 @@ public class HTLCChannelClientState {
 			teardownTx,
 			new HTLCKeys(clientPrimaryKey, clientSecondaryKey, serverMultisigKey)
 		);
-		// Increase number of HTLC outputs
-		htlcOutputs++;
-		htlcOutputIdx++;
 		
 		htlcSet.add(htlcState);
 		htlcMap.put(hashId, htlcState);		
@@ -469,34 +530,21 @@ public class HTLCChannelClientState {
 		htlcSet.remove(htlcState);
 	}
 	
-	public synchronized boolean doneWithSetup() {
-		return htlcSet.isEmpty();
-	}
-	
-	public synchronized boolean verifyHTLCForfeitTx(
-		String htlcId,
-		Transaction forfeitTx,
-		TransactionSignature forfeitSig
-	) {
-		// TODO: Dummy for now, add logic for checking signature of forfeitTX
-		return true;
-	}
-	
 	public synchronized void cancelHTLCRefundTxBroadcast(String htlcId) {
 		HTLCClientState htlcState = htlcMap.get(htlcId);
 		log.info("ATTEMPTING TO CANCEL BROADCAST HTLC REFUND TX {}", htlcState.getRefundTx());
 		broadcastScheduler.removeTransaction(htlcState.getRefundTx());
 	}
-	
-	public synchronized void removeHTLCFromState(String htlcId) {
-		htlcMap.remove(htlcId);
+
+	public synchronized List<HTLCClientState> getAllActiveHTLCS() {
+		return new ArrayList<HTLCClientState>(htlcMap.values());
 	}
 	
 	/**
 	 * Called when the server ACK's that the HTLC can be settled at any time now
 	 * @throws ValueOutOfRangeException 
 	 */
-	public synchronized SignedTransaction attemptSettle(
+	public synchronized boolean attemptSettle(
 		String htlcId,
 		String secret
 	) throws ValueOutOfRangeException {
@@ -504,31 +552,95 @@ public class HTLCChannelClientState {
 		if (htlcState.verifySecret(secret)) {
 			log.info("Secret verified");
 			// Hash matches, we can remove the HTLC and update the teardownTx
-			return removeHTLCAndUpdateTeardownTx(htlcState);
+			closeHTLC(htlcState);
+			return true;
+		} else {
+			log.info("Secret verification failed");
+			return false;
 		}
-		log.info("Secret verification failed");
-		return null;
 	}
 	
-	private synchronized SignedTransaction removeHTLCAndUpdateTeardownTx(
-		HTLCClientState htlcState
-	) throws ValueOutOfRangeException {
-		// TODO: ADD HTLCState validation
-			
+	public synchronized void attemptBackoff(
+		String htlcId,
+		Transaction forfeitTx,
+		TransactionSignature forfeitServerSig
+	) {
+		HTLCClientState htlcState = htlcMap.get(htlcId);
+		Transaction completeForfeitTx = 
+			htlcState.verifyAndFinalizeForfeit(forfeitTx, forfeitServerSig);
+		Sha256Hash sighash = teardownTxSnapshot.hashForSignature(
+			 0,
+			 multisigScript,
+			 SigHash.ALL,
+			 false
+		);
+		List<Transaction> currentForfeits = teardownForfeitureTxMap.get(sighash);
+		currentForfeits.add(completeForfeitTx);
+		teardownForfeitureTxMap.put(sighash, currentForfeits);
+		// Update the teardown
+		refundHTLC(htlcState);
+	}
+	
+	public synchronized SignedTransaction getSignedTeardownTx() {
+		return new SignedTransaction(
+			teardownTx,
+			teardownTx.calculateSignature(
+				0,
+				clientPrimaryKey,
+				multisigScript,
+				Transaction.SigHash.ALL,
+				false
+			)
+		);
+	}
+	
+	public synchronized void takeTeardownTxSnapshot() {
+		teardownTxSnapshot = teardownTx;
+	}
+	
+	private synchronized void refundHTLC(HTLCClientState htlcState) {
+		checkState(htlcState.isSettleable());
+		removeHTLC(htlcState);
+		Coin htlcValue = htlcState.getValue();
+		valueToMe = valueToMe.add(htlcValue);
+		totalValueInHTLCs = totalValueInHTLCs.subtract(htlcValue);
+		// Update client value
+		teardownTx.getOutput(CLIENT_OUT_IDX).setValue(valueToMe);
+	}
+	
+	private synchronized void closeHTLC(HTLCClientState htlcState) 
+			throws ValueOutOfRangeException {
+		checkState(htlcState.isSettleable());
+		removeHTLC(htlcState);
 		Coin htlcValue = htlcState.getValue();
 		totalValueInHTLCs = totalValueInHTLCs.subtract(htlcValue);
-		updateTeardownTx(valueToMe);
-		
-		TransactionSignature teardownSig = teardownTx.calculateSignature(
-			0,
-			clientPrimaryKey,
-			multisigScript,
-			Transaction.SigHash.ALL,
-			false
+		// Update server value
+		teardownTx.getOutput(SERVER_OUT_IDX).setValue(
+			totalValue.subtract(valueToMe).subtract(totalValueInHTLCs)
 		);
-		htlcOutputs--;
-		htlcOutputIdx--;
-		return new SignedTransaction(teardownTx, teardownSig);
+	}
+	
+	private synchronized void removeHTLC(HTLCClientState htlcState) {
+		checkState(htlcState.isSettleable());
+		
+		List<TransactionOutput> allOutputs = teardownTx.getOutputs();
+		Iterator<TransactionOutput> itr = allOutputs.listIterator();
+		while (itr.hasNext()) {
+			TransactionOutput output = itr.next();
+			if (output.equals(htlcState.getHTLCOutput())) {
+				// Remove this element
+				itr.remove();
+			}
+		}
+		teardownTx = new Transaction(wallet.getParams());
+		teardownTx.addInput(multisigContract.getOutput(0)).setSequenceNumber(0);
+		
+		// Re-add all previous outputs
+		for (TransactionOutput output: allOutputs) {
+			// Make sure we update the output in the state
+			htlcState.setHTLCOutput(teardownTx.addOutput(output));
+		}
+		htlcMap.remove(htlcState.getId());
 	}
 		
     public synchronized Transaction getIncompleteRefundTransaction() {

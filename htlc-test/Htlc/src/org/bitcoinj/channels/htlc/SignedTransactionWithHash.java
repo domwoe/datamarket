@@ -9,8 +9,8 @@ public class SignedTransactionWithHash extends SignedTransaction {
 	private Sha256Hash spentTxHash;
 	
 	public SignedTransactionWithHash(
-		Transaction tx, 
-		TransactionSignature sig, 
+		Transaction tx,
+		TransactionSignature sig,
 		Sha256Hash spentTxHash
 	) {
 		super(tx, sig);
@@ -20,4 +20,5 @@ public class SignedTransactionWithHash extends SignedTransaction {
 	public Sha256Hash getSpentTxHash() {
 		return spentTxHash;
 	}
+
 }

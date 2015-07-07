@@ -59,12 +59,12 @@ public class HTLCServerState extends HTLCState {
 	
 	public SignedTransactionWithHash getSignedRefund(
 		Transaction teardownTx,
+		int idx,
 		ECKey clientKey,
 		ECKey serverKey
 	) {
 		checkState(state == State.NEW);
-		// TODO: FIX INDEX! It's not always 2!
-		TransactionOutput htlcOut = teardownTx.getOutput(2);
+		TransactionOutput htlcOut = teardownTx.getOutput(idx);
 		refundTx = new Transaction(PARAMS);
 		refundTx.addOutput(htlcOut.getValue(), clientKey.toAddress(PARAMS));
 		refundTx.addInput(htlcOut).setSequenceNumber(0);
@@ -77,10 +77,9 @@ public class HTLCServerState extends HTLCState {
 			Transaction.SigHash.ALL,
 			false
 		);
-		// TODO: Fix index, not always 2!
 		Sha256Hash sighash = refundTx.hashForSignature(
 			0, 
-			teardownTx.getOutput(2).getScriptPubKey(), 
+			htlcOut.getScriptPubKey(), 
 			Transaction.SigHash.ALL, 
 			false
 		);

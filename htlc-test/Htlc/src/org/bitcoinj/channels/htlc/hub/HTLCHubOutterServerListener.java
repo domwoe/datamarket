@@ -1,28 +1,28 @@
-package org.bitcoinj.channels.htlc;
+package org.bitcoinj.channels.htlc.hub;
 
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.TransactionBroadcaster;
 import org.bitcoinj.core.Wallet;
+import org.bitcoinj.net.NioClient;
 import org.bitcoinj.net.NioServer;
 import org.bitcoinj.net.ProtobufParser;
 import org.bitcoinj.net.StreamParserFactory;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
 import org.bitcoinj.protocols.channels.ServerConnectionEventHandler;
+import org.bitcoinj.protocols.channels.StoredPaymentChannelServerStates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
@@ -34,10 +34,10 @@ import com.google.protobuf.ByteString;
  * channels API. Internally, sends protobuf messages to/from a newly created 
  * {@link HTLCHubOutterServer}.
  */
-public class HTLCPaymentChannelServerListener {
+public class HTLCHubOutterServerListener {
 
 	private static final Logger log = 
-			LoggerFactory.getLogger(HTLCPaymentChannelServerListener.class);
+			LoggerFactory.getLogger(HTLCHubOutterServerListener.class);
 	private final Wallet wallet;
 	private final ECKey serverKey;
 	private final TransactionBroadcastScheduler broadcaster;
@@ -49,8 +49,6 @@ public class HTLCPaymentChannelServerListener {
 
     private NioServer server;
     private final int timeoutSeconds;
-    
-    private final List<ServerHandler> allHandlers = new ArrayList<ServerHandler>();
 	
     /**
      * A factory which generates connection-specific event handlers.
@@ -68,20 +66,27 @@ public class HTLCPaymentChannelServerListener {
 
     private class ServerHandler {
         public ServerHandler(
+        	final InetSocketAddress hubTwinServer,
     		final SocketAddress address, 
     		final int timeoutSeconds
 		) {
-            paymentChannelManager = new HTLCPaymentChannelServer(
-        		broadcaster,
+            paymentChannelManager = new HTLCHubOutterServer(
+        		broadcaster, 
         		wallet,
         		serverKey,
         		minAcceptedChannelSize, 
-        		new HTLCPaymentChannelServer.ServerConnection() {
+        		new HTLCHubOutterServer.ServerConnection() {
         			@Override public void sendToClient(
     					Protos.TwoWayChannelMessage msg
 					) {
     					socketProtobufHandler.write(msg);
     				}
+        			
+        			@Override public void sendToTwin(
+    					Protos.TwoWayChannelMessage msg
+					) {
+        				hubTwinWireParser.write(msg);
+        			}
 
         			@Override public void destroyConnection(
     					PaymentChannelCloseException.CloseReason reason
@@ -154,6 +159,54 @@ public class HTLCPaymentChannelServerListener {
     				Short.MAX_VALUE, 
     				timeoutSeconds*1000
         	);
+            
+            hubTwinWireParser = new ProtobufParser<Protos.TwoWayChannelMessage>(
+        		new ProtobufParser.Listener<Protos.TwoWayChannelMessage>() {
+    	            @Override
+    	            public void messageReceived(
+                		ProtobufParser<Protos.TwoWayChannelMessage> handler, 
+                		Protos.TwoWayChannelMessage msg
+            		) {
+	                	System.out.println("Message received from TWIN server");
+	                	paymentChannelManager.receiveTwinMessage(msg);
+    	            }
+
+    	            @Override
+    	            public void connectionOpen(
+                		ProtobufParser<Protos.TwoWayChannelMessage> handler
+            		) {
+    	            	System.out.println("Connection to TWIN Server opened");
+    	            	paymentChannelManager.twinConnectionOpen();
+  //  	                channelClient.connectionOpen();
+    	            }
+
+    	            @Override
+    	            public void connectionClosed(
+                		ProtobufParser<Protos.TwoWayChannelMessage> handler
+            		) {
+    	            	paymentChannelManager.connectionClosed();
+    	           //     channelOpenFuture.setException(
+                    //		new PaymentChannelCloseException(
+                		//		"The TCP socket died",
+//    	                        PaymentChannelCloseException.CloseReason.CONNECTION_CLOSED
+//                            )
+ //               		);
+    	            }
+        		}, 
+        		Protos.TwoWayChannelMessage.getDefaultInstance(), 
+        		Short.MAX_VALUE, 
+        		timeoutSeconds*1000
+    		);
+            
+            try {
+				new NioClient(
+					hubTwinServer, 
+					hubTwinWireParser, 
+					timeoutSeconds * 1000
+				);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
         }
         
         private PaymentChannelCloseException.CloseReason closeReason;
@@ -162,7 +215,7 @@ public class HTLCPaymentChannelServerListener {
         private ServerConnectionEventHandler eventHandler;
 
         // The payment channel server which does the actual payment channel handling
-        private final HTLCPaymentChannelServer paymentChannelManager;
+        private final HTLCHubOutterServer paymentChannelManager;
 
         // The connection handler which puts/gets protobufs from the TCP socket
         private final ProtobufParser<Protos.TwoWayChannelMessage> 
@@ -171,9 +224,11 @@ public class HTLCPaymentChannelServerListener {
         // The listener which connects to socketProtobufHandler
         private final ProtobufParser.Listener<Protos.TwoWayChannelMessage> 
         	protobufHandlerListener;
+        
+        private ProtobufParser<Protos.TwoWayChannelMessage> hubTwinWireParser;
     }
     
-    public HTLCPaymentChannelServerListener(
+    public HTLCHubOutterServerListener(
 		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
 		ECKey serverKey,
@@ -194,7 +249,7 @@ public class HTLCPaymentChannelServerListener {
      * @throws Exception If binding to the given port fails (eg SocketException: 
      * Permission denied for privileged ports)
      */
-    public void bindAndStart(int port) throws Exception {
+    public void bindAndStart(int port, final int twinPort) throws Exception {
         server = new NioServer(
     		new StreamParserFactory() {
 	            @Override
@@ -202,12 +257,11 @@ public class HTLCPaymentChannelServerListener {
 	        		InetAddress inetAddress, 
 	        		int port
 	    		) {
-	            	ServerHandler handler = new ServerHandler(
+	                return new ServerHandler(
                 		new InetSocketAddress(inetAddress, port), 
+                		new InetSocketAddress(inetAddress, twinPort), 
                 		timeoutSeconds
-            		);
-	            	allHandlers.add(handler);
-	            	return handler.socketProtobufHandler;
+            		).socketProtobufHandler;
 	            }
         	}, 
         	new InetSocketAddress(port)

@@ -1,56 +1,53 @@
-package org.bitcoinj.channels.htlc;
+package org.bitcoinj.channels.htlc.hub;
 
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.TransactionBroadcaster;
+import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.net.NioServer;
 import org.bitcoinj.net.ProtobufParser;
 import org.bitcoinj.net.StreamParserFactory;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
 import org.bitcoinj.protocols.channels.ServerConnectionEventHandler;
+import org.bitcoinj.protocols.channels.StoredPaymentChannelServerStates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.protobuf.ByteString;
 
 /**
  * Implements a listening TCP server that can accept connections from payment 
  * channel clients, and invokes the provided event listeners when new channels 
  * are opened or payments arrive. This is the highest level class in the payment
  * channels API. Internally, sends protobuf messages to/from a newly created 
- * {@link HTLCHubOutterServer}.
+ * {@link HTLCHubInnerServer}.
  */
-public class HTLCPaymentChannelServerListener {
+public class HTLCHubInnerServerListener {
 
 	private static final Logger log = 
-			LoggerFactory.getLogger(HTLCPaymentChannelServerListener.class);
+			LoggerFactory.getLogger(HTLCHubInnerServerListener.class);
 	private final Wallet wallet;
-	private final ECKey serverKey;
+	private final Coin value;
+	private final long timeWindow;
+	private final ECKey primaryKey;
+	private final ECKey secondaryKey;
 	private final TransactionBroadcastScheduler broadcaster;
 	
-	 // The event handler factory which creates new 
+	// The event handler factory which creates new 
 	// ServerConnectionEventHandler per connection
     private final HandlerFactory eventHandlerFactory;
     private final Coin minAcceptedChannelSize;
 
     private NioServer server;
     private final int timeoutSeconds;
-    
-    private final List<ServerHandler> allHandlers = new ArrayList<ServerHandler>();
 	
     /**
      * A factory which generates connection-specific event handlers.
@@ -71,13 +68,15 @@ public class HTLCPaymentChannelServerListener {
     		final SocketAddress address, 
     		final int timeoutSeconds
 		) {
-            paymentChannelManager = new HTLCPaymentChannelServer(
-        		broadcaster,
+            paymentChannelManager = new HTLCHubInnerServer(
+        		broadcaster, 
         		wallet,
-        		serverKey,
-        		minAcceptedChannelSize, 
-        		new HTLCPaymentChannelServer.ServerConnection() {
-        			@Override public void sendToClient(
+        		primaryKey,
+        		secondaryKey,
+        		value,
+        		timeWindow,
+        		new HTLCHubInnerServer.ServerConnection() {
+        			@Override public void sendToDevice(
     					Protos.TwoWayChannelMessage msg
 					) {
     					socketProtobufHandler.write(msg);
@@ -96,15 +95,14 @@ public class HTLCPaymentChannelServerListener {
 	                    socketProtobufHandler.setSocketTimeout(0);
 	                    eventHandler.channelOpen(contractHash);
 	                }
-	
-	                @Override public ListenableFuture<ByteString> paymentIncrease(
-                		Coin by, 
-                		Coin to, 
-                		@Nullable ByteString info
-            		) {
-	                	log.info("Call payment increase UP to event handler");
-	                    return eventHandler.paymentIncrease(by, to, info);
-	                }
+	                
+	                @Override
+					public boolean acceptExpireTime(long expireTime) {
+						// One extra minute to compensate for time skew and latency
+						return expireTime <= (
+							timeWindow + Utils.currentTimeSeconds() + 60
+						);  
+					}
 	            });
 
             protobufHandlerListener = 
@@ -162,7 +160,7 @@ public class HTLCPaymentChannelServerListener {
         private ServerConnectionEventHandler eventHandler;
 
         // The payment channel server which does the actual payment channel handling
-        private final HTLCPaymentChannelServer paymentChannelManager;
+        private final HTLCHubInnerServer paymentChannelManager;
 
         // The connection handler which puts/gets protobufs from the TCP socket
         private final ProtobufParser<Protos.TwoWayChannelMessage> 
@@ -173,9 +171,13 @@ public class HTLCPaymentChannelServerListener {
         	protobufHandlerListener;
     }
     
-    public HTLCPaymentChannelServerListener(
+    public HTLCHubInnerServerListener(
 		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
+		ECKey primaryKey,
+		ECKey secondaryKey,
+		Coin value,
+		long timeWindow,
 		ECKey serverKey,
 		final int timeoutSeconds,
 		Coin minAcceptedChannelSize,
@@ -183,7 +185,10 @@ public class HTLCPaymentChannelServerListener {
 	) {
     	this.broadcaster = broadcaster;
     	this.wallet = wallet;
-    	this.serverKey = serverKey;
+    	this.value = value;
+    	this.timeWindow = timeWindow;
+    	this.primaryKey = primaryKey;
+    	this.secondaryKey = secondaryKey;
     	this.minAcceptedChannelSize = minAcceptedChannelSize;
     	this.eventHandlerFactory = eventHandlerFactory;
     	this.timeoutSeconds = timeoutSeconds;
@@ -202,12 +207,10 @@ public class HTLCPaymentChannelServerListener {
 	        		InetAddress inetAddress, 
 	        		int port
 	    		) {
-	            	ServerHandler handler = new ServerHandler(
+	                return new ServerHandler(
                 		new InetSocketAddress(inetAddress, port), 
                 		timeoutSeconds
-            		);
-	            	allHandlers.add(handler);
-	            	return handler.socketProtobufHandler;
+            		).socketProtobufHandler;
 	            }
         	}, 
         	new InetSocketAddress(port)

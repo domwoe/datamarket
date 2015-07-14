@@ -83,6 +83,7 @@ message TwoWayChannelMessage {
         HTLC_ROUND_INIT = 22;
         HTLC_ROUND_ACK = 23;
         HTLC_ROUND_DONE = 24;
+        HTLC_FLOW = 25;
 
         // HTLC Payments End
 
@@ -120,11 +121,11 @@ message TwoWayChannelMessage {
     optional HTLCSignedSettleAndForfeit htlc_signed_settle_and_forfeit = 17;
     optional HTLCSetupComplete htlc_setup_complete = 18;
     optional HTLCServerUpdate htlc_server_update = 19;
-    optional HTLCUpdateTeardown htlc_update_teardown = 20;
     optional HTLCPaymentAck htlc_payment_ack = 21;
     optional HTLCRoundInit htlc_round_init = 22;
     optional HTLCRoundAck htlc_round_ack = 23;
     optional HTLCRoundDone htlc_round_done = 24;
+    optional HTLCFlow htlc_flow = 25;
 
     // HTLC Payments End
 
@@ -371,6 +372,15 @@ message HTLCServerUpdate {
 message HTLCPaymentAck {
 	// Sent by the server to the client to ack that the HTLC is confirmed
 	required bytes id = 1;
+}
+
+message HTLCFlow {
+	enum FlowType {
+		NODE_STATS = 1;
+		SENSOR_STATS = 2;
+	};
+	
+	required FlowType type = 1;
 }
 
 // An Error can be sent by either party at any time

@@ -1,4 +1,4 @@
-package org.bitcoinj.channels.htlc;
+package org.bitcoinj.channels.htlc.hub;
 
 
 import static com.google.common.base.Preconditions.checkState;
@@ -14,6 +14,12 @@ import javax.annotation.concurrent.GuardedBy;
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
+import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
+import org.bitcoinj.channels.htlc.HTLCChannelServerState;
+import org.bitcoinj.channels.htlc.HTLCServerState;
+import org.bitcoinj.channels.htlc.SignedTransaction;
+import org.bitcoinj.channels.htlc.SignedTransactionWithHash;
+import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
@@ -42,9 +48,9 @@ import com.google.protobuf.ByteString;
  * @author frabu
  *
  */
-public class HTLCPaymentChannelServer {
+public class HTLCHubOutterServer {
 	private static final Logger log = 
-		LoggerFactory.getLogger(HTLCPaymentChannelServer.class);
+		LoggerFactory.getLogger(HTLCHubOutterServer.class);
 	
 	private final ReentrantLock lock = Threading.lock("htlcchannelserver");
 	private final int MAX_MESSAGES = 100;
@@ -81,6 +87,8 @@ public class HTLCPaymentChannelServer {
      * channel is fully open or the client completes a payment.
      */
     public interface ServerConnection {
+    	
+    	public void sendToTwin(Protos.TwoWayChannelMessage msg);
         /**
          * <p>Requests that the given message be sent to the client. There are 
          * no blocking requirements for this method,
@@ -163,7 +171,7 @@ public class HTLCPaymentChannelServer {
     // The time this channel expires (ie the refund transaction's locktime)
     @GuardedBy("lock") private long expireTime;
     
-    public HTLCPaymentChannelServer(
+    public HTLCHubOutterServer(
 		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
 		ECKey serverKey,
@@ -176,6 +184,15 @@ public class HTLCPaymentChannelServer {
     	this.minAcceptedChannelSize = minAcceptedChannelSize;
     	this.conn = conn;
     	this.blockingQueue = new HTLCBlockingQueue<Object>(MAX_MESSAGES);
+    }
+    
+    public void twinConnectionOpen() {
+    	lock.lock();
+    	try {
+    		log.info("Connection to twin hub open");
+    	} finally {
+    		lock.unlock();
+    	}
     }
     
     /**
@@ -196,6 +213,15 @@ public class HTLCPaymentChannelServer {
     	lock.lock();
     	try {
     		log.info("Server channel closed.");
+    	} finally {
+    		lock.unlock();
+    	}
+    }
+    
+    public void receiveTwinMessage(Protos.TwoWayChannelMessage msg) {
+    	lock.lock();
+    	try {
+    		
     	} finally {
     		lock.unlock();
     	}

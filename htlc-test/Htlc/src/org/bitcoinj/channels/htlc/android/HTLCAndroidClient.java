@@ -1,5 +1,4 @@
-package org.bitcoinj.channels.htlc;
-
+package org.bitcoinj.channels.htlc.android;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -8,12 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
+import net.jcip.annotations.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
+import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
+import org.bitcoinj.channels.htlc.HTLCChannelServerState;
+import org.bitcoinj.channels.htlc.HTLCServerState;
+import org.bitcoinj.channels.htlc.SignedTransactionWithHash;
+import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
@@ -23,36 +26,28 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
-import org.bitcoinj.protocols.channels.PaymentChannelServer;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
+import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
 
-
-/**
- * Handler class that is in charge of most complexity of creating an HTLC
- * payment channel connection
- * @author frabu
- *
- */
-public class HTLCPaymentChannelServer {
+public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
+	
 	private static final Logger log = 
-		LoggerFactory.getLogger(HTLCPaymentChannelServer.class);
+		LoggerFactory.getLogger(HTLCAndroidClient.class);
 	
 	private final ReentrantLock lock = Threading.lock("htlcchannelserver");
-	private final int MAX_MESSAGES = 100;
 	
 	private final int SERVER_MAJOR_VERSION = 1;
     private final int SERVER_MINOR_VERSION = 0;
-    
-    private enum InitStep {
+	private final int MAX_MESSAGES = 100;
+
+	private enum InitStep {
         WAITING_ON_CLIENT_VERSION,
         WAITING_ON_UNSIGNED_REFUND,
         WAITING_ON_CONTRACT,
@@ -62,7 +57,7 @@ public class HTLCPaymentChannelServer {
     @GuardedBy("lock")
     private InitStep step = InitStep.WAITING_ON_CLIENT_VERSION;
     
-	private enum HTLCRound {
+    private enum HTLCRound {
 		OFF,
 		WAITING_FOR_ACK,
 		CONFIRMED,
@@ -72,137 +67,48 @@ public class HTLCPaymentChannelServer {
 	
 	@GuardedBy("lock")
 	private final HTLCBlockingQueue<Object> blockingQueue;
-    
-    /**
-     * Implements the connection between this server and the client, providing 
-     * an interface which allows messages to be
-     * sent to the client, requests for the connection to the client to be 
-     * closed, and callbacks which occur when the
-     * channel is fully open or the client completes a payment.
-     */
-    public interface ServerConnection {
-        /**
-         * <p>Requests that the given message be sent to the client. There are 
-         * no blocking requirements for this method,
-         * however the order of messages must be preserved.</p>
-         *
-         * <p>If the send fails, no exception should be thrown, however
-         * {@link PaymentChannelServer#connectionClosed()} should be called 
-         * immediately.</p>
-         *
-         * <p>Called while holding a lock on the {@link PaymentChannelServer} 
-         * object - be careful about reentrancy</p>
-         */
-        public void sendToClient(Protos.TwoWayChannelMessage msg);
-
-        /**
-         * <p>Requests that the connection to the client be closed</p>
-         *
-         * <p>Called while holding a lock on the {@link PaymentChannelServer} 
-         * object - be careful about reentrancy</p>
-         *
-         * @param reason The reason for the closure, see the individual values 
-         * for more details.
-         *               It is usually safe to ignore this value.
-         */
-        public void destroyConnection(CloseReason reason);
-
-        /**
-         * <p>Triggered when the channel is opened and payments can begin</p>
-         *
-         * <p>Called while holding a lock on the {@link PaymentChannelServer} 
-         * object - be careful about reentrancy</p>
-         *
-         * @param contractHash A unique identifier which represents this channel
-         *  (actually the hash of the multisig contract)
-         */
-        public void channelOpen(Sha256Hash contractHash);
-
-        /**
-         * <p>Called when the payment in this channel was successfully 
-         * incremented by the client</p>
-         *
-         * <p>Called while holding a lock on the {@link PaymentChannelServer} 
-         * object - be careful about reentrancy</p>
-         *
-         * @param by The increase in total payment
-         * @param to The new total payment to us (not including fees which may 
-         * be required to claim the payment)
-         * @param info Information about this payment increase, used to extend 
-         * this protocol.
-         * @return A future that completes with the ack message that will be 
-         * included in the PaymentAck message to the client. Use null for no ack message.
-         */
-        @Nullable
-        public ListenableFuture<ByteString> paymentIncrease(
-    		Coin by, Coin to, @Nullable ByteString info
-		);
-    }
-    private final ServerConnection conn;
-    
-    // Used to keep track of whether or not the "socket" ie connection is open 
+	
+	private final Wallet wallet;
+	
+	private final ECKey serverKey;
+	 // The minimum accepted channel value
+    private final Coin minAcceptedChannelSize;
+	
+	private final TransactionBroadcastScheduler broadcastScheduler;
+	
+	@GuardedBy("lock") private final ClientConnection conn;
+	
+	// Used to keep track of whether or not the "socket" ie connection is open 
     // and we can generate messages
     @GuardedBy("lock") private boolean connectionOpen = false;
     // Indicates that no further messages should be sent and we intend to 
     // settle the connection
     @GuardedBy("lock") private boolean channelSettling = false;
-    
-    // The wallet and peergroup which are used to complete/broadcast transactions
-    private final Wallet wallet;
-    private final TransactionBroadcastScheduler broadcaster;
-    
-    // The key used for multisig in this channel
-    @GuardedBy("lock") private final ECKey serverKey;
-    
-    // The minimum accepted channel value
-    private final Coin minAcceptedChannelSize;
-    
-    // The state manager for this channel
+	
+	 // The state manager for this channel
     @GuardedBy("lock") private HTLCChannelServerState state;
-    
+	
     // The time this channel expires (ie the refund transaction's locktime)
     @GuardedBy("lock") private long expireTime;
-    
-    public HTLCPaymentChannelServer(
-		TransactionBroadcastScheduler broadcaster,
+	
+	HTLCAndroidClient(
 		Wallet wallet,
-		ECKey serverKey,
-		Coin minAcceptedChannelSize,
-		ServerConnection conn
+		TransactionBroadcastScheduler broadcaster,
+		ECKey key,
+		Coin minPayment,
+		ClientConnection conn
 	) {
-    	this.broadcaster = broadcaster;
-    	this.wallet = wallet;
-    	this.serverKey = serverKey;
-    	this.minAcceptedChannelSize = minAcceptedChannelSize;
-    	this.conn = conn;
-    	this.blockingQueue = new HTLCBlockingQueue<Object>(MAX_MESSAGES);
-    }
-    
-    /**
-     * Called to indicate the connection has been opened and 
-     * messages can now be generated for the client.
-     */
-    public void connectionOpen() {
-        lock.lock();
-        try {
-            log.info("New server channel active.");
-            connectionOpen = true;
-        } finally {
-            lock.unlock();
-        }
-    }
-    
-    public void connectionClosed() {
-    	lock.lock();
-    	try {
-    		log.info("Server channel closed.");
-    	} finally {
-    		lock.unlock();
-    	}
-    }
-    
-    public void receiveMessage(Protos.TwoWayChannelMessage msg) {
-    	lock.lock();
+		this.wallet = wallet;
+		this.broadcastScheduler = broadcaster;
+		this.serverKey = key;
+		this.minAcceptedChannelSize = minPayment;
+		this.conn = conn;
+		this.blockingQueue = new HTLCBlockingQueue<Object>(MAX_MESSAGES);
+	}
+
+	@Override
+	public void receiveMessage(TwoWayChannelMessage msg) {
+		lock.lock();
     	try {
     		Protos.Error.Builder errorBuilder;
             CloseReason closeReason;
@@ -268,9 +174,9 @@ public class HTLCPaymentChannelServer {
     	} finally {
     		lock.unlock();
     	}
-    }
-    
-    @GuardedBy("lock")
+	}
+	
+	@GuardedBy("lock")
     private void receiveVersionMessage(Protos.TwoWayChannelMessage msg) {
     	final Protos.ClientVersion clientVersion = msg.getClientVersion();
     	final int major = clientVersion.getMajor();
@@ -289,7 +195,7 @@ public class HTLCPaymentChannelServer {
 			Protos.ServerVersion.newBuilder()
 				.setMajor(SERVER_MAJOR_VERSION)
 				.setMinor(SERVER_MINOR_VERSION);
-        conn.sendToClient(
+        conn.sendToHub(
     		Protos.TwoWayChannelMessage.newBuilder()
     			.setType(Protos.TwoWayChannelMessage.MessageType.SERVER_VERSION)
                 .setServerVersion(versionNegotiationBuilder)
@@ -311,13 +217,13 @@ public class HTLCPaymentChannelServer {
             .setMinAcceptedChannelSize(minAcceptedChannelSize.value)
             .setMinPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.value);
 
-        conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+        conn.sendToHub(Protos.TwoWayChannelMessage.newBuilder()
 	            .setInitiate(initiateBuilder)
 	            .setType(Protos.TwoWayChannelMessage.MessageType.INITIATE)
 	            .build());
     }
-    
-    @GuardedBy("lock")
+	 
+	@GuardedBy("lock")
     private void receiveRefundMessage(Protos.TwoWayChannelMessage msg) 	
     		throws VerificationException {
     	
@@ -329,7 +235,7 @@ public class HTLCPaymentChannelServer {
 			wallet, 
 			serverKey, 
 			expireTime, 
-			broadcaster
+			broadcastScheduler
 		);
     	byte[] signature = state.provideRefundTransaction(
 			new Transaction(
@@ -344,13 +250,13 @@ public class HTLCPaymentChannelServer {
     	Protos.ReturnRefund.Builder returnRefundBuilder = 
 			Protos.ReturnRefund.newBuilder()
 				.setSignature(ByteString.copyFrom(signature));
-    	conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+    	conn.sendToHub(Protos.TwoWayChannelMessage.newBuilder()
 				.setReturnRefund(returnRefundBuilder)
 				.setType(Protos.TwoWayChannelMessage.MessageType.RETURN_REFUND)
 				.build());
     }
-    
-    @GuardedBy("lock")
+	
+	 @GuardedBy("lock")
     private void receiveContractMessage(Protos.TwoWayChannelMessage msg) 
     		throws VerificationException {
     	checkState(
@@ -380,8 +286,8 @@ public class HTLCPaymentChannelServer {
     				}
     			}, Threading.SAME_THREAD);
     }
-    
-    private void multisigContractPropogated(
+	 
+	private void multisigContractPropogated(
 		Protos.HTLCProvideContract providedContract,
 		Sha256Hash contractHash
 	) throws ValueOutOfRangeException {
@@ -391,17 +297,17 @@ public class HTLCPaymentChannelServer {
 				providedContract.getSignedInitialTeardown(),
 				false
 			);
-    		conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+    		conn.sendToHub(Protos.TwoWayChannelMessage.newBuilder()
     				.setType(Protos.TwoWayChannelMessage.MessageType.CHANNEL_OPEN)
     				.build());
     		step = InitStep.CHANNEL_OPEN;
-    		conn.channelOpen(contractHash);
+    		conn.connectionOpen(contractHash);
     	} finally {
     		lock.unlock();
     	}
     }
-    
-    @GuardedBy("lock")
+	
+	@GuardedBy("lock")
     private void receiveInitialPaymentMessage(
 		Protos.HTLCSignedTransaction msg,
 		boolean sendAck
@@ -425,8 +331,7 @@ public class HTLCPaymentChannelServer {
     	if (bestPaymentChange.signum() > 0) {
     		conn.paymentIncrease(
 				bestPaymentChange, 
-				state.getBestValueToMe(), 
-				null
+				state.getBestValueToMe()
 			);
     	}
     	if (sendAck) {
@@ -434,11 +339,11 @@ public class HTLCPaymentChannelServer {
 	    	final Protos.TwoWayChannelMessage.Builder ack = 
 				Protos.TwoWayChannelMessage.newBuilder();
 	    	ack.setType(Protos.TwoWayChannelMessage.MessageType.PAYMENT_ACK);
-	    	conn.sendToClient(ack.build());
+	    	conn.sendToHub(ack.build());
     	}    	
     }
-    
-    @GuardedBy("lock") 
+	
+	@GuardedBy("lock") 
     private void receiveHTLCRoundInitMessage(TwoWayChannelMessage msg) {
     	if (canAckHTLCRound()) {
     		log.info("Received block request for HTLC update from client");
@@ -448,12 +353,12 @@ public class HTLCPaymentChannelServer {
 				.setHtlcRoundAck(htlcAck)
 				.setType(MessageType.HTLC_ROUND_ACK)
 				.build();
-    		conn.sendToClient(ackMsg);
+    		conn.sendToHub(ackMsg);
     		htlcRound = HTLCRound.CLIENT;
     	}
     }
-    
-    @GuardedBy("lock") 
+	
+	@GuardedBy("lock") 
     private void receiveHTLCRoundAckMessage(TwoWayChannelMessage msg) {
     	log.info("We can now push our batched updates to the client");
     	htlcRound = HTLCRound.CONFIRMED;
@@ -480,10 +385,10 @@ public class HTLCPaymentChannelServer {
 			TwoWayChannelMessage.newBuilder()
 				.setType(MessageType.HTLC_SERVER_UPDATE)
 				.setHtlcServerUpdate(update);
-    	conn.sendToClient(updateMsg.build());
+    	conn.sendToHub(updateMsg.build());
     }
-    
-    @GuardedBy("lock") 
+	
+	@GuardedBy("lock") 
     private void receiveHTLCRoundDoneMessage(TwoWayChannelMessage msg) {
     	// Set the htlcRound state
     	htlcRound = HTLCRound.OFF;
@@ -492,8 +397,8 @@ public class HTLCPaymentChannelServer {
     		initializeHTLCRound();
     	}
     }
-    
-    private void initializeHTLCRound() {
+	
+	private void initializeHTLCRound() {
     	log.info("Sending block request for HTLC update round!");
 		Protos.HTLCRoundInit.Builder initRound = 
 			Protos.HTLCRoundInit.newBuilder();
@@ -502,11 +407,11 @@ public class HTLCPaymentChannelServer {
 				.setHtlcRoundInit(initRound)
 				.setType(MessageType.HTLC_ROUND_INIT)
 				.build();
-		conn.sendToClient(initMsg);
+		conn.sendToHub(initMsg);
 		htlcRound = HTLCRound.WAITING_FOR_ACK;
     }
-       
-    @GuardedBy("lock")
+	
+	@GuardedBy("lock")
     private void receiveHtlcInitMessage(TwoWayChannelMessage msg) 
     		throws UnsupportedEncodingException {
     	log.info("Received HTLC INIT msg, replying with HTLC_INIT_REPLY");
@@ -535,32 +440,10 @@ public class HTLCPaymentChannelServer {
 			.setType(MessageType.HTLC_INIT_REPLY)
 			.setHtlcInitReply(initReply)
 			.build();
-		conn.sendToClient(replyMsg);
+		conn.sendToHub(replyMsg);
     }
-    
-    private Protos.HTLCSignedTransaction getProtobuf(
-		SignedTransaction signedTx
-	) {
-    	Protos.HTLCSignedTransaction.Builder signedTxProto = 
-			Protos.HTLCSignedTransaction.newBuilder()
-				.setTx(ByteString.copyFrom(
-					signedTx.getTx().bitcoinSerialize()
-				))
-				.setSignature(ByteString.copyFrom(
-					signedTx.getSig().encodeToBitcoin()
-				));
-    	return signedTxProto.build();
-    }
-      
-    private static ByteString txToBS(Transaction tx) {
-    	return ByteString.copyFrom(tx.bitcoinSerialize());
-    }
-    
-    private static ByteString sigToBS(TransactionSignature sig) {
-    	return ByteString.copyFrom(sig.encodeToBitcoin());
-    }
-    
-    @GuardedBy("lock")
+	
+	@GuardedBy("lock")
     private void receiveSignedTeardownMessage(TwoWayChannelMessage msg) {
     	log.info("Received signed teardown message");
     	    	
@@ -620,10 +503,10 @@ public class HTLCPaymentChannelServer {
 			.setType(MessageType.HTLC_SIGNED_REFUND)
 			.build();
     	
-    	conn.sendToClient(channelMsg);
+    	conn.sendToHub(channelMsg);
     }
-    
-    @GuardedBy("lock")
+	
+	@GuardedBy("lock")
     private void receiveSignedSettleAndForfeitMsg(TwoWayChannelMessage msg) {
     	Protos.HTLCSignedSettleAndForfeit htlcMsg = 
 			msg.getHtlcSignedSettleAndForfeit();
@@ -688,7 +571,7 @@ public class HTLCPaymentChannelServer {
     			Protos.TwoWayChannelMessage.newBuilder()
     				.setHtlcRoundDone(roundDone)
     				.setType(MessageType.HTLC_ROUND_DONE);
-        	conn.sendToClient(roundDoneMsg.build());
+        	conn.sendToHub(roundDoneMsg.build());
     		
     	} else {
 	    	// Let's ACK the successful setup
@@ -701,11 +584,11 @@ public class HTLCPaymentChannelServer {
 					.setType(
 						Protos.TwoWayChannelMessage.MessageType.HTLC_SETUP_COMPLETE
 					);
-	    	conn.sendToClient(htlcSetupMsg.build());
+	    	conn.sendToHub(htlcSetupMsg.build());
     	}
     }
-    
-    @GuardedBy("lock") 
+	
+	@GuardedBy("lock") 
     private void queueUpSecret(String htlcId) {
     	String secret = state.getSecretForHTLC(htlcId);
     	if (secret != null) {
@@ -717,8 +600,8 @@ public class HTLCPaymentChannelServer {
     		blockingQueue.put(revealMsg);
     	}
     }
-    
-    @GuardedBy("lock")
+	
+	@GuardedBy("lock")
     private void receiveCloseMessage() throws InsufficientMoneyException {
         log.info("Got CLOSE message, closing channel");
         if (state != null) {
@@ -727,8 +610,8 @@ public class HTLCPaymentChannelServer {
             conn.destroyConnection(CloseReason.CLIENT_REQUESTED_CLOSE);
         }
     }
-    
-    @GuardedBy("lock")
+	
+	@GuardedBy("lock")
     private void settlePayment(final CloseReason clientRequestedClose) 
     		throws InsufficientMoneyException {
         channelSettling = true;
@@ -751,7 +634,7 @@ public class HTLCPaymentChannelServer {
                 		"Sending CLOSE back without broadcast settlement tx."
             		);
                 }
-                conn.sendToClient(msg.build());
+                conn.sendToHub(msg.build());
                 conn.destroyConnection(clientRequestedClose);
             }
 
@@ -762,39 +645,23 @@ public class HTLCPaymentChannelServer {
             }
         });
     }
-    
-    /**
-     * <p>Closes the connection by generating a settle message for the client and calls
-     * {@link ServerConnection#destroyConnection(CloseReason)}. 
-     * Note that this does not broadcast the payment transaction and the client 
-     * may still resume the same channel if they reconnect</p>
-     * <p>
-     * <p>Note that {@link PaymentChannelServer#connectionClosed()} must still 
-     * be called after the connection fully closes.</p>
-     */
-    public void close() {
-        lock.lock();
-        try {
-            if (connectionOpen && !channelSettling) {
-                final Protos.TwoWayChannelMessage.Builder msg = 
-            		Protos.TwoWayChannelMessage.newBuilder();
-                msg.setType(Protos.TwoWayChannelMessage.MessageType.CLOSE);
-                conn.sendToClient(msg.build());
-                conn.destroyConnection(CloseReason.SERVER_REQUESTED_CLOSE);
-            }
-        } finally {
-            lock.unlock();
-        }
-    }
-    
-    private boolean canAckHTLCRound() {
+	
+	private boolean canAckHTLCRound() {
     	return (
 			htlcRound == HTLCRound.OFF || 
 			htlcRound == HTLCRound.WAITING_FOR_ACK
 		);
     }
+	
+	private static ByteString txToBS(Transaction tx) {
+    	return ByteString.copyFrom(tx.bitcoinSerialize());
+    }
     
-    private void error(
+    private static ByteString sigToBS(TransactionSignature sig) {
+    	return ByteString.copyFrom(sig.encodeToBitcoin());
+    }
+	
+	private void error(
 		String message, 
 		Protos.Error.ErrorCode errorCode, 
 		CloseReason closeReason
@@ -804,7 +671,7 @@ public class HTLCPaymentChannelServer {
         errorBuilder = Protos.Error.newBuilder()
             .setCode(errorCode)
             .setExplanation(message);
-        conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+        conn.sendToHub(Protos.TwoWayChannelMessage.newBuilder()
                 .setError(errorBuilder)
                 .setType(Protos.TwoWayChannelMessage.MessageType.ERROR)
                 .build());

@@ -4,9 +4,9 @@
 1. Created the 3 separated components: the buyer that connects to the outter hub,
 inner hub that is the Android devices connect to, and the Android component.
 2. Modified connection between inner hub and Android device, such that:
-* The inner hub runs a TCP server
-* Android device can initialize the connection
-* But the payment protocol itself is inverted: inner hub acts as a client,
+	* The inner hub runs a TCP server
+	* Android device can initialize the connection
+	* But the payment protocol itself is inverted: inner hub acts as a client,
 Android device as a server(receiver).
 3. Wrote an Android background service that starts at device boot-up
 and establishes the connection and the micropayment channel to the hub.

@@ -4,28 +4,26 @@ import static org.bitcoinj.core.Coin.CENT;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.bitcoinj.channels.htlc.HTLCBuyerClientConnection;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.channels.htlc.test.HTLCClientDriver;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.PeerAddress;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.protocols.channels.PaymentIncrementAck;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
-import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-
-public class HTLCAndroidDriver implements Runnable {
-	private static final org.slf4j.Logger log = 
-		LoggerFactory.getLogger(HTLCClientDriver.class);
+public class HTLCAndroidDriver {
+	private static final Logger log = 
+		Logger.getLogger("HTLCClientDriver");
 	private static final NetworkParameters PARAMS = RegTestParams.get();
 	private final Coin MICROPAYMENT_SIZE = CENT;
 	
@@ -33,15 +31,24 @@ public class HTLCAndroidDriver implements Runnable {
 	
 	private WalletAppKit appKit;
 	
-	public static void main(String[] args) throws Exception {
-		new HTLCClientDriver().run();
+	private final String path;
+	
+	public HTLCAndroidDriver(String path) {
+		this.path = path;
 	}
 	
-	@Override
 	public void run() {
-		
-		appKit = new WalletAppKit(PARAMS, new File("."), "htlc_client");
-        appKit.connectToLocalHost();
+		appKit = new WalletAppKit(PARAMS, new File(path), "htlc_client");
+        try {
+			appKit.setPeerNodes(
+				new PeerAddress(
+					InetAddress.getByName("192.168.0.101"), 	
+					PARAMS.getPort()
+				)
+			);
+		} catch (UnknownHostException e1) {
+			e1.printStackTrace();
+		}
         appKit.startAsync();
         appKit.awaitRunning();
 		
@@ -54,30 +61,27 @@ public class HTLCAndroidDriver implements Runnable {
         
         ECKey key = appKit.wallet().getImportedKeys().get(0);
         
-        log.info("Android address: {}", key.toAddress(PARAMS));
-
+        log.log(Level.INFO, "Android address: {}", key.toAddress(PARAMS));
+        
 		final int timeoutSecs = 15;
 		final InetSocketAddress server = 
-			new InetSocketAddress("localhost", 4242);
+			new InetSocketAddress("192.168.0.101", 4242);
 
 		Coin minPayment = Coin.valueOf(0, 1);
 		
 		TransactionBroadcastScheduler broadcastScheduler = 
 			new TransactionBroadcastScheduler(appKit.peerGroup());
 		
-		try {
-			HTLCAndroidClientConnection client = 
-				new HTLCAndroidClientConnection(
-					server,
-					timeoutSecs,
-					appKit.wallet(),
-					broadcastScheduler,
-					key,
-					minPayment
-				);
-		} catch (IOException | ValueOutOfRangeException e) {
-			e.printStackTrace();
-		}
+		HTLCAndroidClientConnection client = 
+			new HTLCAndroidClientConnection(
+				server,
+				timeoutSecs,
+				appKit.wallet(),
+				broadcastScheduler,
+				key,
+				minPayment
+			);
+
 		/*
 		latch = new CountDownLatch(1);
 		
@@ -103,9 +107,9 @@ public class HTLCAndroidDriver implements Runnable {
 		}, Threading.USER_THREAD);
 		latch.await();*/
 	}
-	
+	/*
 	private void paymentIncrementCallback(
-		final HTLCBuyerClientConnection client
+		final HTLCAndroidClientConnection client
 	) throws IllegalStateException, ValueOutOfRangeException {
 		Futures.addCallback(
 			client.incrementPayment(MICROPAYMENT_SIZE), 
@@ -130,5 +134,5 @@ public class HTLCAndroidDriver implements Runnable {
 				}
 			}
 		);
-	}
+	}*/
 }

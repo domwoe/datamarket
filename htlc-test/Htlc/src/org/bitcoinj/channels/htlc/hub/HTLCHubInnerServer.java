@@ -19,7 +19,6 @@ import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
 import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
 import org.bitcoinj.channels.htlc.HTLCChannelClientState;
 import org.bitcoinj.channels.htlc.HTLCClientState;
-import org.bitcoinj.channels.htlc.HTLCPaymentChannelClient;
 import org.bitcoinj.channels.htlc.SignedTransaction;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
@@ -52,8 +51,10 @@ import com.google.protobuf.ByteString;
  */
 public class HTLCHubInnerServer {
 	private static final org.slf4j.Logger log = 
-			LoggerFactory.getLogger(HTLCPaymentChannelClient.class);
+			LoggerFactory.getLogger(HTLCHubInnerServer.class);
 	private static final int SERVER_MAJOR_VERSION = 1;
+	private static final int CLIENT_MAJOR_VERSION = 1;
+	private final int CLIENT_MINOR_VERSION = 0;
 	private final int MAX_MESSAGES = 10;
 	
 	@GuardedBy("lock") private long minPayment;
@@ -773,7 +774,28 @@ public class HTLCHubInnerServer {
      * messages can now be generated for the client.
      */
     public void connectionOpen() {
-    	log.info("New server channel active.");
+    	log.info(
+			"New server channel active. Sending version negotiation" +
+			"Android device"
+		);
+    	lock.lock();
+    	try {
+    		step = InitStep.WAITING_FOR_VERSION_NEGOTIATION;
+    		log.info("Sending version negotiation to server");
+    		Protos.ClientVersion.Builder versionNegotiationBuilder = 
+				Protos.ClientVersion.newBuilder()
+                    .setMajor(CLIENT_MAJOR_VERSION)
+                    .setMinor(CLIENT_MINOR_VERSION)
+                    .setTimeWindowSecs(timeWindow);
+    		conn.sendToDevice(Protos.TwoWayChannelMessage.newBuilder()
+	                .setType(
+	            		Protos.TwoWayChannelMessage.MessageType.CLIENT_VERSION
+	        		)
+	                .setClientVersion(versionNegotiationBuilder)
+	                .build());
+    	} finally {
+    		lock.unlock();
+    	}
     }
     
     public void connectionClosed() {

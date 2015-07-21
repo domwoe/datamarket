@@ -143,21 +143,23 @@ public class HTLCChannelClientState {
 				 Coin prevBalance, 
 				 Coin newBalance
 			 ) {
-	    		 Sha256Hash sighash = tx.hashForSignature(
-					 0, 
-					 multisigScript, 
-					 SigHash.ALL,
-					 false
-				 );
-	    		 if (teardownForfeitureTxMap.containsKey(sighash)) {
-	    			 // Let's broadcast all found forfeiture transactions
-	    			 // immediately
-	    			 for (Transaction forfeiture: 
-	    				 	teardownForfeitureTxMap.get(sighash)) {
-	    				 
-	    				 log.info("Found forfeiture: {}. Broadcasting it", forfeiture);
-	    				 broadcastScheduler.broadcastTransaction(forfeiture);
-	    			 }
+	    		 if (state == State.READY) {
+		    		 Sha256Hash sighash = tx.hashForSignature(
+						 0, 
+						 multisigScript, 
+						 SigHash.ALL,
+						 false
+					 );
+		    		 if (teardownForfeitureTxMap.containsKey(sighash)) {
+		    			 // Let's broadcast all found forfeiture transactions
+		    			 // immediately
+		    			 for (Transaction forfeiture: 
+		    				 	teardownForfeitureTxMap.get(sighash)) {
+		    				 
+		    				 log.info("Found forfeiture: {}. Broadcasting it", forfeiture);
+		    				 broadcastScheduler.broadcastTransaction(forfeiture);
+		    			 }
+		    		 }
 	    		 }
 	    	 }
     };

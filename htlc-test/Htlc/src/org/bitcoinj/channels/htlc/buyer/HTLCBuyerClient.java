@@ -800,7 +800,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 		conn.sendToServer(initMsg);
 		htlcRound = HTLCRound.WAITING_FOR_ACK;
 	}
-	
+	/*
 	public ListenableFuture<String> nodeStats() {
 		log.info("Sending nodeStats query to twin hub");
 		Protos.HTLCFlow.Builder stats = Protos.HTLCFlow.newBuilder()
@@ -810,7 +810,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 				.setHtlcFlow(stats)
 				.setType(MessageType.HTLC_FLOW)
 				.build();
-		conn.sendToServer(msg);		
+		conn.sendToServer(msg);
 	}
 	
 	public ListenableFuture<String> sensorStats() {
@@ -824,7 +824,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 				.build();
 		conn.sendToServer(msg);
 	}
-
+*/
 	@Override
 	public void settle() throws IllegalStateException {
 				

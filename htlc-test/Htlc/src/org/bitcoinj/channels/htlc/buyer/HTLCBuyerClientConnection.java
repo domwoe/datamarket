@@ -155,11 +155,11 @@ public class HTLCBuyerClientConnection {
 	}
 	
 	public Integer nodeStats() {
-		return channelClient.nodeStats();
+		return null; //channelClient.nodeStats();
 	}
 	
 	public String sensorStats() {
-		return channelClient.sensorStats();
+		return null; //channelClient.sensorStats();
 	}
 	
 	/**

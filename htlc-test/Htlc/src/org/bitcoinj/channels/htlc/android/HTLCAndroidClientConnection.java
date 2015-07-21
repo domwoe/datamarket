@@ -16,13 +16,26 @@ import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HTLCAndroidClientConnection {
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
+
+public class HTLCAndroidClientConnection extends Thread {
 	
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCAndroidClientConnection.class);
 
-	private final HTLCAndroidClient channelClient;
-	private final ProtobufParser<Protos.TwoWayChannelMessage> wireParser;
+	private HTLCAndroidClient channelClient;
+	private ProtobufParser<Protos.TwoWayChannelMessage> wireParser;
+	
+	private final SettableFuture<HTLCAndroidClientConnection> channelOpenFuture = 
+		SettableFuture.create();
+	
+	private final InetSocketAddress server;
+	private final Integer timeoutSeconds;
+	private final Wallet wallet;
+	private final TransactionBroadcastScheduler broadcastScheduler;
+	private final ECKey key;
+	private final Coin minPayment;
 	
 	public HTLCAndroidClientConnection(
 		InetSocketAddress server,
@@ -31,7 +44,17 @@ public class HTLCAndroidClientConnection {
 		TransactionBroadcastScheduler broadcastScheduler,
 		ECKey key,
 		Coin minPayment
-	) throws IOException, ValueOutOfRangeException {
+	)  {
+		this.server = server;
+		this.timeoutSeconds = timeoutSeconds;
+		this.wallet = wallet;
+		this.broadcastScheduler = broadcastScheduler;
+		this.key = key;
+		this.minPayment = minPayment;
+	}
+	
+	@Override 
+	public void run() {
 		/*
     	 * Glue the object which vends/ingests protobuf messages in order 
     	 * to manage state to the network object which
@@ -53,19 +76,19 @@ public class HTLCAndroidClientConnection {
 	            public void destroyConnection(
             		PaymentChannelCloseException.CloseReason reason
         		) {
-					// TODO
-	            /*    channelOpenFuture.setException(
+	                channelOpenFuture.setException(
                 		new PaymentChannelCloseException("" +
-            				"Payment channel client requested that the " +
-            				"connection be closed: " + reason, reason
+            				"Hub requested he connection be closed: " 
+    						+ reason, reason
         				)
-            		);*/
+            		);
 	                wireParser.closeConnection();
 	            }
 
 				@Override
 				public void connectionOpen(Sha256Hash hash) {
 					log.info("Connection opened {}", hash);
+					channelOpenFuture.set(HTLCAndroidClientConnection.this);
 				}
 
 				@Override
@@ -88,14 +111,8 @@ public class HTLCAndroidClientConnection {
             		ProtobufParser<Protos.TwoWayChannelMessage> handler, 
             		Protos.TwoWayChannelMessage msg
         		) {
-	             //   try {
-	                	System.out.println("Message received from server");
-	                    channelClient.receiveMessage(msg);
-	               // } catch (InsufficientMoneyException e) {
-	                    // We should only get this exception during INITIATE, 
-	                	// so channelOpen wasn't called yet.
-// TODO:	                    channelOpenFuture.setException(e);
-	           //     }
+                	log.info("Message received from server");
+                    channelClient.receiveMessage(msg);
 	            }
 
 	            @Override
@@ -103,22 +120,18 @@ public class HTLCAndroidClientConnection {
             		ProtobufParser<Protos.TwoWayChannelMessage> handler
         		) {
 	            	log.info("Connection opened");
-	            	// TODO:
-	             //   channelClient.connectionOpen();
 	            }
 
 	            @Override
 	            public void connectionClosed(
             		ProtobufParser<Protos.TwoWayChannelMessage> handler
         		) {
-	            	// TODO
-	             //   channelClient.connectionClosed();
-	             /*   channelOpenFuture.setException(
+	                channelOpenFuture.setException(
                 		new PaymentChannelCloseException(
             				"The TCP socket died",
 	                        PaymentChannelCloseException.CloseReason.CONNECTION_CLOSED
                         )
-            		);*/
+            		);
 	            }
     		}, 
     		Protos.TwoWayChannelMessage.getDefaultInstance(), 
@@ -128,6 +141,14 @@ public class HTLCAndroidClientConnection {
 
         // Initiate the outbound network connection. We don't need to keep this 
         // around. The wireParser object will handle things from here on out.
-        new NioClient(server, wireParser, timeoutSeconds * 1000);
-    }	
+        try {
+			new NioClient(server, wireParser, timeoutSeconds * 1000);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public ListenableFuture<HTLCAndroidClientConnection> getChannelOpenFuture() {
+		return channelOpenFuture;
+	}
 }

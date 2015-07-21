@@ -36,7 +36,7 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
 	
 	public void run() throws Exception {
 		
-        appKit = new WalletAppKit(PARAMS, new File("."), "htlc_server");
+        appKit = new WalletAppKit(PARAMS, new File("."), "htlc_server1");
         appKit.connectToLocalHost();
         appKit.startAsync();
         appKit.awaitRunning();

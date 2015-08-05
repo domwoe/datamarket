@@ -317,9 +317,9 @@ message HTLCInitReply {
 }
 
 message HTLCSignedTransaction {
-	required bytes tx = 2;
-	optional bytes tx_hash = 3;
-	required bytes signature = 4;
+	required bytes tx = 1;
+	optional bytes tx_hash = 2;
+	required bytes signature = 3;
 }
 
 message HTLCProvideSignedTeardown {
@@ -377,10 +377,49 @@ message HTLCPaymentAck {
 message HTLCFlow {
 	enum FlowType {
 		NODE_STATS = 1;
-		SENSOR_STATS = 2;
+		NODE_STATS_REPLY = 2;
+		SENSOR_STATS = 3;
+		SENSOR_STATS_REPLY = 4;
+		REGISTER_SENSORS = 5;
+		SELECT = 6;
+		PAYMENT_INFO = 7;
 	};
 	
-	required FlowType type = 1;
+	required string id = 1;
+	required FlowType type = 2;
+	optional HTLCRegisterSensors register_sensors = 3;
+	optional HTLCNodeStats node_stats = 4;
+	optional HTLCSensorStats sensor_stats = 5;
+	optional HTLCSelectData select_data = 6;
+	optional HTLCPaymentInfo payment_info = 7;
+}
+
+message HTLCRegisterSensors {
+	// Sent by the Android devices to the hub, immediately after successfully 
+	// establishing a micropayment channel
+	repeated string sensors = 1;
+}
+
+message HTLCNodeStats {
+	// Sent by the hub to buyer; contains list of all connected devices
+	repeated string devices = 1;
+}
+
+message HTLCSensorStats {
+	// Sent by the hub to buyer; contains list of all sensors available
+	repeated string sensors = 1;
+}
+
+message HTLCSelectData {
+	// Sent by the buyer to the hub to select data of certain type
+	required string sensor_type = 1;
+}
+
+message HTLCPaymentInfo {
+	// Sent by the hub back to the buyer to provide payment 
+	// info on the selected data
+	repeated string sensorTypes = 1;
+	repeated uint64 prices = 2;
 }
 
 // An Error can be sent by either party at any time

@@ -2,8 +2,11 @@ package org.bitcoinj.channels.htlc.buyer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoinj.channels.htlc.FlowResponse;
+import org.bitcoinj.channels.htlc.PriceInfo;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
@@ -154,12 +157,18 @@ public class HTLCBuyerClientConnection {
 		return channelClient.incrementPayment(size, null, null);    	
 	}
 	
-	public Integer nodeStats() {
-		return null; //channelClient.nodeStats();
+	public ListenableFuture<FlowResponse> nodeStats() {
+		return channelClient.nodeStats();
 	}
 	
+	/*
 	public String sensorStats() {
-		return null; //channelClient.sensorStats();
+		return channelClient.sensorStats();
+	}
+	*/
+	
+	public ListenableFuture<List<PriceInfo>> select(String sensorType) {
+		return channelClient.select(sensorType);
 	}
 	
 	/**

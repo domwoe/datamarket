@@ -16,10 +16,13 @@ import net.jcip.annotations.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
+import org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
+import org.bitcoinj.channels.htlc.FlowResponse;
 import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
 import org.bitcoinj.channels.htlc.HTLCChannelClientState;
 import org.bitcoinj.channels.htlc.HTLCClientState;
+import org.bitcoinj.channels.htlc.PriceInfo;
 import org.bitcoinj.channels.htlc.SignedTransaction;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
@@ -72,8 +75,15 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 	@GuardedBy("lock") private HTLCChannelClientState state;
 	
 	@GuardedBy("lock")
-	private Map<String, SettableFuture<PaymentIncrementAck> > 
+	private Map<String, SettableFuture<PaymentIncrementAck>> 
 		paymentAckFutureMap;
+	
+	@GuardedBy("lock")
+	private final Map<String, SettableFuture<FlowResponse>> responseFutureMap;
+	
+	@GuardedBy("lock")
+	private final Map<String, SettableFuture<List<PriceInfo>>> 
+		paymentInfoFutureMap;
 	
 	@GuardedBy("lock")
 	private Map<String, Coin> paymentValueMap;
@@ -130,6 +140,10 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     	this.blockingQueue = 
 			new HTLCBlockingQueue<Protos.HTLCPayment>(MAX_MESSAGES);
     	this.currentBatch = new ArrayList<Protos.HTLCPayment>();
+    	this.responseFutureMap = 
+			new HashMap<String, SettableFuture<FlowResponse>>();
+    	this.paymentInfoFutureMap = 
+			new HashMap<String, SettableFuture<List<PriceInfo>>>(); 
     }
     
     /**
@@ -234,6 +248,9 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 	    			return;
 	    		case HTLC_PAYMENT_ACK:
 					receiveHTLCPaymentAck(msg);
+	    			return;
+	    		case HTLC_FLOW:
+	    			receiveHTLCFlowMsg(msg);
 	    			return;
 	    		case CLOSE:
 	    			receiveClose(msg);
@@ -800,19 +817,61 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 		conn.sendToServer(initMsg);
 		htlcRound = HTLCRound.WAITING_FOR_ACK;
 	}
-	/*
-	public ListenableFuture<String> nodeStats() {
-		log.info("Sending nodeStats query to twin hub");
-		Protos.HTLCFlow.Builder stats = Protos.HTLCFlow.newBuilder()
-			.setType(Protos.HTLCFlow.FlowType.NODE_STATS);
-		final TwoWayChannelMessage msg = 
-			Protos.TwoWayChannelMessage.newBuilder()
-				.setHtlcFlow(stats)
-				.setType(MessageType.HTLC_FLOW)
-				.build();
-		conn.sendToServer(msg);
+	
+	@GuardedBy("lock")
+	public ListenableFuture<FlowResponse> nodeStats() {
+		lock.lock();
+		try {
+			log.info("Sending nodeStats query to twin hub");
+			// We can generate a UUID to identify the token request response
+			// This UUID will be mirrored back by the server
+			String reqIdString = new String(UUID.randomUUID().toString());
+			SettableFuture<FlowResponse> responseFuture = 
+				SettableFuture.create();
+			responseFutureMap.put(reqIdString, responseFuture);
+			
+			Protos.HTLCFlow.Builder stats = Protos.HTLCFlow.newBuilder()
+				.setId(reqIdString)
+				.setType(Protos.HTLCFlow.FlowType.NODE_STATS);
+			final TwoWayChannelMessage msg = 
+				Protos.TwoWayChannelMessage.newBuilder()
+					.setHtlcFlow(stats)
+					.setType(MessageType.HTLC_FLOW)
+					.build();
+			conn.sendToServer(msg);
+			
+			return responseFuture;
+		} finally {
+			lock.unlock();
+		}
 	}
 	
+	private void receiveHTLCFlowMsg(TwoWayChannelMessage msg) {
+		Protos.HTLCFlow flowMsg = msg.getHtlcFlow();
+		FlowType type = flowMsg.getType();
+		String id = flowMsg.getId();
+		switch (type) {
+			case NODE_STATS_REPLY:
+				receiveNodeStatsReply(id, flowMsg.getNodeStats());
+				return;
+			case SENSOR_STATS_REPLY:
+				//receiveSensorStatsReply(id, flowMsg.getNodeStats());
+				return;
+			case PAYMENT_INFO:
+				receivePaymentInfo(id, flowMsg.getPaymentInfo());
+			default:
+				return;
+		}
+	}
+	
+	private void receiveNodeStatsReply(
+		String id, 
+		Protos.HTLCNodeStats nodeStats
+	) {
+		SettableFuture<FlowResponse> flowFuture = responseFutureMap.get(id);
+		flowFuture.set(new FlowResponse(nodeStats.getDevicesList()));
+	}
+/*
 	public ListenableFuture<String> sensorStats() {
 		log.info("Sending sensorStats query to twin hub");
 		Protos.HTLCFlow.Builder stats = Protos.HTLCFlow.newBuilder()
@@ -825,6 +884,55 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 		conn.sendToServer(msg);
 	}
 */
+	@GuardedBy("lock")
+	private void receivePaymentInfo(
+		String id, 
+		Protos.HTLCPaymentInfo paymentInfo
+	) {
+		SettableFuture<List<PriceInfo>> future = paymentInfoFutureMap.get(id);
+		List<PriceInfo> priceInfoList = new ArrayList<PriceInfo>();
+		for (int i = 0; i < paymentInfo.getSensorTypesList().size(); i++) {
+			priceInfoList.add(
+				new PriceInfo(
+					paymentInfo.getSensorTypes(i), 
+					paymentInfo.getPrices(i)
+				)
+			);
+		}
+		future.set(priceInfoList);
+	}
+	
+	@GuardedBy("lock")
+	public ListenableFuture<List<PriceInfo>> select(String sensorType) {
+		lock.lock();
+		try {
+			// We can generate a UUID to identify the token request response
+			// This UUID will be mirrored back by the server
+			String reqIdString = new String(UUID.randomUUID().toString());
+			SettableFuture<List<PriceInfo>> responseFuture = 
+				SettableFuture.create();
+			paymentInfoFutureMap.put(reqIdString, responseFuture);
+			
+			Protos.HTLCSelectData.Builder selectData = 
+				Protos.HTLCSelectData.newBuilder()
+					.setSensorType(sensorType);
+			Protos.HTLCFlow.Builder stats = Protos.HTLCFlow.newBuilder()
+				.setId(reqIdString)
+				.setSelectData(selectData)
+				.setType(Protos.HTLCFlow.FlowType.SELECT);
+			final TwoWayChannelMessage msg = 
+				Protos.TwoWayChannelMessage.newBuilder()
+					.setHtlcFlow(stats)
+					.setType(MessageType.HTLC_FLOW)
+					.build();
+			conn.sendToServer(msg);
+			
+			return responseFuture;
+		} finally {
+			lock.unlock();
+		}
+	}
+	
 	@Override
 	public void settle() throws IllegalStateException {
 				

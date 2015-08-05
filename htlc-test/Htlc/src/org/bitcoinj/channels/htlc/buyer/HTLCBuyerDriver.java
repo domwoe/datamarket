@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 
+import org.bitcoinj.channels.htlc.FlowResponse;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
@@ -21,13 +22,15 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 public class HTLCBuyerDriver {
 	
 	private static final org.slf4j.Logger log = 
 		LoggerFactory.getLogger(HTLCBuyerDriver.class);
 	private static final NetworkParameters PARAMS = RegTestParams.get();
-	private final Coin MICROPAYMENT_SIZE = CENT;
+	private static final Integer BUYER_PORT = 4243;
+	private final Coin MICROPAYMENT_SIZE = CENT; 
 	
 	private CountDownLatch latch;
 	private HTLCBuyerClientConnection client;
@@ -63,7 +66,7 @@ public class HTLCBuyerDriver {
 
 		final int timeoutSecs = 15;
 		final InetSocketAddress server = 
-			new InetSocketAddress("localhost", 4243);
+			new InetSocketAddress("localhost", BUYER_PORT);
 		// 10 minutes
 		final long timeWindow = 300L;
 		Coin value = Coin.valueOf(1, 0);
@@ -88,7 +91,10 @@ public class HTLCBuyerDriver {
 			    @Override public void onSuccess(
 		    		final HTLCBuyerClientConnection client
 	    		) {
-			    	log.info("Channel open! Trying to make micropayments");	
+			    	log.info(
+		    			"Channel open! We're now connected and " +
+		    			"we can make queries"
+					);	
 			    	readQuery();
 			    }
 			    @Override public void onFailure(Throwable throwable) {
@@ -113,14 +119,15 @@ public class HTLCBuyerDriver {
 				error("Invalid query length.");
 			} else if (tokens[0].equalsIgnoreCase("stats")) {
 				if (tokens[1].equalsIgnoreCase("nodes")) {
-					client.nodeStats();
+					waitForFuture(client.nodeStats());
 				} else if (tokens[1].equalsIgnoreCase("")) {
-					client.sensorStats();
+					//client.sensorStats();
 				} else {
 					error("Invalid stats query.");
 				}
 			} else if (tokens[0].equalsIgnoreCase("select")) {
-				
+				String sensorType = tokens[1];
+				client.select(sensorType);
 			} else {
 				error("Invalid query.");
 			}
@@ -128,7 +135,22 @@ public class HTLCBuyerDriver {
 	}
 	
 	private void error(String error) {
-		System.out.println("Input error has occured: " + error);
+		log.error("Input error has occured: {}", error);
+	}
+	
+	private void waitForFuture(ListenableFuture<FlowResponse> future) {
+		Futures.addCallback(
+			future,
+			new FutureCallback<FlowResponse>() {
+				@Override public void onSuccess(FlowResponse response) {
+					
+				}
+				
+				@Override public void onFailure(Throwable throwable) {
+					log.error(throwable.getLocalizedMessage());
+				}
+			}
+		);	
 	}
 	
 	private void paymentIncrementCallback(

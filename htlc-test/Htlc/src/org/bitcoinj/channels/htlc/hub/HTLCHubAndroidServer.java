@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -49,9 +50,9 @@ import com.google.protobuf.ByteString;
  * @author frabu
  *
  */
-public class HTLCHubInnerServer {
+public class HTLCHubAndroidServer {
 	private static final org.slf4j.Logger log = 
-			LoggerFactory.getLogger(HTLCHubInnerServer.class);
+			LoggerFactory.getLogger(HTLCHubAndroidServer.class);
 	private static final int SERVER_MAJOR_VERSION = 1;
 	private static final int CLIENT_MAJOR_VERSION = 1;
 	private final int CLIENT_MINOR_VERSION = 0;
@@ -108,12 +109,13 @@ public class HTLCHubInnerServer {
     
     public interface ServerConnection {
     	public void sendToDevice(Protos.TwoWayChannelMessage msg);
+    	public void registerSensors(List<String> sensors, List<Integer> prices);
     	public void destroyConnection(CloseReason reason);
     	public void channelOpen(Sha256Hash contractHash);
     	public boolean acceptExpireTime(long expireTime);
     }
     
-    public HTLCHubInnerServer(
+    public HTLCHubAndroidServer(
 		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
 		ECKey primaryKey,
@@ -241,6 +243,28 @@ public class HTLCHubInnerServer {
     	} catch (ValueOutOfRangeException e) {
 			e.printStackTrace();
 		} finally {
+    		lock.unlock();
+    	}
+    }
+    
+    @GuardedBy("lock")
+    public void select(String id, String sensorType) {
+    	lock.lock();
+    	try {
+    		final Protos.HTLCSelectData selectData = 
+				Protos.HTLCSelectData.newBuilder()
+					.setSensorType(sensorType)
+					.build();
+    		Protos.HTLCFlow htlcFlow = Protos.HTLCFlow.newBuilder()
+				.setId(id)
+				.setSelectData(selectData)
+				.setType(Protos.HTLCFlow.FlowType.SELECT)
+				.build();
+    		conn.sendToDevice(Protos.TwoWayChannelMessage.newBuilder()
+					.setType(MessageType.HTLC_FLOW)
+					.setHtlcFlow(htlcFlow)
+					.build());
+    	} finally {
     		lock.unlock();
     	}
     }

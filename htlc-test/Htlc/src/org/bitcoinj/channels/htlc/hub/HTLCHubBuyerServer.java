@@ -6,12 +6,15 @@ import static com.google.common.base.Preconditions.checkState;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType;
+import org.bitcoin.paymentchannel.Protos.HTLCFlow;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
 import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
@@ -48,9 +51,9 @@ import com.google.protobuf.ByteString;
  * @author frabu
  *
  */
-public class HTLCHubOutterServer {
+public class HTLCHubBuyerServer {
 	private static final Logger log = 
-		LoggerFactory.getLogger(HTLCHubOutterServer.class);
+		LoggerFactory.getLogger(HTLCHubBuyerServer.class);
 	
 	private final ReentrantLock lock = Threading.lock("htlcchannelserver");
 	private final int MAX_MESSAGES = 100;
@@ -88,7 +91,17 @@ public class HTLCHubOutterServer {
      */
     public interface ServerConnection {
     	
-    	public void sendToTwin(Protos.TwoWayChannelMessage msg);
+    	public List<String> nodeStats();
+    	
+    	public Set<String> sensorStats();
+    	
+    	public void select(
+			String id, 
+			String sensorType, 
+			HTLCHubBuyerServer server
+		);
+    	
+    	public void sendToBuyer(Protos.TwoWayChannelMessage msg);
         /**
          * <p>Requests that the given message be sent to the client. There are 
          * no blocking requirements for this method,
@@ -101,7 +114,6 @@ public class HTLCHubOutterServer {
          * <p>Called while holding a lock on the {@link PaymentChannelServer} 
          * object - be careful about reentrancy</p>
          */
-        public void sendToClient(Protos.TwoWayChannelMessage msg);
 
         /**
          * <p>Requests that the connection to the client be closed</p>
@@ -171,7 +183,7 @@ public class HTLCHubOutterServer {
     // The time this channel expires (ie the refund transaction's locktime)
     @GuardedBy("lock") private long expireTime;
     
-    public HTLCHubOutterServer(
+    public HTLCHubBuyerServer(
 		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
 		ECKey serverKey,
@@ -262,6 +274,9 @@ public class HTLCHubOutterServer {
             		case HTLC_SIGNED_SETTLE_FORFEIT:
             			receiveSignedSettleAndForfeitMsg(msg);
             			return;
+            		case HTLC_FLOW:
+            			receiveHTLCFlowMsg(msg);
+            			return;
             		case CLOSE:
             			receiveCloseMessage();
             			return;
@@ -315,7 +330,7 @@ public class HTLCHubOutterServer {
 			Protos.ServerVersion.newBuilder()
 				.setMajor(SERVER_MAJOR_VERSION)
 				.setMinor(SERVER_MINOR_VERSION);
-        conn.sendToClient(
+        conn.sendToBuyer(
     		Protos.TwoWayChannelMessage.newBuilder()
     			.setType(Protos.TwoWayChannelMessage.MessageType.SERVER_VERSION)
                 .setServerVersion(versionNegotiationBuilder)
@@ -337,7 +352,7 @@ public class HTLCHubOutterServer {
             .setMinAcceptedChannelSize(minAcceptedChannelSize.value)
             .setMinPayment(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.value);
 
-        conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+        conn.sendToBuyer(Protos.TwoWayChannelMessage.newBuilder()
 	            .setInitiate(initiateBuilder)
 	            .setType(Protos.TwoWayChannelMessage.MessageType.INITIATE)
 	            .build());
@@ -370,7 +385,7 @@ public class HTLCHubOutterServer {
     	Protos.ReturnRefund.Builder returnRefundBuilder = 
 			Protos.ReturnRefund.newBuilder()
 				.setSignature(ByteString.copyFrom(signature));
-    	conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+    	conn.sendToBuyer(Protos.TwoWayChannelMessage.newBuilder()
 				.setReturnRefund(returnRefundBuilder)
 				.setType(Protos.TwoWayChannelMessage.MessageType.RETURN_REFUND)
 				.build());
@@ -417,7 +432,7 @@ public class HTLCHubOutterServer {
 				providedContract.getSignedInitialTeardown(),
 				false
 			);
-    		conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+    		conn.sendToBuyer(Protos.TwoWayChannelMessage.newBuilder()
     				.setType(Protos.TwoWayChannelMessage.MessageType.CHANNEL_OPEN)
     				.build());
     		step = InitStep.CHANNEL_OPEN;
@@ -460,7 +475,7 @@ public class HTLCHubOutterServer {
 	    	final Protos.TwoWayChannelMessage.Builder ack = 
 				Protos.TwoWayChannelMessage.newBuilder();
 	    	ack.setType(Protos.TwoWayChannelMessage.MessageType.PAYMENT_ACK);
-	    	conn.sendToClient(ack.build());
+	    	conn.sendToBuyer(ack.build());
     	}    	
     }
     
@@ -474,7 +489,7 @@ public class HTLCHubOutterServer {
 				.setHtlcRoundAck(htlcAck)
 				.setType(MessageType.HTLC_ROUND_ACK)
 				.build();
-    		conn.sendToClient(ackMsg);
+    		conn.sendToBuyer(ackMsg);
     		htlcRound = HTLCRound.CLIENT;
     	}
     }
@@ -506,7 +521,7 @@ public class HTLCHubOutterServer {
 			TwoWayChannelMessage.newBuilder()
 				.setType(MessageType.HTLC_SERVER_UPDATE)
 				.setHtlcServerUpdate(update);
-    	conn.sendToClient(updateMsg.build());
+    	conn.sendToBuyer(updateMsg.build());
     }
     
     @GuardedBy("lock") 
@@ -528,10 +543,12 @@ public class HTLCHubOutterServer {
 				.setHtlcRoundInit(initRound)
 				.setType(MessageType.HTLC_ROUND_INIT)
 				.build();
-		conn.sendToClient(initMsg);
+		conn.sendToBuyer(initMsg);
 		htlcRound = HTLCRound.WAITING_FOR_ACK;
     }
        
+    // TODO: Modify this method to forward the payment data to the corresponding
+    // Android devices;
     @GuardedBy("lock")
     private void receiveHtlcInitMessage(TwoWayChannelMessage msg) 
     		throws UnsupportedEncodingException {
@@ -561,21 +578,7 @@ public class HTLCHubOutterServer {
 			.setType(MessageType.HTLC_INIT_REPLY)
 			.setHtlcInitReply(initReply)
 			.build();
-		conn.sendToClient(replyMsg);
-    }
-    
-    private Protos.HTLCSignedTransaction getProtobuf(
-		SignedTransaction signedTx
-	) {
-    	Protos.HTLCSignedTransaction.Builder signedTxProto = 
-			Protos.HTLCSignedTransaction.newBuilder()
-				.setTx(ByteString.copyFrom(
-					signedTx.getTx().bitcoinSerialize()
-				))
-				.setSignature(ByteString.copyFrom(
-					signedTx.getSig().encodeToBitcoin()
-				));
-    	return signedTxProto.build();
+		conn.sendToBuyer(replyMsg);
     }
       
     private static ByteString txToBS(Transaction tx) {
@@ -646,7 +649,7 @@ public class HTLCHubOutterServer {
 			.setType(MessageType.HTLC_SIGNED_REFUND)
 			.build();
     	
-    	conn.sendToClient(channelMsg);
+    	conn.sendToBuyer(channelMsg);
     }
     
     @GuardedBy("lock")
@@ -714,7 +717,7 @@ public class HTLCHubOutterServer {
     			Protos.TwoWayChannelMessage.newBuilder()
     				.setHtlcRoundDone(roundDone)
     				.setType(MessageType.HTLC_ROUND_DONE);
-        	conn.sendToClient(roundDoneMsg.build());
+        	conn.sendToBuyer(roundDoneMsg.build());
     		
     	} else {
 	    	// Let's ACK the successful setup
@@ -727,7 +730,7 @@ public class HTLCHubOutterServer {
 					.setType(
 						Protos.TwoWayChannelMessage.MessageType.HTLC_SETUP_COMPLETE
 					);
-	    	conn.sendToClient(htlcSetupMsg.build());
+	    	conn.sendToBuyer(htlcSetupMsg.build());
     	}
     }
     
@@ -777,7 +780,7 @@ public class HTLCHubOutterServer {
                 		"Sending CLOSE back without broadcast settlement tx."
             		);
                 }
-                conn.sendToClient(msg.build());
+                conn.sendToBuyer(msg.build());
                 conn.destroyConnection(clientRequestedClose);
             }
 
@@ -787,6 +790,70 @@ public class HTLCHubOutterServer {
                 conn.destroyConnection(clientRequestedClose);
             }
         });
+    }
+    
+    @GuardedBy("lock")
+    private void receiveHTLCFlowMsg(TwoWayChannelMessage msg) {
+    	Protos.HTLCFlow flowMsg = msg.getHtlcFlow();
+    	Protos.HTLCFlow.FlowType type = flowMsg.getType();
+    	switch (type) {
+    		case NODE_STATS:
+    			receiveNodeStatsMsg(flowMsg.getId());
+    			return;
+    		case REGISTER_SENSORS:
+    			return;
+    		case SENSOR_STATS:
+    			return;
+    		case SELECT:
+    			receiveSelectMsg(flowMsg.getId(), flowMsg.getSelectData());
+    		default:
+    			return;
+    	}
+    }
+    
+    @GuardedBy("lock")
+    private void receiveNodeStatsMsg(String id) {
+    	List<String> nodeStats = conn.nodeStats();
+    	Protos.HTLCNodeStats.Builder nodeMsg = 
+			Protos.HTLCNodeStats.newBuilder()
+				.addAllDevices(nodeStats);
+    	Protos.HTLCFlow.Builder flowMsg = Protos.HTLCFlow.newBuilder()
+			.setId(id)
+			.setNodeStats(nodeMsg)
+			.setType(FlowType.NODE_STATS_REPLY); 
+    	conn.sendToBuyer(
+			Protos.TwoWayChannelMessage.newBuilder()
+				.setHtlcFlow(flowMsg).build()
+		);			
+    }
+    
+    @GuardedBy("lock")
+    private void receiveSelectMsg(String id, Protos.HTLCSelectData selectData) {
+    	conn.select(id, selectData.getSensorType(), this);
+    }
+    
+    @GuardedBy("lock")
+    public void sendSelectResult(
+		String id,
+		List<String> sensors, 
+		List<Long> prices
+	) {
+    	Protos.HTLCPaymentInfo.Builder payInfo = 
+			Protos.HTLCPaymentInfo.newBuilder(); 
+    	for (int i = 0; i < sensors.size(); i++) {
+    		payInfo.addSensorTypes(sensors.get(i));
+    		payInfo.addPrices(prices.get(i));
+    	}
+    	
+    	Protos.HTLCFlow flow = Protos.HTLCFlow.newBuilder()
+    		.setType(HTLCFlow.FlowType.PAYMENT_INFO)
+			.setId(id)
+			.setPaymentInfo(payInfo)
+			.build();
+    	conn.sendToBuyer(
+			Protos.TwoWayChannelMessage.newBuilder()
+				.setHtlcFlow(flow).build()
+		);
     }
     
     /**
@@ -805,7 +872,7 @@ public class HTLCHubOutterServer {
                 final Protos.TwoWayChannelMessage.Builder msg = 
             		Protos.TwoWayChannelMessage.newBuilder();
                 msg.setType(Protos.TwoWayChannelMessage.MessageType.CLOSE);
-                conn.sendToClient(msg.build());
+                conn.sendToBuyer(msg.build());
                 conn.destroyConnection(CloseReason.SERVER_REQUESTED_CLOSE);
             }
         } finally {
@@ -830,7 +897,7 @@ public class HTLCHubOutterServer {
         errorBuilder = Protos.Error.newBuilder()
             .setCode(errorCode)
             .setExplanation(message);
-        conn.sendToClient(Protos.TwoWayChannelMessage.newBuilder()
+        conn.sendToBuyer(Protos.TwoWayChannelMessage.newBuilder()
                 .setError(errorBuilder)
                 .setType(Protos.TwoWayChannelMessage.MessageType.ERROR)
                 .build());

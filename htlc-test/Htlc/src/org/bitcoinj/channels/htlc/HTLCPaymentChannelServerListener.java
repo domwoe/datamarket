@@ -32,7 +32,7 @@ import com.google.protobuf.ByteString;
  * channel clients, and invokes the provided event listeners when new channels 
  * are opened or payments arrive. This is the highest level class in the payment
  * channels API. Internally, sends protobuf messages to/from a newly created 
- * {@link HTLCHubOutterServer}.
+ * {@link HTLCHubBuyerServer}.
  */
 public class HTLCPaymentChannelServerListener {
 

@@ -20,19 +20,21 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
 
-public class HTLCHubInnerDriver 
-implements HTLCHubInnerServerListener.HandlerFactory {
+public class HTLCHubDriver 
+implements HTLCHubServerListener.BuyerHandlerFactory, 
+	HTLCHubServerListener.AndroidHandlerFactory {
 
 	private static final Logger log = 
-		LoggerFactory.getLogger(HTLCHubInnerDriver.class);
+		LoggerFactory.getLogger(HTLCHubDriver.class);
 	
 	private static final NetworkParameters PARAMS = RegTestParams.get();
-	private static final Integer PORT = 4242;
+	private static final Integer ANDROID_PORT = 4242;
+	private static final Integer BUYER_PORT = 4243;
 	
 	private WalletAppKit appKit;
 	
 	public static void main(String[] args) throws Exception {
-		new HTLCHubInnerDriver().run();
+		new HTLCHubDriver().run();
 	}
 	
 	public void run() throws Exception {
@@ -43,14 +45,16 @@ implements HTLCHubInnerServerListener.HandlerFactory {
 		
 		log.info(appKit.wallet().toString());
 		
-		if (appKit.wallet().getImportedKeys().size() < 2) {
+		if (appKit.wallet().getImportedKeys().size() < 3) {
         	// Import new key
         	appKit.wallet().importKey(new ECKey());        	
         	appKit.wallet().importKey(new ECKey());
+           	appKit.wallet().importKey(new ECKey());
         }
 	
 		ECKey primaryKey = appKit.wallet().getImportedKeys().get(0);
 		ECKey secondaryKey = appKit.wallet().getImportedKeys().get(1);
+		ECKey receivingKey = appKit.wallet().getImportedKeys().get(2);
 	
 		final long timeWindow = 3000L;
 		Coin value = Coin.valueOf(5, 0);
@@ -64,25 +68,27 @@ implements HTLCHubInnerServerListener.HandlerFactory {
         TransactionBroadcastScheduler broadcastScheduler = 
     		new TransactionBroadcastScheduler(appKit.peerGroup());
         
-        new HTLCHubInnerServerListener(
+        new HTLCHubServerListener(
     		broadcastScheduler, 
     		appKit.wallet(),
     		primaryKey,
     		secondaryKey,
+    		receivingKey,
     		value,
     		timeWindow,
     		primaryKey, 
     		15, 
     		Coin.valueOf(100000), 
+    		this,
     		this
-		).bindAndStart(PORT);
+		).bindAndStart(BUYER_PORT, ANDROID_PORT);
 	}
 
 	@Override
 	@Nullable
 	public ServerConnectionEventHandler onNewConnection(
 			final SocketAddress clientAddress) {
-		log.info("New connection initiated");
+	//	log.info("New connection initiated");
 		
 		return new ServerConnectionEventHandler() {
 			

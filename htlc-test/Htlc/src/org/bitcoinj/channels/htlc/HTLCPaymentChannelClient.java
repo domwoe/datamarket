@@ -652,7 +652,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	
     	// TODO: CONTINUE FROM HERE TO GET LIST OF REMAINING HTLCS THAT
     	// NEED UPDATES REFUNDS AND THEN FORFEITS/SETTLES
-    	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCS();
+    	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCs();
     	List<ByteString> allIds = new ArrayList<ByteString>();
     	List<Integer> allIdxs = new ArrayList<Integer>();
     	for (HTLCClientState htlcState: allHTLCs) {

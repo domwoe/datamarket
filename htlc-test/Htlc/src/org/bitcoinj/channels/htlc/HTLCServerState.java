@@ -44,7 +44,20 @@ public class HTLCServerState extends HTLCState {
 	private TransactionSignature clientForfeitTxSig;
 	
 	private String secret;
-
+	
+	/**
+	 * Use this constructor on the hub because we don't have the secret yet
+	 */
+	public HTLCServerState (
+		Coin value,
+		String secretHash,
+		long settlementExpiryTime,
+		long refundExpiryTime
+	) {
+		super(secretHash, value, settlementExpiryTime, refundExpiryTime);
+		this.state = State.NEW;
+	}
+	
 	public HTLCServerState(
 		Coin value,
 		String secret,

@@ -17,7 +17,21 @@ public abstract class HTLCState {
 	private final long settlementExpiryTime;
 	private final long refundExpiryTime;
 	
-	private final String secretHash; // Use it as HTLC id
+	private String secretHash; // Use it as HTLC id
+	
+	protected HTLCState(
+		Coin value,
+		long settlementExpiryTime,
+		long refundExpiryTime
+	) {
+		this.value = value;
+		this.settlementExpiryTime = settlementExpiryTime;
+		this.refundExpiryTime = refundExpiryTime;
+	}
+	
+	protected void setId(String id) {
+		this.secretHash = id;
+	}
 	
 	protected HTLCState(
 		String id,

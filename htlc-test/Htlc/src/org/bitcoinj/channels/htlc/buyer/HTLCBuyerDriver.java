@@ -5,10 +5,12 @@ import static org.bitcoinj.core.Coin.CENT;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 
 import org.bitcoinj.channels.htlc.FlowResponse;
+import org.bitcoinj.channels.htlc.PriceInfo;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
@@ -127,17 +129,43 @@ public class HTLCBuyerDriver {
 				}
 			} else if (tokens[0].equalsIgnoreCase("select")) {
 				String sensorType = tokens[1];
-				client.select(sensorType);
+				waitForSelect(client.select(sensorType));
+			} else if (tokens[0].equalsIgnoreCase("buy")) {
+				String sensorType = tokens[1];
+				String deviceId = tokens[2];
+				Long value = Long.parseLong(tokens[3]);
+				waitForData(
+					client.buy(sensorType, deviceId, Coin.valueOf(value))
+				);
 			} else {
 				error("Invalid query.");
 			}
 		}
 	}
 	
-	private void error(String error) {
-		log.error("Input error has occured: {}", error);
+	private void waitForSelect(ListenableFuture<List<PriceInfo>> future) {
+		Futures.addCallback(
+			future, 
+			new FutureCallback<List<PriceInfo>>() {
+				@Override
+				public void onSuccess(List<PriceInfo> pInfoList) {
+					for (PriceInfo pInfo: pInfoList) {
+						System.out.println(
+							pInfo.getDeviceId() + ": " + 
+							pInfo.getSensor() + " " + 
+							pInfo.getPrice() + " BTC"
+						);
+					}
+				}
+				
+				@Override 
+				public void onFailure(Throwable throwable) {
+					
+				}
+			}
+		);
 	}
-	
+		
 	private void waitForFuture(ListenableFuture<FlowResponse> future) {
 		Futures.addCallback(
 			future,
@@ -153,32 +181,8 @@ public class HTLCBuyerDriver {
 		);	
 	}
 	
-	private void paymentIncrementCallback(
-		final HTLCBuyerClientConnection client
-	) throws IllegalStateException, ValueOutOfRangeException {
-		Futures.addCallback(
-			client.incrementPayment(MICROPAYMENT_SIZE), 
-			new FutureCallback<PaymentIncrementAck>() {
-				@Override public void onSuccess(PaymentIncrementAck ack) {
-					try {
-						log.info(
-							"Successfully made payment {} {}", 
-							new String(ack.getInfo().toByteArray(), "UTF-8"), 
-							ack.getValue()
-						);
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-					log.info("Closing channel");
-			    	client.settle();
-			    	latch.countDown();
-				}
-				@Override public void onFailure(Throwable throwable) {
-					log.error(throwable.getLocalizedMessage());
-					latch.countDown();
-				}
-			}
-		);
+	private void error(String error) {
+		log.error("Input error has occured: {}", error);
 	}
 }
  

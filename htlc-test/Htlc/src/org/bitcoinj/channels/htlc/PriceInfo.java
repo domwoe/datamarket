@@ -1,12 +1,18 @@
 package org.bitcoinj.channels.htlc;
 
 public class PriceInfo {
-	private String sensor;
-	private Long price;
+	private final String deviceId;
+	private final String sensor;
+	private final Long price;
 	
-	public PriceInfo(String sensor, long price) {
+	public PriceInfo(String deviceId, String sensor, long price) {
+		this.deviceId = deviceId;
 		this.sensor = sensor;
 		this.price = price;
+	}
+	
+	public String getDeviceId() {
+		return deviceId;
 	}
 	
 	public String getSensor() {
@@ -15,5 +21,5 @@ public class PriceInfo {
 	
 	public Long getPrice() {
 		return price;
-	}
+	} 
 }

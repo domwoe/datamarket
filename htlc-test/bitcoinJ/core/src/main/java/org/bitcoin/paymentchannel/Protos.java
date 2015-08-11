@@ -13150,23 +13150,58 @@ public final class Protos {
   public interface HTLCPaymentOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // required bytes request_id = 1;
+    // required string request_id = 1;
     /**
-     * <code>required bytes request_id = 1;</code>
+     * <code>required string request_id = 1;</code>
      */
     boolean hasRequestId();
     /**
-     * <code>required bytes request_id = 1;</code>
+     * <code>required string request_id = 1;</code>
      */
-    com.google.protobuf.ByteString getRequestId();
-
-    // required uint64 value = 2;
+    java.lang.String getRequestId();
     /**
-     * <code>required uint64 value = 2;</code>
+     * <code>required string request_id = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getRequestIdBytes();
+
+    // required string device_id = 2;
+    /**
+     * <code>required string device_id = 2;</code>
+     */
+    boolean hasDeviceId();
+    /**
+     * <code>required string device_id = 2;</code>
+     */
+    java.lang.String getDeviceId();
+    /**
+     * <code>required string device_id = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getDeviceIdBytes();
+
+    // required string sensor_type = 3;
+    /**
+     * <code>required string sensor_type = 3;</code>
+     */
+    boolean hasSensorType();
+    /**
+     * <code>required string sensor_type = 3;</code>
+     */
+    java.lang.String getSensorType();
+    /**
+     * <code>required string sensor_type = 3;</code>
+     */
+    com.google.protobuf.ByteString
+        getSensorTypeBytes();
+
+    // required uint64 value = 4;
+    /**
+     * <code>required uint64 value = 4;</code>
      */
     boolean hasValue();
     /**
-     * <code>required uint64 value = 2;</code>
+     * <code>required uint64 value = 4;</code>
      */
     long getValue();
   }
@@ -13226,8 +13261,18 @@ public final class Protos {
               requestId_ = input.readBytes();
               break;
             }
-            case 16: {
+            case 18: {
               bitField0_ |= 0x00000002;
+              deviceId_ = input.readBytes();
+              break;
+            }
+            case 26: {
+              bitField0_ |= 0x00000004;
+              sensorType_ = input.readBytes();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
               value_ = input.readUInt64();
               break;
             }
@@ -13271,40 +13316,155 @@ public final class Protos {
     }
 
     private int bitField0_;
-    // required bytes request_id = 1;
+    // required string request_id = 1;
     public static final int REQUEST_ID_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString requestId_;
+    private java.lang.Object requestId_;
     /**
-     * <code>required bytes request_id = 1;</code>
+     * <code>required string request_id = 1;</code>
      */
     public boolean hasRequestId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required bytes request_id = 1;</code>
+     * <code>required string request_id = 1;</code>
      */
-    public com.google.protobuf.ByteString getRequestId() {
-      return requestId_;
+    public java.lang.String getRequestId() {
+      java.lang.Object ref = requestId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          requestId_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string request_id = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getRequestIdBytes() {
+      java.lang.Object ref = requestId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        requestId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
-    // required uint64 value = 2;
-    public static final int VALUE_FIELD_NUMBER = 2;
-    private long value_;
+    // required string device_id = 2;
+    public static final int DEVICE_ID_FIELD_NUMBER = 2;
+    private java.lang.Object deviceId_;
     /**
-     * <code>required uint64 value = 2;</code>
+     * <code>required string device_id = 2;</code>
      */
-    public boolean hasValue() {
+    public boolean hasDeviceId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>required uint64 value = 2;</code>
+     * <code>required string device_id = 2;</code>
+     */
+    public java.lang.String getDeviceId() {
+      java.lang.Object ref = deviceId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          deviceId_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string device_id = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDeviceIdBytes() {
+      java.lang.Object ref = deviceId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        deviceId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // required string sensor_type = 3;
+    public static final int SENSOR_TYPE_FIELD_NUMBER = 3;
+    private java.lang.Object sensorType_;
+    /**
+     * <code>required string sensor_type = 3;</code>
+     */
+    public boolean hasSensorType() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>required string sensor_type = 3;</code>
+     */
+    public java.lang.String getSensorType() {
+      java.lang.Object ref = sensorType_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          sensorType_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string sensor_type = 3;</code>
+     */
+    public com.google.protobuf.ByteString
+        getSensorTypeBytes() {
+      java.lang.Object ref = sensorType_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        sensorType_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // required uint64 value = 4;
+    public static final int VALUE_FIELD_NUMBER = 4;
+    private long value_;
+    /**
+     * <code>required uint64 value = 4;</code>
+     */
+    public boolean hasValue() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>required uint64 value = 4;</code>
      */
     public long getValue() {
       return value_;
     }
 
     private void initFields() {
-      requestId_ = com.google.protobuf.ByteString.EMPTY;
+      requestId_ = "";
+      deviceId_ = "";
+      sensorType_ = "";
       value_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
@@ -13313,6 +13473,14 @@ public final class Protos {
       if (isInitialized != -1) return isInitialized == 1;
 
       if (!hasRequestId()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasDeviceId()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasSensorType()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -13328,10 +13496,16 @@ public final class Protos {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, requestId_);
+        output.writeBytes(1, getRequestIdBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeUInt64(2, value_);
+        output.writeBytes(2, getDeviceIdBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(3, getSensorTypeBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeUInt64(4, value_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -13344,11 +13518,19 @@ public final class Protos {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, requestId_);
+          .computeBytesSize(1, getRequestIdBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeUInt64Size(2, value_);
+          .computeBytesSize(2, getDeviceIdBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getSensorTypeBytes());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(4, value_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -13466,10 +13648,14 @@ public final class Protos {
 
       public Builder clear() {
         super.clear();
-        requestId_ = com.google.protobuf.ByteString.EMPTY;
+        requestId_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
-        value_ = 0L;
+        deviceId_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
+        sensorType_ = "";
+        bitField0_ = (bitField0_ & ~0x00000004);
+        value_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000008);
         return this;
       }
 
@@ -13505,6 +13691,14 @@ public final class Protos {
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
+        result.deviceId_ = deviceId_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.sensorType_ = sensorType_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
         result.value_ = value_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -13523,7 +13717,19 @@ public final class Protos {
       public Builder mergeFrom(org.bitcoin.paymentchannel.Protos.HTLCPayment other) {
         if (other == org.bitcoin.paymentchannel.Protos.HTLCPayment.getDefaultInstance()) return this;
         if (other.hasRequestId()) {
-          setRequestId(other.getRequestId());
+          bitField0_ |= 0x00000001;
+          requestId_ = other.requestId_;
+          onChanged();
+        }
+        if (other.hasDeviceId()) {
+          bitField0_ |= 0x00000002;
+          deviceId_ = other.deviceId_;
+          onChanged();
+        }
+        if (other.hasSensorType()) {
+          bitField0_ |= 0x00000004;
+          sensorType_ = other.sensorType_;
+          onChanged();
         }
         if (other.hasValue()) {
           setValue(other.getValue());
@@ -13534,6 +13740,14 @@ public final class Protos {
 
       public final boolean isInitialized() {
         if (!hasRequestId()) {
+          
+          return false;
+        }
+        if (!hasDeviceId()) {
+          
+          return false;
+        }
+        if (!hasSensorType()) {
           
           return false;
         }
@@ -13563,24 +13777,49 @@ public final class Protos {
       }
       private int bitField0_;
 
-      // required bytes request_id = 1;
-      private com.google.protobuf.ByteString requestId_ = com.google.protobuf.ByteString.EMPTY;
+      // required string request_id = 1;
+      private java.lang.Object requestId_ = "";
       /**
-       * <code>required bytes request_id = 1;</code>
+       * <code>required string request_id = 1;</code>
        */
       public boolean hasRequestId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>required bytes request_id = 1;</code>
+       * <code>required string request_id = 1;</code>
        */
-      public com.google.protobuf.ByteString getRequestId() {
-        return requestId_;
+      public java.lang.String getRequestId() {
+        java.lang.Object ref = requestId_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          requestId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>required bytes request_id = 1;</code>
+       * <code>required string request_id = 1;</code>
        */
-      public Builder setRequestId(com.google.protobuf.ByteString value) {
+      public com.google.protobuf.ByteString
+          getRequestIdBytes() {
+        java.lang.Object ref = requestId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          requestId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string request_id = 1;</code>
+       */
+      public Builder setRequestId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -13590,7 +13829,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>required bytes request_id = 1;</code>
+       * <code>required string request_id = 1;</code>
        */
       public Builder clearRequestId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -13598,35 +13837,196 @@ public final class Protos {
         onChanged();
         return this;
       }
-
-      // required uint64 value = 2;
-      private long value_ ;
       /**
-       * <code>required uint64 value = 2;</code>
+       * <code>required string request_id = 1;</code>
        */
-      public boolean hasValue() {
+      public Builder setRequestIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        requestId_ = value;
+        onChanged();
+        return this;
+      }
+
+      // required string device_id = 2;
+      private java.lang.Object deviceId_ = "";
+      /**
+       * <code>required string device_id = 2;</code>
+       */
+      public boolean hasDeviceId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>required uint64 value = 2;</code>
+       * <code>required string device_id = 2;</code>
+       */
+      public java.lang.String getDeviceId() {
+        java.lang.Object ref = deviceId_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          deviceId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>required string device_id = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDeviceIdBytes() {
+        java.lang.Object ref = deviceId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          deviceId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string device_id = 2;</code>
+       */
+      public Builder setDeviceId(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        deviceId_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string device_id = 2;</code>
+       */
+      public Builder clearDeviceId() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        deviceId_ = getDefaultInstance().getDeviceId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string device_id = 2;</code>
+       */
+      public Builder setDeviceIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        deviceId_ = value;
+        onChanged();
+        return this;
+      }
+
+      // required string sensor_type = 3;
+      private java.lang.Object sensorType_ = "";
+      /**
+       * <code>required string sensor_type = 3;</code>
+       */
+      public boolean hasSensorType() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>required string sensor_type = 3;</code>
+       */
+      public java.lang.String getSensorType() {
+        java.lang.Object ref = sensorType_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          sensorType_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>required string sensor_type = 3;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSensorTypeBytes() {
+        java.lang.Object ref = sensorType_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          sensorType_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string sensor_type = 3;</code>
+       */
+      public Builder setSensorType(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        sensorType_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string sensor_type = 3;</code>
+       */
+      public Builder clearSensorType() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        sensorType_ = getDefaultInstance().getSensorType();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string sensor_type = 3;</code>
+       */
+      public Builder setSensorTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        sensorType_ = value;
+        onChanged();
+        return this;
+      }
+
+      // required uint64 value = 4;
+      private long value_ ;
+      /**
+       * <code>required uint64 value = 4;</code>
+       */
+      public boolean hasValue() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>required uint64 value = 4;</code>
        */
       public long getValue() {
         return value_;
       }
       /**
-       * <code>required uint64 value = 2;</code>
+       * <code>required uint64 value = 4;</code>
        */
       public Builder setValue(long value) {
-        bitField0_ |= 0x00000002;
+        bitField0_ |= 0x00000008;
         value_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required uint64 value = 2;</code>
+       * <code>required uint64 value = 4;</code>
        */
       public Builder clearValue() {
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000008);
         value_ = 0L;
         onChanged();
         return this;
@@ -14332,25 +14732,35 @@ public final class Protos {
   public interface HTLCPaymentReplyOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // required bytes id = 1;
+    // required string id = 1;
     /**
-     * <code>required bytes id = 1;</code>
+     * <code>required string id = 1;</code>
      */
     boolean hasId();
     /**
-     * <code>required bytes id = 1;</code>
+     * <code>required string id = 1;</code>
      */
-    com.google.protobuf.ByteString getId();
-
-    // required bytes client_request_id = 2;
+    java.lang.String getId();
     /**
-     * <code>required bytes client_request_id = 2;</code>
+     * <code>required string id = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    // required string client_request_id = 2;
+    /**
+     * <code>required string client_request_id = 2;</code>
      */
     boolean hasClientRequestId();
     /**
-     * <code>required bytes client_request_id = 2;</code>
+     * <code>required string client_request_id = 2;</code>
      */
-    com.google.protobuf.ByteString getClientRequestId();
+    java.lang.String getClientRequestId();
+    /**
+     * <code>required string client_request_id = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getClientRequestIdBytes();
   }
   /**
    * Protobuf type {@code paymentchannels.HTLCPaymentReply}
@@ -14453,41 +14863,95 @@ public final class Protos {
     }
 
     private int bitField0_;
-    // required bytes id = 1;
+    // required string id = 1;
     public static final int ID_FIELD_NUMBER = 1;
-    private com.google.protobuf.ByteString id_;
+    private java.lang.Object id_;
     /**
-     * <code>required bytes id = 1;</code>
+     * <code>required string id = 1;</code>
      */
     public boolean hasId() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>required bytes id = 1;</code>
+     * <code>required string id = 1;</code>
      */
-    public com.google.protobuf.ByteString getId() {
-      return id_;
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          id_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string id = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
-    // required bytes client_request_id = 2;
+    // required string client_request_id = 2;
     public static final int CLIENT_REQUEST_ID_FIELD_NUMBER = 2;
-    private com.google.protobuf.ByteString clientRequestId_;
+    private java.lang.Object clientRequestId_;
     /**
-     * <code>required bytes client_request_id = 2;</code>
+     * <code>required string client_request_id = 2;</code>
      */
     public boolean hasClientRequestId() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>required bytes client_request_id = 2;</code>
+     * <code>required string client_request_id = 2;</code>
      */
-    public com.google.protobuf.ByteString getClientRequestId() {
-      return clientRequestId_;
+    public java.lang.String getClientRequestId() {
+      java.lang.Object ref = clientRequestId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          clientRequestId_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string client_request_id = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getClientRequestIdBytes() {
+      java.lang.Object ref = clientRequestId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        clientRequestId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
     }
 
     private void initFields() {
-      id_ = com.google.protobuf.ByteString.EMPTY;
-      clientRequestId_ = com.google.protobuf.ByteString.EMPTY;
+      id_ = "";
+      clientRequestId_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -14510,10 +14974,10 @@ public final class Protos {
                         throws java.io.IOException {
       getSerializedSize();
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeBytes(1, id_);
+        output.writeBytes(1, getIdBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        output.writeBytes(2, clientRequestId_);
+        output.writeBytes(2, getClientRequestIdBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -14526,11 +14990,11 @@ public final class Protos {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(1, id_);
+          .computeBytesSize(1, getIdBytes());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(2, clientRequestId_);
+          .computeBytesSize(2, getClientRequestIdBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -14648,9 +15112,9 @@ public final class Protos {
 
       public Builder clear() {
         super.clear();
-        id_ = com.google.protobuf.ByteString.EMPTY;
+        id_ = "";
         bitField0_ = (bitField0_ & ~0x00000001);
-        clientRequestId_ = com.google.protobuf.ByteString.EMPTY;
+        clientRequestId_ = "";
         bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
@@ -14705,10 +15169,14 @@ public final class Protos {
       public Builder mergeFrom(org.bitcoin.paymentchannel.Protos.HTLCPaymentReply other) {
         if (other == org.bitcoin.paymentchannel.Protos.HTLCPaymentReply.getDefaultInstance()) return this;
         if (other.hasId()) {
-          setId(other.getId());
+          bitField0_ |= 0x00000001;
+          id_ = other.id_;
+          onChanged();
         }
         if (other.hasClientRequestId()) {
-          setClientRequestId(other.getClientRequestId());
+          bitField0_ |= 0x00000002;
+          clientRequestId_ = other.clientRequestId_;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -14745,24 +15213,49 @@ public final class Protos {
       }
       private int bitField0_;
 
-      // required bytes id = 1;
-      private com.google.protobuf.ByteString id_ = com.google.protobuf.ByteString.EMPTY;
+      // required string id = 1;
+      private java.lang.Object id_ = "";
       /**
-       * <code>required bytes id = 1;</code>
+       * <code>required string id = 1;</code>
        */
       public boolean hasId() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>required bytes id = 1;</code>
+       * <code>required string id = 1;</code>
        */
-      public com.google.protobuf.ByteString getId() {
-        return id_;
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>required bytes id = 1;</code>
+       * <code>required string id = 1;</code>
        */
-      public Builder setId(com.google.protobuf.ByteString value) {
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string id = 1;</code>
+       */
+      public Builder setId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -14772,7 +15265,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>required bytes id = 1;</code>
+       * <code>required string id = 1;</code>
        */
       public Builder clearId() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -14780,25 +15273,63 @@ public final class Protos {
         onChanged();
         return this;
       }
-
-      // required bytes client_request_id = 2;
-      private com.google.protobuf.ByteString clientRequestId_ = com.google.protobuf.ByteString.EMPTY;
       /**
-       * <code>required bytes client_request_id = 2;</code>
+       * <code>required string id = 1;</code>
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+
+      // required string client_request_id = 2;
+      private java.lang.Object clientRequestId_ = "";
+      /**
+       * <code>required string client_request_id = 2;</code>
        */
       public boolean hasClientRequestId() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>required bytes client_request_id = 2;</code>
+       * <code>required string client_request_id = 2;</code>
        */
-      public com.google.protobuf.ByteString getClientRequestId() {
-        return clientRequestId_;
+      public java.lang.String getClientRequestId() {
+        java.lang.Object ref = clientRequestId_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          clientRequestId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
       }
       /**
-       * <code>required bytes client_request_id = 2;</code>
+       * <code>required string client_request_id = 2;</code>
        */
-      public Builder setClientRequestId(com.google.protobuf.ByteString value) {
+      public com.google.protobuf.ByteString
+          getClientRequestIdBytes() {
+        java.lang.Object ref = clientRequestId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          clientRequestId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string client_request_id = 2;</code>
+       */
+      public Builder setClientRequestId(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -14808,11 +15339,24 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>required bytes client_request_id = 2;</code>
+       * <code>required string client_request_id = 2;</code>
        */
       public Builder clearClientRequestId() {
         bitField0_ = (bitField0_ & ~0x00000002);
         clientRequestId_ = getDefaultInstance().getClientRequestId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string client_request_id = 2;</code>
+       */
+      public Builder setClientRequestIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        clientRequestId_ = value;
         onChanged();
         return this;
       }
@@ -16240,18 +16784,19 @@ public final class Protos {
   public interface HTLCProvideSignedTeardownOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server providing the teardownTx with its signature
      * Used both when client creates new HTLC outputs and when the server closes some HTLCs
      * </pre>
      */
-    java.util.List<com.google.protobuf.ByteString> getIdsList();
+    java.util.List<java.lang.String>
+    getIdsList();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server providing the teardownTx with its signature
@@ -16260,14 +16805,24 @@ public final class Protos {
      */
     int getIdsCount();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server providing the teardownTx with its signature
      * Used both when client creates new HTLC outputs and when the server closes some HTLCs
      * </pre>
      */
-    com.google.protobuf.ByteString getIds(int index);
+    java.lang.String getIds(int index);
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the client to the server providing the teardownTx with its signature
+     * Used both when client creates new HTLC outputs and when the server closes some HTLCs
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getIdsBytes(int index);
 
     // repeated int32 idx = 2;
     /**
@@ -16350,7 +16905,7 @@ public final class Protos {
             }
             case 10: {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
+                ids_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000001;
               }
               ids_.add(input.readBytes());
@@ -16399,7 +16954,7 @@ public final class Protos {
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(ids_);
         }
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           idx_ = java.util.Collections.unmodifiableList(idx_);
@@ -16436,23 +16991,23 @@ public final class Protos {
     }
 
     private int bitField0_;
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     public static final int IDS_FIELD_NUMBER = 1;
-    private java.util.List<com.google.protobuf.ByteString> ids_;
+    private com.google.protobuf.LazyStringList ids_;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server providing the teardownTx with its signature
      * Used both when client creates new HTLC outputs and when the server closes some HTLCs
      * </pre>
      */
-    public java.util.List<com.google.protobuf.ByteString>
+    public java.util.List<java.lang.String>
         getIdsList() {
       return ids_;
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server providing the teardownTx with its signature
@@ -16463,15 +17018,27 @@ public final class Protos {
       return ids_.size();
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server providing the teardownTx with its signature
      * Used both when client creates new HTLC outputs and when the server closes some HTLCs
      * </pre>
      */
-    public com.google.protobuf.ByteString getIds(int index) {
+    public java.lang.String getIds(int index) {
       return ids_.get(index);
+    }
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the client to the server providing the teardownTx with its signature
+     * Used both when client creates new HTLC outputs and when the server closes some HTLCs
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getIdsBytes(int index) {
+      return ids_.getByteString(index);
     }
 
     // repeated int32 idx = 2;
@@ -16520,7 +17087,7 @@ public final class Protos {
     }
 
     private void initFields() {
-      ids_ = java.util.Collections.emptyList();
+      ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       idx_ = java.util.Collections.emptyList();
       signedTeardown_ = org.bitcoin.paymentchannel.Protos.HTLCSignedTransaction.getDefaultInstance();
     }
@@ -16545,7 +17112,7 @@ public final class Protos {
                         throws java.io.IOException {
       getSerializedSize();
       for (int i = 0; i < ids_.size(); i++) {
-        output.writeBytes(1, ids_.get(i));
+        output.writeBytes(1, ids_.getByteString(i));
       }
       for (int i = 0; i < idx_.size(); i++) {
         output.writeInt32(2, idx_.get(i));
@@ -16566,7 +17133,7 @@ public final class Protos {
         int dataSize = 0;
         for (int i = 0; i < ids_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(ids_.get(i));
+            .computeBytesSizeNoTag(ids_.getByteString(i));
         }
         size += dataSize;
         size += 1 * getIdsList().size();
@@ -16701,7 +17268,7 @@ public final class Protos {
 
       public Builder clear() {
         super.clear();
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
         idx_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -16740,7 +17307,8 @@ public final class Protos {
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              ids_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.ids_ = ids_;
@@ -16831,28 +17399,28 @@ public final class Protos {
       }
       private int bitField0_;
 
-      // repeated bytes ids = 1;
-      private java.util.List<com.google.protobuf.ByteString> ids_ = java.util.Collections.emptyList();
+      // repeated string ids = 1;
+      private com.google.protobuf.LazyStringList ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureIdsIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>(ids_);
+          ids_ = new com.google.protobuf.LazyStringArrayList(ids_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server providing the teardownTx with its signature
        * Used both when client creates new HTLC outputs and when the server closes some HTLCs
        * </pre>
        */
-      public java.util.List<com.google.protobuf.ByteString>
+      public java.util.List<java.lang.String>
           getIdsList() {
         return java.util.Collections.unmodifiableList(ids_);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server providing the teardownTx with its signature
@@ -16863,18 +17431,30 @@ public final class Protos {
         return ids_.size();
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server providing the teardownTx with its signature
        * Used both when client creates new HTLC outputs and when the server closes some HTLCs
        * </pre>
        */
-      public com.google.protobuf.ByteString getIds(int index) {
+      public java.lang.String getIds(int index) {
         return ids_.get(index);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the client to the server providing the teardownTx with its signature
+       * Used both when client creates new HTLC outputs and when the server closes some HTLCs
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getIdsBytes(int index) {
+        return ids_.getByteString(index);
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server providing the teardownTx with its signature
@@ -16882,7 +17462,7 @@ public final class Protos {
        * </pre>
        */
       public Builder setIds(
-          int index, com.google.protobuf.ByteString value) {
+          int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -16892,14 +17472,15 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server providing the teardownTx with its signature
        * Used both when client creates new HTLC outputs and when the server closes some HTLCs
        * </pre>
        */
-      public Builder addIds(com.google.protobuf.ByteString value) {
+      public Builder addIds(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -16909,7 +17490,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server providing the teardownTx with its signature
@@ -16917,14 +17498,14 @@ public final class Protos {
        * </pre>
        */
       public Builder addAllIds(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+          java.lang.Iterable<java.lang.String> values) {
         ensureIdsIsMutable();
         super.addAll(values, ids_);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server providing the teardownTx with its signature
@@ -16932,8 +17513,26 @@ public final class Protos {
        * </pre>
        */
       public Builder clearIds() {
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the client to the server providing the teardownTx with its signature
+       * Used both when client creates new HTLC outputs and when the server closes some HTLCs
+       * </pre>
+       */
+      public Builder addIdsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureIdsIsMutable();
+        ids_.add(value);
         onChanged();
         return this;
       }
@@ -17135,18 +17734,19 @@ public final class Protos {
   public interface HTLCSignedRefundWithHashOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
      * message with the signed HTLC refundTx, and the teardownTx hash
      * </pre>
      */
-    java.util.List<com.google.protobuf.ByteString> getIdsList();
+    java.util.List<java.lang.String>
+    getIdsList();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
@@ -17155,14 +17755,24 @@ public final class Protos {
      */
     int getIdsCount();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
      * message with the signed HTLC refundTx, and the teardownTx hash
      * </pre>
      */
-    com.google.protobuf.ByteString getIds(int index);
+    java.lang.String getIds(int index);
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
+     * message with the signed HTLC refundTx, and the teardownTx hash
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getIdsBytes(int index);
 
     // repeated .paymentchannels.HTLCSignedTransaction signed_refund = 2;
     /**
@@ -17242,7 +17852,7 @@ public final class Protos {
             }
             case 10: {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
+                ids_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000001;
               }
               ids_.add(input.readBytes());
@@ -17265,7 +17875,7 @@ public final class Protos {
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(ids_);
         }
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           signedRefund_ = java.util.Collections.unmodifiableList(signedRefund_);
@@ -17301,23 +17911,23 @@ public final class Protos {
       return PARSER;
     }
 
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     public static final int IDS_FIELD_NUMBER = 1;
-    private java.util.List<com.google.protobuf.ByteString> ids_;
+    private com.google.protobuf.LazyStringList ids_;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
      * message with the signed HTLC refundTx, and the teardownTx hash
      * </pre>
      */
-    public java.util.List<com.google.protobuf.ByteString>
+    public java.util.List<java.lang.String>
         getIdsList() {
       return ids_;
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
@@ -17328,15 +17938,27 @@ public final class Protos {
       return ids_.size();
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
      * message with the signed HTLC refundTx, and the teardownTx hash
      * </pre>
      */
-    public com.google.protobuf.ByteString getIds(int index) {
+    public java.lang.String getIds(int index) {
       return ids_.get(index);
+    }
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
+     * message with the signed HTLC refundTx, and the teardownTx hash
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getIdsBytes(int index) {
+      return ids_.getByteString(index);
     }
 
     // repeated .paymentchannels.HTLCSignedTransaction signed_refund = 2;
@@ -17376,7 +17998,7 @@ public final class Protos {
     }
 
     private void initFields() {
-      ids_ = java.util.Collections.emptyList();
+      ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       signedRefund_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
@@ -17398,7 +18020,7 @@ public final class Protos {
                         throws java.io.IOException {
       getSerializedSize();
       for (int i = 0; i < ids_.size(); i++) {
-        output.writeBytes(1, ids_.get(i));
+        output.writeBytes(1, ids_.getByteString(i));
       }
       for (int i = 0; i < signedRefund_.size(); i++) {
         output.writeMessage(2, signedRefund_.get(i));
@@ -17416,7 +18038,7 @@ public final class Protos {
         int dataSize = 0;
         for (int i = 0; i < ids_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(ids_.get(i));
+            .computeBytesSizeNoTag(ids_.getByteString(i));
         }
         size += dataSize;
         size += 1 * getIdsList().size();
@@ -17542,7 +18164,7 @@ public final class Protos {
 
       public Builder clear() {
         super.clear();
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
         if (signedRefundBuilder_ == null) {
           signedRefund_ = java.util.Collections.emptyList();
@@ -17578,7 +18200,8 @@ public final class Protos {
         org.bitcoin.paymentchannel.Protos.HTLCSignedRefundWithHash result = new org.bitcoin.paymentchannel.Protos.HTLCSignedRefundWithHash(this);
         int from_bitField0_ = bitField0_;
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              ids_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.ids_ = ids_;
@@ -17675,28 +18298,28 @@ public final class Protos {
       }
       private int bitField0_;
 
-      // repeated bytes ids = 1;
-      private java.util.List<com.google.protobuf.ByteString> ids_ = java.util.Collections.emptyList();
+      // repeated string ids = 1;
+      private com.google.protobuf.LazyStringList ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureIdsIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>(ids_);
+          ids_ = new com.google.protobuf.LazyStringArrayList(ids_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
        * message with the signed HTLC refundTx, and the teardownTx hash
        * </pre>
        */
-      public java.util.List<com.google.protobuf.ByteString>
+      public java.util.List<java.lang.String>
           getIdsList() {
         return java.util.Collections.unmodifiableList(ids_);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
@@ -17707,18 +18330,30 @@ public final class Protos {
         return ids_.size();
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
        * message with the signed HTLC refundTx, and the teardownTx hash
        * </pre>
        */
-      public com.google.protobuf.ByteString getIds(int index) {
+      public java.lang.String getIds(int index) {
         return ids_.get(index);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
+       * message with the signed HTLC refundTx, and the teardownTx hash
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getIdsBytes(int index) {
+        return ids_.getByteString(index);
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
@@ -17726,7 +18361,7 @@ public final class Protos {
        * </pre>
        */
       public Builder setIds(
-          int index, com.google.protobuf.ByteString value) {
+          int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -17736,14 +18371,15 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
        * message with the signed HTLC refundTx, and the teardownTx hash
        * </pre>
        */
-      public Builder addIds(com.google.protobuf.ByteString value) {
+      public Builder addIds(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -17753,7 +18389,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
@@ -17761,14 +18397,14 @@ public final class Protos {
        * </pre>
        */
       public Builder addAllIds(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+          java.lang.Iterable<java.lang.String> values) {
         ensureIdsIsMutable();
         super.addAll(values, ids_);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
@@ -17776,8 +18412,26 @@ public final class Protos {
        * </pre>
        */
       public Builder clearIds() {
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
+       * message with the signed HTLC refundTx, and the teardownTx hash
+       * </pre>
+       */
+      public Builder addIdsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureIdsIsMutable();
+        ids_.add(value);
         onChanged();
         return this;
       }
@@ -18036,18 +18690,19 @@ public final class Protos {
   public interface HTLCSignedSettleAndForfeitOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server after receiving the refund tx 
      * and the teardown hash
      * </pre>
      */
-    java.util.List<com.google.protobuf.ByteString> getIdsList();
+    java.util.List<java.lang.String>
+    getIdsList();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server after receiving the refund tx 
@@ -18056,14 +18711,24 @@ public final class Protos {
      */
     int getIdsCount();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server after receiving the refund tx 
      * and the teardown hash
      * </pre>
      */
-    com.google.protobuf.ByteString getIds(int index);
+    java.lang.String getIds(int index);
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the client to the server after receiving the refund tx 
+     * and the teardown hash
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getIdsBytes(int index);
 
     // repeated .paymentchannels.HTLCSignedTransaction signed_forfeit = 2;
     /**
@@ -18178,7 +18843,7 @@ public final class Protos {
             }
             case 10: {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
+                ids_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000001;
               }
               ids_.add(input.readBytes());
@@ -18214,7 +18879,7 @@ public final class Protos {
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(ids_);
         }
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           signedForfeit_ = java.util.Collections.unmodifiableList(signedForfeit_);
@@ -18254,23 +18919,23 @@ public final class Protos {
     }
 
     private int bitField0_;
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     public static final int IDS_FIELD_NUMBER = 1;
-    private java.util.List<com.google.protobuf.ByteString> ids_;
+    private com.google.protobuf.LazyStringList ids_;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server after receiving the refund tx 
      * and the teardown hash
      * </pre>
      */
-    public java.util.List<com.google.protobuf.ByteString>
+    public java.util.List<java.lang.String>
         getIdsList() {
       return ids_;
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server after receiving the refund tx 
@@ -18281,15 +18946,27 @@ public final class Protos {
       return ids_.size();
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the client to the server after receiving the refund tx 
      * and the teardown hash
      * </pre>
      */
-    public com.google.protobuf.ByteString getIds(int index) {
+    public java.lang.String getIds(int index) {
       return ids_.get(index);
+    }
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the client to the server after receiving the refund tx 
+     * and the teardown hash
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getIdsBytes(int index) {
+      return ids_.getByteString(index);
     }
 
     // repeated .paymentchannels.HTLCSignedTransaction signed_forfeit = 2;
@@ -18381,7 +19058,7 @@ public final class Protos {
     }
 
     private void initFields() {
-      ids_ = java.util.Collections.emptyList();
+      ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       signedForfeit_ = java.util.Collections.emptyList();
       signedSettle_ = java.util.Collections.emptyList();
       clientSecondaryKey_ = com.google.protobuf.ByteString.EMPTY;
@@ -18415,7 +19092,7 @@ public final class Protos {
                         throws java.io.IOException {
       getSerializedSize();
       for (int i = 0; i < ids_.size(); i++) {
-        output.writeBytes(1, ids_.get(i));
+        output.writeBytes(1, ids_.getByteString(i));
       }
       for (int i = 0; i < signedForfeit_.size(); i++) {
         output.writeMessage(2, signedForfeit_.get(i));
@@ -18439,7 +19116,7 @@ public final class Protos {
         int dataSize = 0;
         for (int i = 0; i < ids_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(ids_.get(i));
+            .computeBytesSizeNoTag(ids_.getByteString(i));
         }
         size += dataSize;
         size += 1 * getIdsList().size();
@@ -18574,7 +19251,7 @@ public final class Protos {
 
       public Builder clear() {
         super.clear();
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
         if (signedForfeitBuilder_ == null) {
           signedForfeit_ = java.util.Collections.emptyList();
@@ -18619,7 +19296,8 @@ public final class Protos {
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              ids_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.ids_ = ids_;
@@ -18769,28 +19447,28 @@ public final class Protos {
       }
       private int bitField0_;
 
-      // repeated bytes ids = 1;
-      private java.util.List<com.google.protobuf.ByteString> ids_ = java.util.Collections.emptyList();
+      // repeated string ids = 1;
+      private com.google.protobuf.LazyStringList ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureIdsIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>(ids_);
+          ids_ = new com.google.protobuf.LazyStringArrayList(ids_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server after receiving the refund tx 
        * and the teardown hash
        * </pre>
        */
-      public java.util.List<com.google.protobuf.ByteString>
+      public java.util.List<java.lang.String>
           getIdsList() {
         return java.util.Collections.unmodifiableList(ids_);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server after receiving the refund tx 
@@ -18801,18 +19479,30 @@ public final class Protos {
         return ids_.size();
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server after receiving the refund tx 
        * and the teardown hash
        * </pre>
        */
-      public com.google.protobuf.ByteString getIds(int index) {
+      public java.lang.String getIds(int index) {
         return ids_.get(index);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the client to the server after receiving the refund tx 
+       * and the teardown hash
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getIdsBytes(int index) {
+        return ids_.getByteString(index);
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server after receiving the refund tx 
@@ -18820,7 +19510,7 @@ public final class Protos {
        * </pre>
        */
       public Builder setIds(
-          int index, com.google.protobuf.ByteString value) {
+          int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -18830,14 +19520,15 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server after receiving the refund tx 
        * and the teardown hash
        * </pre>
        */
-      public Builder addIds(com.google.protobuf.ByteString value) {
+      public Builder addIds(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -18847,7 +19538,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server after receiving the refund tx 
@@ -18855,14 +19546,14 @@ public final class Protos {
        * </pre>
        */
       public Builder addAllIds(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+          java.lang.Iterable<java.lang.String> values) {
         ensureIdsIsMutable();
         super.addAll(values, ids_);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the client to the server after receiving the refund tx 
@@ -18870,8 +19561,26 @@ public final class Protos {
        * </pre>
        */
       public Builder clearIds() {
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the client to the server after receiving the refund tx 
+       * and the teardown hash
+       * </pre>
+       */
+      public Builder addIdsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureIdsIsMutable();
+        ids_.add(value);
         onChanged();
         return this;
       }
@@ -19406,17 +20115,18 @@ public final class Protos {
   public interface HTLCSetupCompleteOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client to ACK the successful HTLC setup
      * </pre>
      */
-    java.util.List<com.google.protobuf.ByteString> getIdsList();
+    java.util.List<java.lang.String>
+    getIdsList();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client to ACK the successful HTLC setup
@@ -19424,13 +20134,22 @@ public final class Protos {
      */
     int getIdsCount();
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client to ACK the successful HTLC setup
      * </pre>
      */
-    com.google.protobuf.ByteString getIds(int index);
+    java.lang.String getIds(int index);
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client to ACK the successful HTLC setup
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getIdsBytes(int index);
   }
   /**
    * Protobuf type {@code paymentchannels.HTLCSetupComplete}
@@ -19485,7 +20204,7 @@ public final class Protos {
             }
             case 10: {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>();
+                ids_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000001;
               }
               ids_.add(input.readBytes());
@@ -19500,7 +20219,7 @@ public final class Protos {
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(ids_);
         }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
@@ -19533,22 +20252,22 @@ public final class Protos {
       return PARSER;
     }
 
-    // repeated bytes ids = 1;
+    // repeated string ids = 1;
     public static final int IDS_FIELD_NUMBER = 1;
-    private java.util.List<com.google.protobuf.ByteString> ids_;
+    private com.google.protobuf.LazyStringList ids_;
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client to ACK the successful HTLC setup
      * </pre>
      */
-    public java.util.List<com.google.protobuf.ByteString>
+    public java.util.List<java.lang.String>
         getIdsList() {
       return ids_;
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client to ACK the successful HTLC setup
@@ -19558,18 +20277,29 @@ public final class Protos {
       return ids_.size();
     }
     /**
-     * <code>repeated bytes ids = 1;</code>
+     * <code>repeated string ids = 1;</code>
      *
      * <pre>
      * This is sent by the server to the client to ACK the successful HTLC setup
      * </pre>
      */
-    public com.google.protobuf.ByteString getIds(int index) {
+    public java.lang.String getIds(int index) {
       return ids_.get(index);
+    }
+    /**
+     * <code>repeated string ids = 1;</code>
+     *
+     * <pre>
+     * This is sent by the server to the client to ACK the successful HTLC setup
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getIdsBytes(int index) {
+      return ids_.getByteString(index);
     }
 
     private void initFields() {
-      ids_ = java.util.Collections.emptyList();
+      ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -19584,7 +20314,7 @@ public final class Protos {
                         throws java.io.IOException {
       getSerializedSize();
       for (int i = 0; i < ids_.size(); i++) {
-        output.writeBytes(1, ids_.get(i));
+        output.writeBytes(1, ids_.getByteString(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -19599,7 +20329,7 @@ public final class Protos {
         int dataSize = 0;
         for (int i = 0; i < ids_.size(); i++) {
           dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(ids_.get(i));
+            .computeBytesSizeNoTag(ids_.getByteString(i));
         }
         size += dataSize;
         size += 1 * getIdsList().size();
@@ -19720,7 +20450,7 @@ public final class Protos {
 
       public Builder clear() {
         super.clear();
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
@@ -19750,7 +20480,8 @@ public final class Protos {
         org.bitcoin.paymentchannel.Protos.HTLCSetupComplete result = new org.bitcoin.paymentchannel.Protos.HTLCSetupComplete(this);
         int from_bitField0_ = bitField0_;
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = java.util.Collections.unmodifiableList(ids_);
+          ids_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              ids_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
         result.ids_ = ids_;
@@ -19806,27 +20537,27 @@ public final class Protos {
       }
       private int bitField0_;
 
-      // repeated bytes ids = 1;
-      private java.util.List<com.google.protobuf.ByteString> ids_ = java.util.Collections.emptyList();
+      // repeated string ids = 1;
+      private com.google.protobuf.LazyStringList ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       private void ensureIdsIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          ids_ = new java.util.ArrayList<com.google.protobuf.ByteString>(ids_);
+          ids_ = new com.google.protobuf.LazyStringArrayList(ids_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client to ACK the successful HTLC setup
        * </pre>
        */
-      public java.util.List<com.google.protobuf.ByteString>
+      public java.util.List<java.lang.String>
           getIdsList() {
         return java.util.Collections.unmodifiableList(ids_);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client to ACK the successful HTLC setup
@@ -19836,24 +20567,35 @@ public final class Protos {
         return ids_.size();
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client to ACK the successful HTLC setup
        * </pre>
        */
-      public com.google.protobuf.ByteString getIds(int index) {
+      public java.lang.String getIds(int index) {
         return ids_.get(index);
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client to ACK the successful HTLC setup
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getIdsBytes(int index) {
+        return ids_.getByteString(index);
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client to ACK the successful HTLC setup
        * </pre>
        */
       public Builder setIds(
-          int index, com.google.protobuf.ByteString value) {
+          int index, java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -19863,13 +20605,14 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client to ACK the successful HTLC setup
        * </pre>
        */
-      public Builder addIds(com.google.protobuf.ByteString value) {
+      public Builder addIds(
+          java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
@@ -19879,29 +20622,46 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client to ACK the successful HTLC setup
        * </pre>
        */
       public Builder addAllIds(
-          java.lang.Iterable<? extends com.google.protobuf.ByteString> values) {
+          java.lang.Iterable<java.lang.String> values) {
         ensureIdsIsMutable();
         super.addAll(values, ids_);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated bytes ids = 1;</code>
+       * <code>repeated string ids = 1;</code>
        *
        * <pre>
        * This is sent by the server to the client to ACK the successful HTLC setup
        * </pre>
        */
       public Builder clearIds() {
-        ids_ = java.util.Collections.emptyList();
+        ids_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string ids = 1;</code>
+       *
+       * <pre>
+       * This is sent by the server to the client to ACK the successful HTLC setup
+       * </pre>
+       */
+      public Builder addIdsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureIdsIsMutable();
+        ids_.add(value);
         onChanged();
         return this;
       }
@@ -22799,6 +23559,20 @@ public final class Protos {
      * <code>optional .paymentchannels.HTLCPaymentInfo payment_info = 7;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCPaymentInfoOrBuilder getPaymentInfoOrBuilder();
+
+    // optional .paymentchannels.HTLCResumeSetup resume_setup = 8;
+    /**
+     * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+     */
+    boolean hasResumeSetup();
+    /**
+     * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+     */
+    org.bitcoin.paymentchannel.Protos.HTLCResumeSetup getResumeSetup();
+    /**
+     * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+     */
+    org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder getResumeSetupOrBuilder();
   }
   /**
    * Protobuf type {@code paymentchannels.HTLCFlow}
@@ -22932,6 +23706,19 @@ public final class Protos {
               bitField0_ |= 0x00000040;
               break;
             }
+            case 66: {
+              org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000080) == 0x00000080)) {
+                subBuilder = resumeSetup_.toBuilder();
+              }
+              resumeSetup_ = input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(resumeSetup_);
+                resumeSetup_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000080;
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -23004,6 +23791,10 @@ public final class Protos {
        * <code>PAYMENT_INFO = 7;</code>
        */
       PAYMENT_INFO(6, 7),
+      /**
+       * <code>RESUME_SETUP = 8;</code>
+       */
+      RESUME_SETUP(7, 8),
       ;
 
       /**
@@ -23034,6 +23825,10 @@ public final class Protos {
        * <code>PAYMENT_INFO = 7;</code>
        */
       public static final int PAYMENT_INFO_VALUE = 7;
+      /**
+       * <code>RESUME_SETUP = 8;</code>
+       */
+      public static final int RESUME_SETUP_VALUE = 8;
 
 
       public final int getNumber() { return value; }
@@ -23047,6 +23842,7 @@ public final class Protos {
           case 5: return REGISTER_SENSORS;
           case 6: return SELECT;
           case 7: return PAYMENT_INFO;
+          case 8: return RESUME_SETUP;
           default: return null;
         }
       }
@@ -23268,6 +24064,28 @@ public final class Protos {
       return paymentInfo_;
     }
 
+    // optional .paymentchannels.HTLCResumeSetup resume_setup = 8;
+    public static final int RESUME_SETUP_FIELD_NUMBER = 8;
+    private org.bitcoin.paymentchannel.Protos.HTLCResumeSetup resumeSetup_;
+    /**
+     * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+     */
+    public boolean hasResumeSetup() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+     */
+    public org.bitcoin.paymentchannel.Protos.HTLCResumeSetup getResumeSetup() {
+      return resumeSetup_;
+    }
+    /**
+     * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+     */
+    public org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder getResumeSetupOrBuilder() {
+      return resumeSetup_;
+    }
+
     private void initFields() {
       id_ = "";
       type_ = org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType.NODE_STATS;
@@ -23276,6 +24094,7 @@ public final class Protos {
       sensorStats_ = org.bitcoin.paymentchannel.Protos.HTLCSensorStats.getDefaultInstance();
       selectData_ = org.bitcoin.paymentchannel.Protos.HTLCSelectData.getDefaultInstance();
       paymentInfo_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentInfo.getDefaultInstance();
+      resumeSetup_ = org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -23324,6 +24143,9 @@ public final class Protos {
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         output.writeMessage(7, paymentInfo_);
       }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeMessage(8, resumeSetup_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -23360,6 +24182,10 @@ public final class Protos {
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(7, paymentInfo_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(8, resumeSetup_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -23474,6 +24300,7 @@ public final class Protos {
           getSensorStatsFieldBuilder();
           getSelectDataFieldBuilder();
           getPaymentInfoFieldBuilder();
+          getResumeSetupFieldBuilder();
         }
       }
       private static Builder create() {
@@ -23516,6 +24343,12 @@ public final class Protos {
           paymentInfoBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000040);
+        if (resumeSetupBuilder_ == null) {
+          resumeSetup_ = org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance();
+        } else {
+          resumeSetupBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -23592,6 +24425,14 @@ public final class Protos {
         } else {
           result.paymentInfo_ = paymentInfoBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        if (resumeSetupBuilder_ == null) {
+          result.resumeSetup_ = resumeSetup_;
+        } else {
+          result.resumeSetup_ = resumeSetupBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -23630,6 +24471,9 @@ public final class Protos {
         }
         if (other.hasPaymentInfo()) {
           mergePaymentInfo(other.getPaymentInfo());
+        }
+        if (other.hasResumeSetup()) {
+          mergeResumeSetup(other.getResumeSetup());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -24365,6 +25209,123 @@ public final class Protos {
           paymentInfo_ = null;
         }
         return paymentInfoBuilder_;
+      }
+
+      // optional .paymentchannels.HTLCResumeSetup resume_setup = 8;
+      private org.bitcoin.paymentchannel.Protos.HTLCResumeSetup resumeSetup_ = org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          org.bitcoin.paymentchannel.Protos.HTLCResumeSetup, org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder, org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder> resumeSetupBuilder_;
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public boolean hasResumeSetup() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCResumeSetup getResumeSetup() {
+        if (resumeSetupBuilder_ == null) {
+          return resumeSetup_;
+        } else {
+          return resumeSetupBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public Builder setResumeSetup(org.bitcoin.paymentchannel.Protos.HTLCResumeSetup value) {
+        if (resumeSetupBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          resumeSetup_ = value;
+          onChanged();
+        } else {
+          resumeSetupBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public Builder setResumeSetup(
+          org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder builderForValue) {
+        if (resumeSetupBuilder_ == null) {
+          resumeSetup_ = builderForValue.build();
+          onChanged();
+        } else {
+          resumeSetupBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public Builder mergeResumeSetup(org.bitcoin.paymentchannel.Protos.HTLCResumeSetup value) {
+        if (resumeSetupBuilder_ == null) {
+          if (((bitField0_ & 0x00000080) == 0x00000080) &&
+              resumeSetup_ != org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance()) {
+            resumeSetup_ =
+              org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.newBuilder(resumeSetup_).mergeFrom(value).buildPartial();
+          } else {
+            resumeSetup_ = value;
+          }
+          onChanged();
+        } else {
+          resumeSetupBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public Builder clearResumeSetup() {
+        if (resumeSetupBuilder_ == null) {
+          resumeSetup_ = org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance();
+          onChanged();
+        } else {
+          resumeSetupBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000080);
+        return this;
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder getResumeSetupBuilder() {
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return getResumeSetupFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder getResumeSetupOrBuilder() {
+        if (resumeSetupBuilder_ != null) {
+          return resumeSetupBuilder_.getMessageOrBuilder();
+        } else {
+          return resumeSetup_;
+        }
+      }
+      /**
+       * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          org.bitcoin.paymentchannel.Protos.HTLCResumeSetup, org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder, org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder> 
+          getResumeSetupFieldBuilder() {
+        if (resumeSetupBuilder_ == null) {
+          resumeSetupBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.bitcoin.paymentchannel.Protos.HTLCResumeSetup, org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder, org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder>(
+                  resumeSetup_,
+                  getParentForChildren(),
+                  isClean());
+          resumeSetup_ = null;
+        }
+        return resumeSetupBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:paymentchannels.HTLCFlow)
@@ -26620,9 +27581,9 @@ public final class Protos {
   public interface HTLCPaymentInfoOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
-    // repeated string sensorTypes = 1;
+    // repeated string deviceIds = 1;
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
@@ -26630,27 +27591,27 @@ public final class Protos {
      * </pre>
      */
     java.util.List<java.lang.String>
-    getSensorTypesList();
+    getDeviceIdsList();
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
      * info on the selected data
      * </pre>
      */
-    int getSensorTypesCount();
+    int getDeviceIdsCount();
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
      * info on the selected data
      * </pre>
      */
-    java.lang.String getSensorTypes(int index);
+    java.lang.String getDeviceIds(int index);
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
@@ -26658,19 +27619,39 @@ public final class Protos {
      * </pre>
      */
     com.google.protobuf.ByteString
+        getDeviceIdsBytes(int index);
+
+    // repeated string sensorTypes = 2;
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    java.util.List<java.lang.String>
+    getSensorTypesList();
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    int getSensorTypesCount();
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    java.lang.String getSensorTypes(int index);
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    com.google.protobuf.ByteString
         getSensorTypesBytes(int index);
 
-    // repeated uint64 prices = 2;
+    // repeated uint64 prices = 3;
     /**
-     * <code>repeated uint64 prices = 2;</code>
+     * <code>repeated uint64 prices = 3;</code>
      */
     java.util.List<java.lang.Long> getPricesList();
     /**
-     * <code>repeated uint64 prices = 2;</code>
+     * <code>repeated uint64 prices = 3;</code>
      */
     int getPricesCount();
     /**
-     * <code>repeated uint64 prices = 2;</code>
+     * <code>repeated uint64 prices = 3;</code>
      */
     long getPrices(int index);
   }
@@ -26727,26 +27708,34 @@ public final class Protos {
             }
             case 10: {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                sensorTypes_ = new com.google.protobuf.LazyStringArrayList();
+                deviceIds_ = new com.google.protobuf.LazyStringArrayList();
                 mutable_bitField0_ |= 0x00000001;
+              }
+              deviceIds_.add(input.readBytes());
+              break;
+            }
+            case 18: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                sensorTypes_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000002;
               }
               sensorTypes_.add(input.readBytes());
               break;
             }
-            case 16: {
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+            case 24: {
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
                 prices_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00000002;
+                mutable_bitField0_ |= 0x00000004;
               }
               prices_.add(input.readUInt64());
               break;
             }
-            case 18: {
+            case 26: {
               int length = input.readRawVarint32();
               int limit = input.pushLimit(length);
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002) && input.getBytesUntilLimit() > 0) {
+              if (!((mutable_bitField0_ & 0x00000004) == 0x00000004) && input.getBytesUntilLimit() > 0) {
                 prices_ = new java.util.ArrayList<java.lang.Long>();
-                mutable_bitField0_ |= 0x00000002;
+                mutable_bitField0_ |= 0x00000004;
               }
               while (input.getBytesUntilLimit() > 0) {
                 prices_.add(input.readUInt64());
@@ -26763,9 +27752,12 @@ public final class Protos {
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
         if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          sensorTypes_ = new com.google.protobuf.UnmodifiableLazyStringList(sensorTypes_);
+          deviceIds_ = new com.google.protobuf.UnmodifiableLazyStringList(deviceIds_);
         }
         if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+          sensorTypes_ = new com.google.protobuf.UnmodifiableLazyStringList(sensorTypes_);
+        }
+        if (((mutable_bitField0_ & 0x00000004) == 0x00000004)) {
           prices_ = java.util.Collections.unmodifiableList(prices_);
         }
         this.unknownFields = unknownFields.build();
@@ -26799,11 +27791,11 @@ public final class Protos {
       return PARSER;
     }
 
-    // repeated string sensorTypes = 1;
-    public static final int SENSORTYPES_FIELD_NUMBER = 1;
-    private com.google.protobuf.LazyStringList sensorTypes_;
+    // repeated string deviceIds = 1;
+    public static final int DEVICEIDS_FIELD_NUMBER = 1;
+    private com.google.protobuf.LazyStringList deviceIds_;
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
@@ -26811,33 +27803,33 @@ public final class Protos {
      * </pre>
      */
     public java.util.List<java.lang.String>
-        getSensorTypesList() {
-      return sensorTypes_;
+        getDeviceIdsList() {
+      return deviceIds_;
     }
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
      * info on the selected data
      * </pre>
      */
-    public int getSensorTypesCount() {
-      return sensorTypes_.size();
+    public int getDeviceIdsCount() {
+      return deviceIds_.size();
     }
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
      * info on the selected data
      * </pre>
      */
-    public java.lang.String getSensorTypes(int index) {
-      return sensorTypes_.get(index);
+    public java.lang.String getDeviceIds(int index) {
+      return deviceIds_.get(index);
     }
     /**
-     * <code>repeated string sensorTypes = 1;</code>
+     * <code>repeated string deviceIds = 1;</code>
      *
      * <pre>
      * Sent by the hub back to the buyer to provide payment 
@@ -26845,34 +27837,65 @@ public final class Protos {
      * </pre>
      */
     public com.google.protobuf.ByteString
+        getDeviceIdsBytes(int index) {
+      return deviceIds_.getByteString(index);
+    }
+
+    // repeated string sensorTypes = 2;
+    public static final int SENSORTYPES_FIELD_NUMBER = 2;
+    private com.google.protobuf.LazyStringList sensorTypes_;
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    public java.util.List<java.lang.String>
+        getSensorTypesList() {
+      return sensorTypes_;
+    }
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    public int getSensorTypesCount() {
+      return sensorTypes_.size();
+    }
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    public java.lang.String getSensorTypes(int index) {
+      return sensorTypes_.get(index);
+    }
+    /**
+     * <code>repeated string sensorTypes = 2;</code>
+     */
+    public com.google.protobuf.ByteString
         getSensorTypesBytes(int index) {
       return sensorTypes_.getByteString(index);
     }
 
-    // repeated uint64 prices = 2;
-    public static final int PRICES_FIELD_NUMBER = 2;
+    // repeated uint64 prices = 3;
+    public static final int PRICES_FIELD_NUMBER = 3;
     private java.util.List<java.lang.Long> prices_;
     /**
-     * <code>repeated uint64 prices = 2;</code>
+     * <code>repeated uint64 prices = 3;</code>
      */
     public java.util.List<java.lang.Long>
         getPricesList() {
       return prices_;
     }
     /**
-     * <code>repeated uint64 prices = 2;</code>
+     * <code>repeated uint64 prices = 3;</code>
      */
     public int getPricesCount() {
       return prices_.size();
     }
     /**
-     * <code>repeated uint64 prices = 2;</code>
+     * <code>repeated uint64 prices = 3;</code>
      */
     public long getPrices(int index) {
       return prices_.get(index);
     }
 
     private void initFields() {
+      deviceIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       sensorTypes_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       prices_ = java.util.Collections.emptyList();
     }
@@ -26888,11 +27911,14 @@ public final class Protos {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       getSerializedSize();
+      for (int i = 0; i < deviceIds_.size(); i++) {
+        output.writeBytes(1, deviceIds_.getByteString(i));
+      }
       for (int i = 0; i < sensorTypes_.size(); i++) {
-        output.writeBytes(1, sensorTypes_.getByteString(i));
+        output.writeBytes(2, sensorTypes_.getByteString(i));
       }
       for (int i = 0; i < prices_.size(); i++) {
-        output.writeUInt64(2, prices_.get(i));
+        output.writeUInt64(3, prices_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -26903,6 +27929,15 @@ public final class Protos {
       if (size != -1) return size;
 
       size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < deviceIds_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(deviceIds_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getDeviceIdsList().size();
+      }
       {
         int dataSize = 0;
         for (int i = 0; i < sensorTypes_.size(); i++) {
@@ -27037,10 +28072,12 @@ public final class Protos {
 
       public Builder clear() {
         super.clear();
-        sensorTypes_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        deviceIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
-        prices_ = java.util.Collections.emptyList();
+        sensorTypes_ = com.google.protobuf.LazyStringArrayList.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
+        prices_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -27069,14 +28106,20 @@ public final class Protos {
         org.bitcoin.paymentchannel.Protos.HTLCPaymentInfo result = new org.bitcoin.paymentchannel.Protos.HTLCPaymentInfo(this);
         int from_bitField0_ = bitField0_;
         if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          sensorTypes_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              sensorTypes_);
+          deviceIds_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              deviceIds_);
           bitField0_ = (bitField0_ & ~0x00000001);
         }
-        result.sensorTypes_ = sensorTypes_;
+        result.deviceIds_ = deviceIds_;
         if (((bitField0_ & 0x00000002) == 0x00000002)) {
-          prices_ = java.util.Collections.unmodifiableList(prices_);
+          sensorTypes_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              sensorTypes_);
           bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.sensorTypes_ = sensorTypes_;
+        if (((bitField0_ & 0x00000004) == 0x00000004)) {
+          prices_ = java.util.Collections.unmodifiableList(prices_);
+          bitField0_ = (bitField0_ & ~0x00000004);
         }
         result.prices_ = prices_;
         onBuilt();
@@ -27094,10 +28137,20 @@ public final class Protos {
 
       public Builder mergeFrom(org.bitcoin.paymentchannel.Protos.HTLCPaymentInfo other) {
         if (other == org.bitcoin.paymentchannel.Protos.HTLCPaymentInfo.getDefaultInstance()) return this;
+        if (!other.deviceIds_.isEmpty()) {
+          if (deviceIds_.isEmpty()) {
+            deviceIds_ = other.deviceIds_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureDeviceIdsIsMutable();
+            deviceIds_.addAll(other.deviceIds_);
+          }
+          onChanged();
+        }
         if (!other.sensorTypes_.isEmpty()) {
           if (sensorTypes_.isEmpty()) {
             sensorTypes_ = other.sensorTypes_;
-            bitField0_ = (bitField0_ & ~0x00000001);
+            bitField0_ = (bitField0_ & ~0x00000002);
           } else {
             ensureSensorTypesIsMutable();
             sensorTypes_.addAll(other.sensorTypes_);
@@ -27107,7 +28160,7 @@ public final class Protos {
         if (!other.prices_.isEmpty()) {
           if (prices_.isEmpty()) {
             prices_ = other.prices_;
-            bitField0_ = (bitField0_ & ~0x00000002);
+            bitField0_ = (bitField0_ & ~0x00000004);
           } else {
             ensurePricesIsMutable();
             prices_.addAll(other.prices_);
@@ -27141,16 +28194,16 @@ public final class Protos {
       }
       private int bitField0_;
 
-      // repeated string sensorTypes = 1;
-      private com.google.protobuf.LazyStringList sensorTypes_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureSensorTypesIsMutable() {
+      // repeated string deviceIds = 1;
+      private com.google.protobuf.LazyStringList deviceIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureDeviceIdsIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          sensorTypes_ = new com.google.protobuf.LazyStringArrayList(sensorTypes_);
+          deviceIds_ = new com.google.protobuf.LazyStringArrayList(deviceIds_);
           bitField0_ |= 0x00000001;
          }
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
+       * <code>repeated string deviceIds = 1;</code>
        *
        * <pre>
        * Sent by the hub back to the buyer to provide payment 
@@ -27158,33 +28211,33 @@ public final class Protos {
        * </pre>
        */
       public java.util.List<java.lang.String>
-          getSensorTypesList() {
-        return java.util.Collections.unmodifiableList(sensorTypes_);
+          getDeviceIdsList() {
+        return java.util.Collections.unmodifiableList(deviceIds_);
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
+       * <code>repeated string deviceIds = 1;</code>
        *
        * <pre>
        * Sent by the hub back to the buyer to provide payment 
        * info on the selected data
        * </pre>
        */
-      public int getSensorTypesCount() {
-        return sensorTypes_.size();
+      public int getDeviceIdsCount() {
+        return deviceIds_.size();
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
+       * <code>repeated string deviceIds = 1;</code>
        *
        * <pre>
        * Sent by the hub back to the buyer to provide payment 
        * info on the selected data
        * </pre>
        */
-      public java.lang.String getSensorTypes(int index) {
-        return sensorTypes_.get(index);
+      public java.lang.String getDeviceIds(int index) {
+        return deviceIds_.get(index);
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
+       * <code>repeated string deviceIds = 1;</code>
        *
        * <pre>
        * Sent by the hub back to the buyer to provide payment 
@@ -27192,16 +28245,129 @@ public final class Protos {
        * </pre>
        */
       public com.google.protobuf.ByteString
-          getSensorTypesBytes(int index) {
-        return sensorTypes_.getByteString(index);
+          getDeviceIdsBytes(int index) {
+        return deviceIds_.getByteString(index);
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
+       * <code>repeated string deviceIds = 1;</code>
        *
        * <pre>
        * Sent by the hub back to the buyer to provide payment 
        * info on the selected data
        * </pre>
+       */
+      public Builder setDeviceIds(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureDeviceIdsIsMutable();
+        deviceIds_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string deviceIds = 1;</code>
+       *
+       * <pre>
+       * Sent by the hub back to the buyer to provide payment 
+       * info on the selected data
+       * </pre>
+       */
+      public Builder addDeviceIds(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureDeviceIdsIsMutable();
+        deviceIds_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string deviceIds = 1;</code>
+       *
+       * <pre>
+       * Sent by the hub back to the buyer to provide payment 
+       * info on the selected data
+       * </pre>
+       */
+      public Builder addAllDeviceIds(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureDeviceIdsIsMutable();
+        super.addAll(values, deviceIds_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string deviceIds = 1;</code>
+       *
+       * <pre>
+       * Sent by the hub back to the buyer to provide payment 
+       * info on the selected data
+       * </pre>
+       */
+      public Builder clearDeviceIds() {
+        deviceIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string deviceIds = 1;</code>
+       *
+       * <pre>
+       * Sent by the hub back to the buyer to provide payment 
+       * info on the selected data
+       * </pre>
+       */
+      public Builder addDeviceIdsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureDeviceIdsIsMutable();
+        deviceIds_.add(value);
+        onChanged();
+        return this;
+      }
+
+      // repeated string sensorTypes = 2;
+      private com.google.protobuf.LazyStringList sensorTypes_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureSensorTypesIsMutable() {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          sensorTypes_ = new com.google.protobuf.LazyStringArrayList(sensorTypes_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+      /**
+       * <code>repeated string sensorTypes = 2;</code>
+       */
+      public java.util.List<java.lang.String>
+          getSensorTypesList() {
+        return java.util.Collections.unmodifiableList(sensorTypes_);
+      }
+      /**
+       * <code>repeated string sensorTypes = 2;</code>
+       */
+      public int getSensorTypesCount() {
+        return sensorTypes_.size();
+      }
+      /**
+       * <code>repeated string sensorTypes = 2;</code>
+       */
+      public java.lang.String getSensorTypes(int index) {
+        return sensorTypes_.get(index);
+      }
+      /**
+       * <code>repeated string sensorTypes = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getSensorTypesBytes(int index) {
+        return sensorTypes_.getByteString(index);
+      }
+      /**
+       * <code>repeated string sensorTypes = 2;</code>
        */
       public Builder setSensorTypes(
           int index, java.lang.String value) {
@@ -27214,12 +28380,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
-       *
-       * <pre>
-       * Sent by the hub back to the buyer to provide payment 
-       * info on the selected data
-       * </pre>
+       * <code>repeated string sensorTypes = 2;</code>
        */
       public Builder addSensorTypes(
           java.lang.String value) {
@@ -27232,12 +28393,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
-       *
-       * <pre>
-       * Sent by the hub back to the buyer to provide payment 
-       * info on the selected data
-       * </pre>
+       * <code>repeated string sensorTypes = 2;</code>
        */
       public Builder addAllSensorTypes(
           java.lang.Iterable<java.lang.String> values) {
@@ -27247,26 +28403,16 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
-       *
-       * <pre>
-       * Sent by the hub back to the buyer to provide payment 
-       * info on the selected data
-       * </pre>
+       * <code>repeated string sensorTypes = 2;</code>
        */
       public Builder clearSensorTypes() {
         sensorTypes_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000001);
+        bitField0_ = (bitField0_ & ~0x00000002);
         onChanged();
         return this;
       }
       /**
-       * <code>repeated string sensorTypes = 1;</code>
-       *
-       * <pre>
-       * Sent by the hub back to the buyer to provide payment 
-       * info on the selected data
-       * </pre>
+       * <code>repeated string sensorTypes = 2;</code>
        */
       public Builder addSensorTypesBytes(
           com.google.protobuf.ByteString value) {
@@ -27279,35 +28425,35 @@ public final class Protos {
         return this;
       }
 
-      // repeated uint64 prices = 2;
+      // repeated uint64 prices = 3;
       private java.util.List<java.lang.Long> prices_ = java.util.Collections.emptyList();
       private void ensurePricesIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+        if (!((bitField0_ & 0x00000004) == 0x00000004)) {
           prices_ = new java.util.ArrayList<java.lang.Long>(prices_);
-          bitField0_ |= 0x00000002;
+          bitField0_ |= 0x00000004;
          }
       }
       /**
-       * <code>repeated uint64 prices = 2;</code>
+       * <code>repeated uint64 prices = 3;</code>
        */
       public java.util.List<java.lang.Long>
           getPricesList() {
         return java.util.Collections.unmodifiableList(prices_);
       }
       /**
-       * <code>repeated uint64 prices = 2;</code>
+       * <code>repeated uint64 prices = 3;</code>
        */
       public int getPricesCount() {
         return prices_.size();
       }
       /**
-       * <code>repeated uint64 prices = 2;</code>
+       * <code>repeated uint64 prices = 3;</code>
        */
       public long getPrices(int index) {
         return prices_.get(index);
       }
       /**
-       * <code>repeated uint64 prices = 2;</code>
+       * <code>repeated uint64 prices = 3;</code>
        */
       public Builder setPrices(
           int index, long value) {
@@ -27317,7 +28463,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated uint64 prices = 2;</code>
+       * <code>repeated uint64 prices = 3;</code>
        */
       public Builder addPrices(long value) {
         ensurePricesIsMutable();
@@ -27326,7 +28472,7 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated uint64 prices = 2;</code>
+       * <code>repeated uint64 prices = 3;</code>
        */
       public Builder addAllPrices(
           java.lang.Iterable<? extends java.lang.Long> values) {
@@ -27336,11 +28482,11 @@ public final class Protos {
         return this;
       }
       /**
-       * <code>repeated uint64 prices = 2;</code>
+       * <code>repeated uint64 prices = 3;</code>
        */
       public Builder clearPrices() {
         prices_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000002);
+        bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
       }
@@ -27354,6 +28500,588 @@ public final class Protos {
     }
 
     // @@protoc_insertion_point(class_scope:paymentchannels.HTLCPaymentInfo)
+  }
+
+  public interface HTLCResumeSetupOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // repeated string htlc_ids = 1;
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    java.util.List<java.lang.String>
+    getHtlcIdsList();
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    int getHtlcIdsCount();
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    java.lang.String getHtlcIds(int index);
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getHtlcIdsBytes(int index);
+  }
+  /**
+   * Protobuf type {@code paymentchannels.HTLCResumeSetup}
+   */
+  public static final class HTLCResumeSetup extends
+      com.google.protobuf.GeneratedMessage
+      implements HTLCResumeSetupOrBuilder {
+    // Use HTLCResumeSetup.newBuilder() to construct.
+    private HTLCResumeSetup(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private HTLCResumeSetup(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final HTLCResumeSetup defaultInstance;
+    public static HTLCResumeSetup getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public HTLCResumeSetup getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private HTLCResumeSetup(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                htlcIds_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              htlcIds_.add(input.readBytes());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          htlcIds_ = new com.google.protobuf.UnmodifiableLazyStringList(htlcIds_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCResumeSetup_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCResumeSetup_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.class, org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<HTLCResumeSetup> PARSER =
+        new com.google.protobuf.AbstractParser<HTLCResumeSetup>() {
+      public HTLCResumeSetup parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new HTLCResumeSetup(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<HTLCResumeSetup> getParserForType() {
+      return PARSER;
+    }
+
+    // repeated string htlc_ids = 1;
+    public static final int HTLC_IDS_FIELD_NUMBER = 1;
+    private com.google.protobuf.LazyStringList htlcIds_;
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    public java.util.List<java.lang.String>
+        getHtlcIdsList() {
+      return htlcIds_;
+    }
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    public int getHtlcIdsCount() {
+      return htlcIds_.size();
+    }
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    public java.lang.String getHtlcIds(int index) {
+      return htlcIds_.get(index);
+    }
+    /**
+     * <code>repeated string htlc_ids = 1;</code>
+     *
+     * <pre>
+     * Sent by the buyer hub to the android hub to resume the HTLC setup after
+     * the one between the buyer and the buyer hub was completed
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getHtlcIdsBytes(int index) {
+      return htlcIds_.getByteString(index);
+    }
+
+    private void initFields() {
+      htlcIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < htlcIds_.size(); i++) {
+        output.writeBytes(1, htlcIds_.getByteString(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < htlcIds_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(htlcIds_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getHtlcIdsList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.bitcoin.paymentchannel.Protos.HTLCResumeSetup prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code paymentchannels.HTLCResumeSetup}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCResumeSetup_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCResumeSetup_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.class, org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.Builder.class);
+      }
+
+      // Construct using org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        htlcIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCResumeSetup_descriptor;
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCResumeSetup getDefaultInstanceForType() {
+        return org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance();
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCResumeSetup build() {
+        org.bitcoin.paymentchannel.Protos.HTLCResumeSetup result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCResumeSetup buildPartial() {
+        org.bitcoin.paymentchannel.Protos.HTLCResumeSetup result = new org.bitcoin.paymentchannel.Protos.HTLCResumeSetup(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          htlcIds_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              htlcIds_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.htlcIds_ = htlcIds_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.bitcoin.paymentchannel.Protos.HTLCResumeSetup) {
+          return mergeFrom((org.bitcoin.paymentchannel.Protos.HTLCResumeSetup)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.bitcoin.paymentchannel.Protos.HTLCResumeSetup other) {
+        if (other == org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance()) return this;
+        if (!other.htlcIds_.isEmpty()) {
+          if (htlcIds_.isEmpty()) {
+            htlcIds_ = other.htlcIds_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureHtlcIdsIsMutable();
+            htlcIds_.addAll(other.htlcIds_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.bitcoin.paymentchannel.Protos.HTLCResumeSetup parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.bitcoin.paymentchannel.Protos.HTLCResumeSetup) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // repeated string htlc_ids = 1;
+      private com.google.protobuf.LazyStringList htlcIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureHtlcIdsIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          htlcIds_ = new com.google.protobuf.LazyStringArrayList(htlcIds_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public java.util.List<java.lang.String>
+          getHtlcIdsList() {
+        return java.util.Collections.unmodifiableList(htlcIds_);
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public int getHtlcIdsCount() {
+        return htlcIds_.size();
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public java.lang.String getHtlcIds(int index) {
+        return htlcIds_.get(index);
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getHtlcIdsBytes(int index) {
+        return htlcIds_.getByteString(index);
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public Builder setHtlcIds(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureHtlcIdsIsMutable();
+        htlcIds_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public Builder addHtlcIds(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureHtlcIdsIsMutable();
+        htlcIds_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public Builder addAllHtlcIds(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureHtlcIdsIsMutable();
+        super.addAll(values, htlcIds_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public Builder clearHtlcIds() {
+        htlcIds_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string htlc_ids = 1;</code>
+       *
+       * <pre>
+       * Sent by the buyer hub to the android hub to resume the HTLC setup after
+       * the one between the buyer and the buyer hub was completed
+       * </pre>
+       */
+      public Builder addHtlcIdsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureHtlcIdsIsMutable();
+        htlcIds_.add(value);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:paymentchannels.HTLCResumeSetup)
+    }
+
+    static {
+      defaultInstance = new HTLCResumeSetup(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:paymentchannels.HTLCResumeSetup)
   }
 
   public interface ErrorOrBuilder
@@ -28450,6 +30178,11 @@ public final class Protos {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_paymentchannels_HTLCPaymentInfo_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_paymentchannels_HTLCResumeSetup_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_paymentchannels_HTLCResumeSetup_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_paymentchannels_Error_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -28532,60 +30265,65 @@ public final class Protos {
       "_teardown\030\002 \002(\0132&.paymentchannels.HTLCSi" +
       "gnedTransaction\"\035\n\rHTLCRoundInit\022\014\n\004info" +
       "\030\001 \001(\014\"\034\n\014HTLCRoundAck\022\014\n\004info\030\001 \001(\014\"\035\n\r" +
-      "HTLCRoundDone\022\014\n\004info\030\001 \001(\014\"0\n\013HTLCPayme",
-      "nt\022\022\n\nrequest_id\030\001 \002(\014\022\r\n\005value\030\002 \002(\004\">\n" +
+      "HTLCRoundDone\022\014\n\004info\030\001 \001(\014\"X\n\013HTLCPayme",
+      "nt\022\022\n\nrequest_id\030\001 \002(\t\022\021\n\tdevice_id\030\002 \002(" +
+      "\t\022\023\n\013sensor_type\030\003 \002(\t\022\r\n\005value\030\004 \002(\004\">\n" +
       "\010HTLCInit\0222\n\014new_payments\030\001 \003(\0132\034.paymen" +
       "tchannels.HTLCPayment\"9\n\020HTLCPaymentRepl" +
-      "y\022\n\n\002id\030\001 \002(\014\022\031\n\021client_request_id\030\002 \002(\014" +
+      "y\022\n\n\002id\030\001 \002(\t\022\031\n\021client_request_id\030\002 \002(\t" +
       "\"N\n\rHTLCInitReply\022=\n\022new_payments_reply\030" +
       "\001 \003(\0132!.paymentchannels.HTLCPaymentReply" +
       "\"G\n\025HTLCSignedTransaction\022\n\n\002tx\030\001 \002(\014\022\017\n" +
       "\007tx_hash\030\002 \001(\014\022\021\n\tsignature\030\003 \002(\014\"v\n\031HTL" +
-      "CProvideSignedTeardown\022\013\n\003ids\030\001 \003(\014\022\013\n\003i" +
-      "dx\030\002 \003(\005\022?\n\017signed_teardown\030\003 \002(\0132&.paym",
+      "CProvideSignedTeardown\022\013\n\003ids\030\001 \003(\t\022\013\n\003i",
+      "dx\030\002 \003(\005\022?\n\017signed_teardown\030\003 \002(\0132&.paym" +
       "entchannels.HTLCSignedTransaction\"f\n\030HTL" +
-      "CSignedRefundWithHash\022\013\n\003ids\030\001 \003(\014\022=\n\rsi" +
+      "CSignedRefundWithHash\022\013\n\003ids\030\001 \003(\t\022=\n\rsi" +
       "gned_refund\030\002 \003(\0132&.paymentchannels.HTLC" +
       "SignedTransaction\"\306\001\n\032HTLCSignedSettleAn" +
-      "dForfeit\022\013\n\003ids\030\001 \003(\014\022>\n\016signed_forfeit\030" +
+      "dForfeit\022\013\n\003ids\030\001 \003(\t\022>\n\016signed_forfeit\030" +
       "\002 \003(\0132&.paymentchannels.HTLCSignedTransa" +
       "ction\022=\n\rsigned_settle\030\003 \003(\0132&.paymentch" +
       "annels.HTLCSignedTransaction\022\034\n\024client_s" +
-      "econdary_key\030\004 \002(\014\" \n\021HTLCSetupComplete\022" +
-      "\013\n\003ids\030\001 \003(\014\".\n\020HTLCRevealSecret\022\n\n\002id\030\001",
+      "econdary_key\030\004 \002(\014\" \n\021HTLCSetupComplete\022",
+      "\013\n\003ids\030\001 \003(\t\".\n\020HTLCRevealSecret\022\n\n\002id\030\001" +
       " \002(\014\022\016\n\006secret\030\002 \002(\014\"Y\n\013HTLCBackOff\022\n\n\002i" +
       "d\030\001 \002(\014\022>\n\016signed_forfeit\030\002 \002(\0132&.paymen" +
       "tchannels.HTLCSignedTransaction\"~\n\020HTLCS" +
       "erverUpdate\0229\n\016reveal_secrets\030\001 \003(\0132!.pa" +
       "ymentchannels.HTLCRevealSecret\022/\n\tback_o" +
       "ffs\030\002 \003(\0132\034.paymentchannels.HTLCBackOff\"" +
-      "\034\n\016HTLCPaymentAck\022\n\n\002id\030\001 \002(\014\"\363\003\n\010HTLCFl" +
+      "\034\n\016HTLCPaymentAck\022\n\n\002id\030\001 \002(\014\"\275\004\n\010HTLCFl" +
       "ow\022\n\n\002id\030\001 \002(\t\0220\n\004type\030\002 \002(\0162\".paymentch" +
-      "annels.HTLCFlow.FlowType\022>\n\020register_sen" +
-      "sors\030\003 \001(\0132$.paymentchannels.HTLCRegiste",
+      "annels.HTLCFlow.FlowType\022>\n\020register_sen",
+      "sors\030\003 \001(\0132$.paymentchannels.HTLCRegiste" +
       "rSensors\0222\n\nnode_stats\030\004 \001(\0132\036.paymentch" +
       "annels.HTLCNodeStats\0226\n\014sensor_stats\030\005 \001" +
       "(\0132 .paymentchannels.HTLCSensorStats\0224\n\013" +
       "select_data\030\006 \001(\0132\037.paymentchannels.HTLC" +
       "SelectData\0226\n\014payment_info\030\007 \001(\0132 .payme" +
-      "ntchannels.HTLCPaymentInfo\"\216\001\n\010FlowType\022" +
-      "\016\n\nNODE_STATS\020\001\022\024\n\020NODE_STATS_REPLY\020\002\022\020\n" +
-      "\014SENSOR_STATS\020\003\022\026\n\022SENSOR_STATS_REPLY\020\004\022" +
-      "\024\n\020REGISTER_SENSORS\020\005\022\n\n\006SELECT\020\006\022\020\n\014PAY" +
-      "MENT_INFO\020\007\"&\n\023HTLCRegisterSensors\022\017\n\007se",
-      "nsors\030\001 \003(\t\" \n\rHTLCNodeStats\022\017\n\007devices\030" +
-      "\001 \003(\t\"\"\n\017HTLCSensorStats\022\017\n\007sensors\030\001 \003(" +
-      "\t\"%\n\016HTLCSelectData\022\023\n\013sensor_type\030\001 \002(\t" +
-      "\"6\n\017HTLCPaymentInfo\022\023\n\013sensorTypes\030\001 \003(\t" +
-      "\022\016\n\006prices\030\002 \003(\004\"\251\002\n\005Error\0225\n\004code\030\001 \001(\016" +
-      "2 .paymentchannels.Error.ErrorCode:\005OTHE" +
-      "R\022\023\n\013explanation\030\002 \001(\t\022\026\n\016expected_value" +
-      "\030\003 \001(\004\"\273\001\n\tErrorCode\022\013\n\007TIMEOUT\020\001\022\020\n\014SYN" +
-      "TAX_ERROR\020\002\022\031\n\025NO_ACCEPTABLE_VERSION\020\003\022\023" +
-      "\n\017BAD_TRANSACTION\020\004\022\034\n\030TIME_WINDOW_UNACC",
-      "EPTABLE\020\005\022\033\n\027CHANNEL_VALUE_TOO_LARGE\020\006\022\031" +
-      "\n\025MIN_PAYMENT_TOO_LARGE\020\007\022\t\n\005OTHER\020\010B$\n\032" +
-      "org.bitcoin.paymentchannelB\006Protos"
+      "ntchannels.HTLCPaymentInfo\0226\n\014resume_set" +
+      "up\030\010 \001(\0132 .paymentchannels.HTLCResumeSet" +
+      "up\"\240\001\n\010FlowType\022\016\n\nNODE_STATS\020\001\022\024\n\020NODE_" +
+      "STATS_REPLY\020\002\022\020\n\014SENSOR_STATS\020\003\022\026\n\022SENSO",
+      "R_STATS_REPLY\020\004\022\024\n\020REGISTER_SENSORS\020\005\022\n\n" +
+      "\006SELECT\020\006\022\020\n\014PAYMENT_INFO\020\007\022\020\n\014RESUME_SE" +
+      "TUP\020\010\"&\n\023HTLCRegisterSensors\022\017\n\007sensors\030" +
+      "\001 \003(\t\" \n\rHTLCNodeStats\022\017\n\007devices\030\001 \003(\t\"" +
+      "\"\n\017HTLCSensorStats\022\017\n\007sensors\030\001 \003(\t\"%\n\016H" +
+      "TLCSelectData\022\023\n\013sensor_type\030\001 \002(\t\"I\n\017HT" +
+      "LCPaymentInfo\022\021\n\tdeviceIds\030\001 \003(\t\022\023\n\013sens" +
+      "orTypes\030\002 \003(\t\022\016\n\006prices\030\003 \003(\004\"#\n\017HTLCRes" +
+      "umeSetup\022\020\n\010htlc_ids\030\001 \003(\t\"\251\002\n\005Error\0225\n\004" +
+      "code\030\001 \001(\0162 .paymentchannels.Error.Error",
+      "Code:\005OTHER\022\023\n\013explanation\030\002 \001(\t\022\026\n\016expe" +
+      "cted_value\030\003 \001(\004\"\273\001\n\tErrorCode\022\013\n\007TIMEOU" +
+      "T\020\001\022\020\n\014SYNTAX_ERROR\020\002\022\031\n\025NO_ACCEPTABLE_V" +
+      "ERSION\020\003\022\023\n\017BAD_TRANSACTION\020\004\022\034\n\030TIME_WI" +
+      "NDOW_UNACCEPTABLE\020\005\022\033\n\027CHANNEL_VALUE_TOO" +
+      "_LARGE\020\006\022\031\n\025MIN_PAYMENT_TOO_LARGE\020\007\022\t\n\005O" +
+      "THER\020\010B$\n\032org.bitcoin.paymentchannelB\006Pr" +
+      "otos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -28681,7 +30419,7 @@ public final class Protos {
           internal_static_paymentchannels_HTLCPayment_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCPayment_descriptor,
-              new java.lang.String[] { "RequestId", "Value", });
+              new java.lang.String[] { "RequestId", "DeviceId", "SensorType", "Value", });
           internal_static_paymentchannels_HTLCInit_descriptor =
             getDescriptor().getMessageTypes().get(15);
           internal_static_paymentchannels_HTLCInit_fieldAccessorTable = new
@@ -28759,7 +30497,7 @@ public final class Protos {
           internal_static_paymentchannels_HTLCFlow_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCFlow_descriptor,
-              new java.lang.String[] { "Id", "Type", "RegisterSensors", "NodeStats", "SensorStats", "SelectData", "PaymentInfo", });
+              new java.lang.String[] { "Id", "Type", "RegisterSensors", "NodeStats", "SensorStats", "SelectData", "PaymentInfo", "ResumeSetup", });
           internal_static_paymentchannels_HTLCRegisterSensors_descriptor =
             getDescriptor().getMessageTypes().get(28);
           internal_static_paymentchannels_HTLCRegisterSensors_fieldAccessorTable = new
@@ -28789,9 +30527,15 @@ public final class Protos {
           internal_static_paymentchannels_HTLCPaymentInfo_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCPaymentInfo_descriptor,
-              new java.lang.String[] { "SensorTypes", "Prices", });
-          internal_static_paymentchannels_Error_descriptor =
+              new java.lang.String[] { "DeviceIds", "SensorTypes", "Prices", });
+          internal_static_paymentchannels_HTLCResumeSetup_descriptor =
             getDescriptor().getMessageTypes().get(33);
+          internal_static_paymentchannels_HTLCResumeSetup_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_paymentchannels_HTLCResumeSetup_descriptor,
+              new java.lang.String[] { "HtlcIds", });
+          internal_static_paymentchannels_Error_descriptor =
+            getDescriptor().getMessageTypes().get(34);
           internal_static_paymentchannels_Error_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_Error_descriptor,

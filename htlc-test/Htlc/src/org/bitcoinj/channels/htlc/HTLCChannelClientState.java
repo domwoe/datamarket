@@ -538,7 +538,7 @@ public class HTLCChannelClientState {
 		broadcastScheduler.removeTransaction(htlcState.getRefundTx());
 	}
 
-	public synchronized List<HTLCClientState> getAllActiveHTLCS() {
+	public synchronized List<HTLCClientState> getAllActiveHTLCs() {
 		return new ArrayList<HTLCClientState>(htlcMap.values());
 	}
 	

@@ -423,13 +423,12 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     	
     	for (Protos.HTLCPayment payment: newPayments) {
     		long value = payment.getValue();
-    		ByteString clientRequestId = payment.getRequestId();
     		HTLCServerState newHTLCState = 
 				state.createNewHTLC(Coin.valueOf(value));
     		Protos.HTLCPaymentReply paymentReply = 
 				Protos.HTLCPaymentReply.newBuilder()
-					.setId(ByteString.copyFrom(newHTLCState.getId().getBytes()))
-					.setClientRequestId(clientRequestId)
+					.setId(newHTLCState.getId())
+					.setClientRequestId(payment.getRequestId())
 					.build();
     		paymentsReply.add(paymentReply);
     	}
@@ -510,7 +509,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     private void receiveSignedSettleAndForfeitMsg(TwoWayChannelMessage msg) {
     	Protos.HTLCSignedSettleAndForfeit htlcMsg = 
 			msg.getHtlcSignedSettleAndForfeit();
-    	List<ByteString> allIds = htlcMsg.getIdsList();
+    	List<String> allIds = htlcMsg.getIdsList();
     	List<Protos.HTLCSignedTransaction> allForfeits = 
 			htlcMsg.getSignedForfeitList();
     	List<Protos.HTLCSignedTransaction> allSettles = 
@@ -523,8 +522,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     	state.setClientSecondaryKey(clientSecondaryKey);
     	
     	for (int i = 0; i < allIds.size(); i++) {
-    		ByteString htlcId = allIds.get(i);
-    		String id = new String(htlcId.toByteArray());
+    		String htlcId = allIds.get(i);
     		Protos.HTLCSignedTransaction signedForfeit = allForfeits.get(i);
     		Protos.HTLCSignedTransaction signedSettle = allSettles.get(i);
     		
@@ -538,7 +536,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 					true
 				);
 	    	state.finalizeHTLCSettlementTx(
-    			id, 
+    			htlcId, 
     			settleTx,
     			settleSig
     		);
@@ -553,13 +551,13 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 	    			true
 	    		);
         	state.finalizeHTLCForfeitTx(
-        		id,
+    			htlcId,
         		forfeitTx,
         		forfeitSig
     		);
         	// If we already have some secrets, queue them up for the next
         	// server update round
-        	queueUpSecret(id);
+        	queueUpSecret(htlcId);
     	}
     	
     	if (htlcRound == HTLCRound.CONFIRMED) { 

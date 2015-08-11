@@ -321,6 +321,18 @@ public class HTLCChannelServerState {
 		return htlcState;
 	}
 	
+	public HTLCServerState createPreinitializedHTLC(Coin value, String hashId) {
+		HTLCServerState htlcState = new HTLCServerState(
+			value,
+			hashId,
+			htlcSettlementExpireTime,
+			htlcRefundExpireTime
+		);
+		log.info("Generated new hTLC that was preInitialized from the Android");
+		htlcMap.put(hashId, htlcState);
+		return htlcState;
+	}
+	
 	/**
 	 * This is called when the server is provided with the updated teardownTx
 	 * (with the freshly added HTLC output)

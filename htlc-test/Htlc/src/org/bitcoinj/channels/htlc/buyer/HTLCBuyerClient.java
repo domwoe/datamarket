@@ -15,13 +15,15 @@ import javax.annotation.Nullable;
 import net.jcip.annotations.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
-import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType;
+import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
 import org.bitcoinj.channels.htlc.FlowResponse;
 import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
 import org.bitcoinj.channels.htlc.HTLCChannelClientState;
 import org.bitcoinj.channels.htlc.HTLCClientState;
+import org.bitcoinj.channels.htlc.HTLCPaymentReceipt;
+import org.bitcoinj.channels.htlc.IPaymentBuyerChannelClient;
 import org.bitcoinj.channels.htlc.PriceInfo;
 import org.bitcoinj.channels.htlc.SignedTransaction;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
@@ -34,13 +36,10 @@ import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.protocols.channels.IPaymentChannelClient;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
-import org.bitcoinj.protocols.channels.PaymentIncrementAck;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.params.KeyParameter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -53,7 +52,7 @@ import com.google.protobuf.ByteString;
  * @author frabu
  *
  */
-public class HTLCBuyerClient implements IPaymentChannelClient {
+public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	private static final org.slf4j.Logger log = 
 		LoggerFactory.getLogger(HTLCBuyerClient.class);
 	private static final int CLIENT_MAJOR_VERSION = 1;
@@ -75,7 +74,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 	@GuardedBy("lock") private HTLCChannelClientState state;
 	
 	@GuardedBy("lock")
-	private Map<String, SettableFuture<PaymentIncrementAck>> 
+	private Map<String, SettableFuture<HTLCPaymentReceipt>> 
 		paymentAckFutureMap;
 	
 	@GuardedBy("lock")
@@ -84,7 +83,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 	@GuardedBy("lock")
 	private final Map<String, SettableFuture<List<PriceInfo>>> 
 		paymentInfoFutureMap;
-	
+
 	@GuardedBy("lock")
 	private Map<String, Coin> paymentValueMap;
 	
@@ -135,7 +134,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     	this.timeWindow = timeWindow;
     	this.conn = conn;
     	this.paymentAckFutureMap = 
-			new HashMap<String, SettableFuture<PaymentIncrementAck>>();
+			new HashMap<String, SettableFuture<HTLCPaymentReceipt>>();
     	this.paymentValueMap = new HashMap<String, Coin>();
     	this.blockingQueue = 
 			new HTLCBlockingQueue<Protos.HTLCPayment>(MAX_MESSAGES);
@@ -469,7 +468,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     
     @GuardedBy("lock")
     private void receiveHTLCRoundDone() {
-    	log.info("Server finished its round of updates");
+    	log.info("Hub finished its round of updates");
     	htlcRound = HTLCRound.OFF;
     	if (!blockingQueue.isEmpty()) {
     		// Start new client update round
@@ -486,20 +485,17 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     	
     	Protos.HTLCInitReply htlcInitReply = msg.getHtlcInitReply();
     	
-    	List<ByteString> ids = new ArrayList<ByteString>();
+    	List<String> ids = new ArrayList<String>();
     	List<Integer> idxs = new ArrayList<Integer>();
     	List<Protos.HTLCPaymentReply> paymentsReply = 
 			htlcInitReply.getNewPaymentsReplyList();
     	
     	for (Protos.HTLCPaymentReply paymentReply: paymentsReply) {
-    		ByteString requestId = paymentReply.getClientRequestId();
-    		ByteString hashId = paymentReply.getId();
-    		
-    		String requestIdString = new String(requestId.toByteArray());
-    		String id = new String(hashId.toByteArray());
+    		String requestIdString = paymentReply.getClientRequestId();
+    		String id = paymentReply.getId();
     		
     		// Update the key in the map to only use one id from now on
-        	SettableFuture<PaymentIncrementAck> paymentAckFuture = 
+        	SettableFuture<HTLCPaymentReceipt> paymentAckFuture = 
     			paymentAckFutureMap.get(requestIdString);
         	paymentAckFutureMap.remove(requestIdString);
         	paymentAckFutureMap.put(id, paymentAckFuture);
@@ -509,14 +505,13 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
         	paymentValueMap.put(id, storedValue);
         
     		int htlcIdx = state.updateTeardownTxWithHTLC(id, storedValue);
-    		ids.add(hashId);
+    		ids.add(id);
     		idxs.add(htlcIdx);
     	}
     	
     	log.info("Done processing HTLC init reply");
-    	
     	log.info("Sending back Signed teardown with updated ids");
-    	
+    	    	    	
     	SignedTransaction signedTx = state.getSignedTeardownTx();
     	Protos.HTLCSignedTransaction.Builder signedTeardown =
 			Protos.HTLCSignedTransaction.newBuilder()
@@ -554,7 +549,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     	
     	List<Protos.HTLCSignedTransaction> allSignedRefunds = 
 			htlcSigRefundMsg.getSignedRefundList();
-    	List<ByteString> allIds = htlcSigRefundMsg.getIdsList();
+    	List<String> allIds = htlcSigRefundMsg.getIdsList();
     	List<Protos.HTLCSignedTransaction> allSignedForfeits =
 			new ArrayList<Protos.HTLCSignedTransaction>();
     	List<Protos.HTLCSignedTransaction> allSignedSettles =
@@ -562,7 +557,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     	
     	for (int i = 0; i < allSignedRefunds.size(); i++) {
     		Protos.HTLCSignedTransaction signedRefund = allSignedRefunds.get(i);
-    		ByteString htlcId = allIds.get(i);
+    		String htlcId = allIds.get(i);
     		Sha256Hash teardownHash = new Sha256Hash(
 				signedRefund.getTxHash().toByteArray()
 			);
@@ -575,11 +570,10 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 					signedRefund.getSignature().toByteArray(),
 					true
 				);
-    		String id = new String(htlcId.toByteArray());
-    		state.finalizeHTLCRefundTx(id, refundTx, refundSig, teardownHash);	
+    		state.finalizeHTLCRefundTx(htlcId, refundTx, refundSig, teardownHash);	
     		
     		SignedTransaction signedForfeit = state.getHTLCForfeitTx(
-				id,
+				htlcId,
 				teardownHash
 			);
     		Protos.HTLCSignedTransaction signedForfeitProto = 
@@ -589,7 +583,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 					.build();
     		
     		SignedTransaction signedSettle = state.getHTLCSettlementTx(
-				id, 
+				htlcId, 
 				teardownHash
 			);
     		Protos.HTLCSignedTransaction signedSettleProto =
@@ -625,15 +619,16 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     private void receiveHTLCSetupComplete(Protos.TwoWayChannelMessage msg) 
     		throws ValueOutOfRangeException {
     	checkState(step == InitStep.CHANNEL_OPEN);
-    	List<ByteString> allIds = msg.getHtlcSetupComplete().getIdsList();
-    	for (ByteString id: allIds) {
-        	log.info("received HTLC setup complete for {}", new String(id.toByteArray()));
-    		state.makeSettleable(new String(id.toByteArray()));
+    	List<String> allIds = msg.getHtlcSetupComplete().getIdsList();
+    	for (String id: allIds) {
+        	log.info("received HTLC setup complete for {}", id);
+    		state.makeSettleable(id);
     	}
     	htlcRound = HTLCRound.OFF;
     	
     	// Client update round is over, signal this to the server
-    	Protos.HTLCRoundDone.Builder roundDone = Protos.HTLCRoundDone.newBuilder();
+    	Protos.HTLCRoundDone.Builder roundDone = 
+			Protos.HTLCRoundDone.newBuilder();
     	final Protos.TwoWayChannelMessage.Builder roundDoneMsg = 
 			Protos.TwoWayChannelMessage.newBuilder()
 				.setHtlcRoundDone(roundDone)
@@ -672,13 +667,12 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     		state.attemptBackoff(htlcId, forfeitTx, forfeitSig);
     	}
     	
-    	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCS();
-    	List<ByteString> allIds = new ArrayList<ByteString>();
+    	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCs();
+    	List<String> allIds = new ArrayList<String>();
     	List<Integer> allIdxs = new ArrayList<Integer>();
     	for (HTLCClientState htlcState: allHTLCs) {
-    		ByteString htlcId = ByteString.copyFrom(htlcState.getId().getBytes());
     		int htlcIdx = htlcState.getIndex();
-    		allIds.add(htlcId);
+    		allIds.add(htlcState.getId());
     		allIdxs.add(htlcIdx);
     	}
 
@@ -712,9 +706,10 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
     	// This will cancel the broadcast of the HTLC refund Tx
     	state.cancelHTLCRefundTxBroadcast(id);
     	// Let's set the future - we are done with this HTLC
-    	SettableFuture<PaymentIncrementAck> future = 
+    	SettableFuture<HTLCPaymentReceipt> future = 
 			paymentAckFutureMap.get(id);
-    	future.set(new PaymentIncrementAck(value, htlcId));
+    	// TODO: REad actual data, atm just NULL
+    	future.set(new HTLCPaymentReceipt(value, null));
     }
     
     @GuardedBy("lock")
@@ -751,51 +746,6 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 	@Override
 	public void connectionClosed() {
 		// Empty; no need for this
-	}
-
-	@Override
-	public ListenableFuture<PaymentIncrementAck> incrementPayment(
-		Coin value,
-		@Nullable ByteString arg1,
-		@Nullable KeyParameter arg2
-	) throws ValueOutOfRangeException, IllegalStateException {
-		lock.lock();
-		try {
-			checkState(step == InitStep.CHANNEL_OPEN);
-						
-			final SettableFuture<PaymentIncrementAck> incrementPaymentFuture = 
-				SettableFuture.create();
-			
-			incrementPaymentFuture.addListener(new Runnable() {
-	            @Override
-	            public void run() {
-	                lock.lock();
-	                paymentAckFutureMap.values().remove(incrementPaymentFuture);
-	                lock.unlock();
-	            }
-	        }, MoreExecutors.sameThreadExecutor());
-			
-			// We can generate a UUID to identify the token request response
-			// This UUID will be mirrored back by the server
-			String reqIdString = new String(UUID.randomUUID().toString());
-			paymentAckFutureMap.put(reqIdString, incrementPaymentFuture);
-			paymentValueMap.put(reqIdString, value);
-			
-			Protos.HTLCPayment newPayment = Protos.HTLCPayment.newBuilder()
-				.setRequestId(ByteString.copyFrom(reqIdString.getBytes()))
-				.setValue(value.getValue())
-				.build();
-			
-			if (canInitHTLCRound()) {
-				currentBatch.add(newPayment);
-				initializeHTLCRound();
-			} else {
-				blockingQueue.put(newPayment);
-			}
-			return incrementPaymentFuture;
-		} finally {
-			lock.unlock();
-		}
 	}
 	
 	private boolean canInitHTLCRound() {
@@ -894,6 +844,7 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 		for (int i = 0; i < paymentInfo.getSensorTypesList().size(); i++) {
 			priceInfoList.add(
 				new PriceInfo(
+					paymentInfo.getDeviceIds(i),
 					paymentInfo.getSensorTypes(i), 
 					paymentInfo.getPrices(i)
 				)
@@ -928,6 +879,53 @@ public class HTLCBuyerClient implements IPaymentChannelClient {
 			conn.sendToServer(msg);
 			
 			return responseFuture;
+		} finally {
+			lock.unlock();
+		}
+	}
+	
+	@GuardedBy("lock")
+	public ListenableFuture<HTLCPaymentReceipt> buy(
+		String sensorType,
+		String deviceId,
+		Coin value
+	) {
+		lock.lock();
+		try {
+			checkState(step == InitStep.CHANNEL_OPEN);
+			
+			final SettableFuture<HTLCPaymentReceipt> incrementPaymentFuture = 
+				SettableFuture.create();
+			
+			incrementPaymentFuture.addListener(new Runnable() {
+	            @Override
+	            public void run() {
+	                lock.lock();
+	                paymentAckFutureMap.values().remove(incrementPaymentFuture);
+	                lock.unlock();
+	            }
+	        }, MoreExecutors.sameThreadExecutor());
+			
+			// We can generate a UUID to identify the token request response
+			// This UUID will be mirrored back by the hub
+			String reqIdString = new String(UUID.randomUUID().toString());
+			paymentAckFutureMap.put(reqIdString, incrementPaymentFuture);
+			paymentValueMap.put(reqIdString, value);
+			
+			Protos.HTLCPayment newPayment = Protos.HTLCPayment.newBuilder()
+				.setRequestId(reqIdString)
+				.setDeviceId(deviceId)
+				.setSensorType(sensorType)
+				.setValue(value.getValue())
+				.build();
+			
+			if (canInitHTLCRound()) {
+				currentBatch.add(newPayment);
+				initializeHTLCRound();
+			} else {
+				blockingQueue.put(newPayment);
+			}
+			return incrementPaymentFuture;
 		} finally {
 			lock.unlock();
 		}

@@ -15,6 +15,9 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoin.paymentchannel.Protos.HTLCInitReply;
+import org.bitcoin.paymentchannel.Protos.HTLCPaymentAck;
+import org.bitcoin.paymentchannel.Protos.HTLCPaymentReply;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
 import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
@@ -63,6 +66,14 @@ public class HTLCHubAndroidServer {
 	private final ReentrantLock lock = Threading.lock("htlcchannelclient");
 	private final HTLCBlockingQueue<Protos.HTLCPayment> blockingQueue;
 	private List<Protos.HTLCPayment> currentBatch;
+	/**
+	 * This field stores the HTLCInitReply that came from the Android device.
+	 * It first gets forwarded to the Buyer's hub to set up the HTLCs between
+	 * the buyer and the buyer's hub, then once we get the complete setup,
+	 * we have to come back to it and set up the HTLCs between the android hub
+	 * and the Android device 
+	 */
+	private TwoWayChannelMessage roundBuffer;
 
 	@GuardedBy("lock") private final ServerConnection conn;
 	@GuardedBy("lock") private HTLCChannelClientState state;
@@ -73,6 +84,8 @@ public class HTLCHubAndroidServer {
 	
 	@GuardedBy("lock")
 	private Map<String, Coin> paymentValueMap;
+	
+	private final String deviceId;
 	
 	private enum InitStep {
 		WAITING_FOR_CONNECTION_OPEN,
@@ -113,9 +126,17 @@ public class HTLCHubAndroidServer {
     	public void destroyConnection(CloseReason reason);
     	public void channelOpen(Sha256Hash contractHash);
     	public boolean acceptExpireTime(long expireTime);
+    	public void forwardToBuyerServer(
+			String buyerId,
+			List<String> requestIds,
+			List<String> htlcIds,
+			TwoWayChannelMessage msg,
+			HTLCHubAndroidServer server
+		);
     }
     
     public HTLCHubAndroidServer(
+    	String deviceId,
 		TransactionBroadcastScheduler broadcaster,
 		Wallet wallet,
 		ECKey primaryKey,
@@ -124,6 +145,7 @@ public class HTLCHubAndroidServer {
 		long timeWindow,
 		ServerConnection conn
 	) {
+    	this.deviceId = deviceId;
     	this.wallet = wallet;
     	this.primaryKey = primaryKey;
     	this.secondaryKey = secondaryKey;
@@ -137,6 +159,10 @@ public class HTLCHubAndroidServer {
     	this.blockingQueue = 
 			new HTLCBlockingQueue<Protos.HTLCPayment>(MAX_MESSAGES);
     	this.currentBatch = new ArrayList<Protos.HTLCPayment>();
+    }
+    
+    public String getDeviceId() {
+    	return deviceId;
     }
 	    
     public void receiveMessage(Protos.TwoWayChannelMessage msg) {
@@ -197,6 +223,10 @@ public class HTLCHubAndroidServer {
 	    		case HTLC_ROUND_DONE:
 	    			receiveHTLCRoundDone();
 	    			return;
+	    		case HTLC_INIT:
+	    			// This must come from the buyer hub server
+	    			receiveHTLCInit(msg);
+	    			return;
 	    		case HTLC_INIT_REPLY:
 	    			receiveHTLCInitReply(msg);
 	    			return;
@@ -211,6 +241,9 @@ public class HTLCHubAndroidServer {
 	    			return;
 	    		case HTLC_PAYMENT_ACK:
 					receiveHTLCPaymentAck(msg);
+	    			return;
+	    		case HTLC_FLOW:
+	    			receiveHTLCFlow(msg.getHtlcFlow());
 	    			return;
 	    		case CLOSE:
 	    			receiveClose(msg);
@@ -457,6 +490,88 @@ public class HTLCHubAndroidServer {
     }
     
     @GuardedBy("lock")
+    private void receiveHTLCInit(Protos.TwoWayChannelMessage msg) {
+    	checkState(step == InitStep.CHANNEL_OPEN);
+    	log.info("Received htlc INIT forwarded from Buyer server");
+    	Protos.HTLCInit htlcInit = msg.getHtlcInit();
+    	
+    	for (Protos.HTLCPayment payment: htlcInit.getNewPaymentsList()) {
+    		blockingQueue.put(payment);
+    		paymentValueMap.put(
+				payment.getRequestId(), 
+				Coin.valueOf(payment.getValue())
+			);
+    		if (canInitHTLCRound()) {
+    			initializeHTLCRound();
+    		}
+    	}
+    }
+    
+    @GuardedBy("lock")
+    private void receiveHTLCInitReply(Protos.TwoWayChannelMessage msg) {
+    	checkState(step == InitStep.CHANNEL_OPEN);
+    	log.info("Received HTLC INIT Reply from Android client. " +
+    			"Forwarding it to the Buyer Hub server");
+    	
+    	Protos.HTLCInitReply htlcInitReply = msg.getHtlcInitReply();
+    	// Sort by buyer's request id (client request id)
+    	Map<String, List<HTLCPaymentReply>> buyerRequestIdToReplyMap =
+			new HashMap<String, List<HTLCPaymentReply>>();
+    	
+    	for (
+			Protos.HTLCPaymentReply paymentReply: 
+				htlcInitReply.getNewPaymentsReplyList()
+		) {
+    		String requestId = paymentReply.getClientRequestId();
+    		String htlcId = paymentReply.getId();
+    		
+    		// Update the map
+    		Coin storedValue = paymentValueMap.get(requestId);
+    		paymentValueMap.remove(requestId);
+    		paymentValueMap.put(htlcId, storedValue);
+    		
+    		List<HTLCPaymentReply> repliesForBuyer = 
+				buyerRequestIdToReplyMap.get(requestId);
+    		repliesForBuyer.add(paymentReply);
+    		buyerRequestIdToReplyMap.put(requestId, repliesForBuyer);
+    	}
+
+    	// Now forward
+    	for (
+			Map.Entry<String, List<HTLCPaymentReply>> entry: 
+				buyerRequestIdToReplyMap.entrySet()
+		) {	
+    		List<HTLCPaymentReply> repliesForBuyer = entry.getValue(); 
+    		
+    		List<String> htlcIdsForBuyer = new ArrayList<String>();
+        	List<String> requestIdsForBuyer = new ArrayList<String>();
+        	
+        	for (HTLCPaymentReply reply: repliesForBuyer) {
+        		htlcIdsForBuyer.add(reply.getId());
+        		requestIdsForBuyer.add(reply.getClientRequestId());
+        	}    		
+    		   		
+    		Protos.HTLCInitReply.Builder initReplyForBuyer =
+				Protos.HTLCInitReply.newBuilder()
+					.addAllNewPaymentsReply(repliesForBuyer);
+    		final Protos.TwoWayChannelMessage msgForBuyer = 
+				Protos.TwoWayChannelMessage.newBuilder()
+					.setType(MessageType.HTLC_INIT_REPLY)
+					.setHtlcInitReply(initReplyForBuyer)
+					.build();
+    		
+    		conn.forwardToBuyerServer(
+				entry.getKey(),
+				requestIdsForBuyer,
+				htlcIdsForBuyer,
+				msgForBuyer,
+				this
+			);
+    	}
+    }
+    
+    /*
+    @GuardedBy("lock")
     private void receiveHTLCInitReply(Protos.TwoWayChannelMessage msg) 
     		throws ValueOutOfRangeException {
     	
@@ -465,30 +580,23 @@ public class HTLCHubAndroidServer {
     	
     	Protos.HTLCInitReply htlcInitReply = msg.getHtlcInitReply();
     	
-    	List<ByteString> ids = new ArrayList<ByteString>();
+    	List<String> ids = new ArrayList<String>();
     	List<Integer> idxs = new ArrayList<Integer>();
     	List<Protos.HTLCPaymentReply> paymentsReply = 
 			htlcInitReply.getNewPaymentsReplyList();
     	
     	for (Protos.HTLCPaymentReply paymentReply: paymentsReply) {
-    		ByteString requestId = paymentReply.getClientRequestId();
-    		ByteString hashId = paymentReply.getId();
-    		
-    		String requestIdString = new String(requestId.toByteArray());
-    		String id = new String(hashId.toByteArray());
+    		    		
+    		String requestIdString = paymentReply.getClientRequestId();
+    		String id = paymentReply.getId();
     		
     		// Update the key in the map to only use one id from now on
-        	SettableFuture<PaymentIncrementAck> paymentAckFuture = 
-    			paymentAckFutureMap.get(requestIdString);
-        	paymentAckFutureMap.remove(requestIdString);
-        	paymentAckFutureMap.put(id, paymentAckFuture);
-        	
         	Coin storedValue = paymentValueMap.get(requestIdString);
         	paymentValueMap.remove(requestIdString);
         	paymentValueMap.put(id, storedValue);
         
     		int htlcIdx = state.updateTeardownTxWithHTLC(id, storedValue);
-    		ids.add(hashId);
+    		ids.add(id);
     		idxs.add(htlcIdx);
     	}
     	
@@ -513,7 +621,7 @@ public class HTLCHubAndroidServer {
 				.setType(MessageType.HTLC_SIGNED_TEARDOWN)
 				.setHtlcSignedTeardown(teardownMsg);
     	conn.sendToDevice(channelMsg.build());
-    } 
+    } */
     
     private static ByteString txToBS(Transaction tx) {
     	return ByteString.copyFrom(tx.bitcoinSerialize());
@@ -533,7 +641,7 @@ public class HTLCHubAndroidServer {
     	
     	List<Protos.HTLCSignedTransaction> allSignedRefunds = 
 			htlcSigRefundMsg.getSignedRefundList();
-    	List<ByteString> allIds = htlcSigRefundMsg.getIdsList();
+    	List<String> allIds = htlcSigRefundMsg.getIdsList();
     	List<Protos.HTLCSignedTransaction> allSignedForfeits =
 			new ArrayList<Protos.HTLCSignedTransaction>();
     	List<Protos.HTLCSignedTransaction> allSignedSettles =
@@ -541,7 +649,7 @@ public class HTLCHubAndroidServer {
     	
     	for (int i = 0; i < allSignedRefunds.size(); i++) {
     		Protos.HTLCSignedTransaction signedRefund = allSignedRefunds.get(i);
-    		ByteString htlcId = allIds.get(i);
+    		String htlcId = allIds.get(i);
     		Sha256Hash teardownHash = new Sha256Hash(
 				signedRefund.getTxHash().toByteArray()
 			);
@@ -554,11 +662,10 @@ public class HTLCHubAndroidServer {
 					signedRefund.getSignature().toByteArray(),
 					true
 				);
-    		String id = new String(htlcId.toByteArray());
-    		state.finalizeHTLCRefundTx(id, refundTx, refundSig, teardownHash);	
+    		state.finalizeHTLCRefundTx(htlcId, refundTx, refundSig, teardownHash);	
     		
     		SignedTransaction signedForfeit = state.getHTLCForfeitTx(
-				id,
+				htlcId,
 				teardownHash
 			);
     		Protos.HTLCSignedTransaction signedForfeitProto = 
@@ -568,7 +675,7 @@ public class HTLCHubAndroidServer {
 					.build();
     		
     		SignedTransaction signedSettle = state.getHTLCSettlementTx(
-				id, 
+				htlcId, 
 				teardownHash
 			);
     		Protos.HTLCSignedTransaction signedSettleProto =
@@ -604,10 +711,10 @@ public class HTLCHubAndroidServer {
     private void receiveHTLCSetupComplete(Protos.TwoWayChannelMessage msg) 
     		throws ValueOutOfRangeException {
     	checkState(step == InitStep.CHANNEL_OPEN);
-    	List<ByteString> allIds = msg.getHtlcSetupComplete().getIdsList();
-    	for (ByteString id: allIds) {
-        	log.info("received HTLC setup complete for {}", new String(id.toByteArray()));
-    		state.makeSettleable(new String(id.toByteArray()));
+    	List<String> allIds = msg.getHtlcSetupComplete().getIdsList();
+    	for (String id: allIds) {
+        	log.info("received HTLC setup complete for {}", id);
+    		state.makeSettleable(id);
     	}
     	htlcRound = HTLCRound.OFF;
     	
@@ -653,13 +760,12 @@ public class HTLCHubAndroidServer {
     	
     	// TODO: CONTINUE FROM HERE TO GET LIST OF REMAINING HTLCS THAT
     	// NEED UPDATES REFUNDS AND THEN FORFEITS/SETTLES
-    	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCS();
-    	List<ByteString> allIds = new ArrayList<ByteString>();
+    	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCs();
+    	List<String> allIds = new ArrayList<String>();
     	List<Integer> allIdxs = new ArrayList<Integer>();
     	for (HTLCClientState htlcState: allHTLCs) {
-    		ByteString htlcId = ByteString.copyFrom(htlcState.getId().getBytes());
     		int htlcIdx = htlcState.getIndex();
-    		allIds.add(htlcId);
+    		allIds.add(htlcState.getId());
     		allIdxs.add(htlcIdx);
     	}
 
@@ -696,6 +802,55 @@ public class HTLCHubAndroidServer {
     	SettableFuture<PaymentIncrementAck> future = 
 			paymentAckFutureMap.get(id);
     	future.set(new PaymentIncrementAck(value, htlcId));
+    }
+    
+    @GuardedBy("lock")
+    private void receiveHTLCFlow(Protos.HTLCFlow msg) 
+    		throws ValueOutOfRangeException {
+    	switch(msg.getType()) {
+    		case RESUME_SETUP:
+    			receiveResumeSetup(msg.getResumeSetup());
+    			break;
+    		default:
+    			break;
+    	}
+    }
+    
+    @GuardedBy("lock")
+    private void receiveResumeSetup(Protos.HTLCResumeSetup setupMsg) 
+    		throws ValueOutOfRangeException {
+    	
+    	checkState(htlcRound == HTLCRound.CONFIRMED);
+    	List<String> idList = setupMsg.getHtlcIdsList();
+    	List<Integer> idxList = new ArrayList<Integer>();
+    	
+    	for (String htlcId: idList) {
+    		Coin value = paymentValueMap.get(htlcId);
+    		int htlcIdx = state.updateTeardownTxWithHTLC(htlcId, value);
+    		idxList.add(htlcIdx);
+    	}
+    	
+    	log.info("Done processing HTLC init reply");
+    	
+    	log.info("Sending back Signed teardown with updated ids");
+    	
+    	SignedTransaction signedTx = state.getSignedTeardownTx();
+    	Protos.HTLCSignedTransaction.Builder signedTeardown =
+			Protos.HTLCSignedTransaction.newBuilder()
+				.setTx(ByteString.copyFrom(signedTx.getTx().bitcoinSerialize()))
+				.setSignature(ByteString.copyFrom(
+					signedTx.getSig().encodeToBitcoin()
+				));
+    	Protos.HTLCProvideSignedTeardown.Builder teardownMsg = 
+			Protos.HTLCProvideSignedTeardown.newBuilder()
+				.addAllIds(idList)
+				.addAllIdx(idxList)
+				.setSignedTeardown(signedTeardown);
+    	final Protos.TwoWayChannelMessage.Builder channelMsg =
+			Protos.TwoWayChannelMessage.newBuilder()
+				.setType(MessageType.HTLC_SIGNED_TEARDOWN)
+				.setHtlcSignedTeardown(teardownMsg);
+    	conn.sendToDevice(channelMsg.build());
     }
     
     @GuardedBy("lock")
@@ -757,7 +912,7 @@ public class HTLCHubAndroidServer {
 			paymentValueMap.put(reqIdString, value);
 			
 			Protos.HTLCPayment newPayment = Protos.HTLCPayment.newBuilder()
-				.setRequestId(ByteString.copyFrom(reqIdString.getBytes()))
+				.setRequestId(reqIdString)
 				.setValue(value.getValue())
 				.build();
 			

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
@@ -70,6 +71,16 @@ public class HTLCHubServerListener {
     private final int timeoutSeconds;
     
     private final List<HTLCHubBuyerServer> buyers;
+    private final Map<String, HTLCHubAndroidServer> idToDeviceMap;
+    
+    /**
+     * Map the HTLC ids to the devices and the buyers so we can identify them
+     * fast and efficiently
+     */
+    private final Map<String, HTLCHubBuyerServer> requestIdToBuyerMap;
+    private final Map<String, HTLCHubAndroidServer> requestIdToAndroidMap;
+    
+    // TODO: Remove this map
     private final Map<HTLCHubAndroidServer, List<PriceInfo>> deviceMap;
     private final Map<String, List<AndroidData>> sensorToDeviceMap;
     private final Map<HTLCHubBuyerServer, RequestResponse> responseMap;
@@ -80,6 +91,10 @@ public class HTLCHubServerListener {
     	
     	public List<PriceInfo> getPriceInfoList() {
     		return priceInfoList;
+    	}
+    	
+    	public HTLCHubAndroidServer getServer() {
+    		return server;
     	}
     }
     
@@ -183,25 +198,58 @@ public class HTLCHubServerListener {
 						try {
 							List<AndroidData> androidDataList = 
 								sensorToDeviceMap.get(sensorType);
+							List<String> deviceIdList = new ArrayList<String>();
 							List<Long> priceList = new ArrayList<Long>();
 							List<String> sensorList = new ArrayList<String>();
 							
 							for (AndroidData data: androidDataList) {
 								List<PriceInfo> priceInfoList = 
 									data.getPriceInfoList();
+								// TODO: This is 99.9% a one element list. Fix
 								for (PriceInfo priceInfo: priceInfoList) {
 									priceList.add(priceInfo.getPrice());
 									sensorList.add(priceInfo.getSensor());
 								}
+								deviceIdList.add(data.getServer().getDeviceId());
 							}
 							buyerServer.sendSelectResult(
 								id,
+								deviceIdList,
 								sensorList,
 								priceList
 							);			
 						} finally {
 							lock.unlock();
 						}
+					}
+
+					@Override
+					public void forwardToAndroidServer(
+						String deviceId,
+						List<String> requestIdList,
+						Protos.TwoWayChannelMessage msg,
+						HTLCHubBuyerServer server
+					) {
+						lock.lock();
+						try {
+							idToDeviceMap.get(deviceId).receiveMessage(msg);
+							// Register the requestIds with the server
+							// These ids will get updated to the real HTLC
+							// ids once we get them from the devices
+							for (String requestId: requestIdList) {
+								requestIdToBuyerMap.put(requestId, server);
+							}
+						} finally {
+							lock.unlock();
+						}
+					}
+
+					@Override
+					public void forwardToAndroidServer(
+						String deviceId,
+						Protos.TwoWayChannelMessage msg
+					) {
+						requestIdToAndroidMap.get(deviceId).receiveMessage(msg);
 					}
 				}
 			);
@@ -276,10 +324,12 @@ public class HTLCHubServerListener {
 
     private class AndroidServerHandler {
         public AndroidServerHandler(
+        	final String deviceId,
     		final SocketAddress address, 
     		final int timeoutSeconds
 		) {
             paymentChannelManager = new HTLCHubAndroidServer(
+            	deviceId,
         		broadcaster, 
         		wallet,
         		primaryKey,
@@ -324,6 +374,38 @@ public class HTLCHubServerListener {
 						return expireTime <= (
 							timeWindow + Utils.currentTimeSeconds() + 60
 						);  
+					}
+
+					@Override
+					public void forwardToBuyerServer(
+						String buyerId,
+						List<String> requestIds,
+						List<String> htlcIds,
+						TwoWayChannelMessage msg,
+						HTLCHubAndroidServer currentAndroidServer
+					) {
+						lock.lock();
+						try {
+							// TODO: DOES THIS DEADLOCK ? it locks in again in
+							// the buyer server on receiveMessage()
+							HTLCHubBuyerServer currentBuyerServer = 
+								requestIdToBuyerMap.get(buyerId);
+							for (int i = 0; i < requestIds.size(); i++) {
+								requestIdToBuyerMap.remove(requestIds.get(i));
+								requestIdToBuyerMap.put(
+									htlcIds.get(i), 
+									currentBuyerServer
+								);
+								requestIdToAndroidMap.remove(requestIds.get(i));
+								requestIdToAndroidMap.put(
+									htlcIds.get(i), 
+									currentAndroidServer
+								);
+							}
+							currentBuyerServer.receiveMessage(msg);
+						} finally {
+							lock.unlock();
+						}
 					}
 	            });
 
@@ -423,6 +505,9 @@ public class HTLCHubServerListener {
     	this.deviceMap = new HashMap<HTLCHubAndroidServer, List<PriceInfo>>();
     	this.responseMap = new HashMap<HTLCHubBuyerServer, RequestResponse>();
     	this.sensorToDeviceMap = new HashMap<String, List<AndroidData>>();
+    	this.idToDeviceMap = new HashMap<String, HTLCHubAndroidServer>();
+    	this.requestIdToBuyerMap = new HashMap<String, HTLCHubBuyerServer>();
+    	this.requestIdToAndroidMap = new HashMap<String, HTLCHubAndroidServer>();
     }
 
     /**
@@ -456,12 +541,19 @@ public class HTLCHubServerListener {
 	        		InetAddress inetAddress, 
 	        		int port
 	    		) {
-	                return new AndroidServerHandler(
+	            	String deviceId = UUID.randomUUID().toString();
+	            	AndroidServerHandler handler = new AndroidServerHandler(
+	            		deviceId,
                 		new InetSocketAddress(inetAddress, port), 
                 		timeoutSeconds
-            		).socketProtobufHandler;
+            		);
+	            	idToDeviceMap.put(
+	            		deviceId,
+            			handler.paymentChannelManager
+        			);
+	                return handler.socketProtobufHandler;
 	            }
-        	}, 
+        	},
         	new InetSocketAddress(androidPort)
     	);
         androidServer.startAsync();
@@ -500,7 +592,8 @@ public class HTLCHubServerListener {
     		}
     		List<PriceInfo> updatedSensors = new ArrayList<PriceInfo>();
     		for (int i = 0; i < sensors.size(); i++) {
-    			updatedSensors.add(new PriceInfo(sensors.get(i), prices.get(i)));
+    			// TODO: lalla
+//    			updatedSensors.add(new PriceInfo(sensors.get(i), prices.get(i)));
     		}
     		deviceMap.put(server, updatedSensors);
     	} finally {

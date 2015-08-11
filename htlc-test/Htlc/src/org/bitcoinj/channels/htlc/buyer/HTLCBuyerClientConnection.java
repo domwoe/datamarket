@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoinj.channels.htlc.FlowResponse;
+import org.bitcoinj.channels.htlc.HTLCPaymentReceipt;
 import org.bitcoinj.channels.htlc.PriceInfo;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
@@ -19,6 +20,7 @@ import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
 import org.bitcoinj.protocols.channels.PaymentIncrementAck;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 
+import com.google.common.primitives.Bytes;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
@@ -148,15 +150,6 @@ public class HTLCBuyerClientConnection {
 	    return channelOpenFuture;
 	}
 	
-	/**
-	 * Increments the total value which we pay the server.
-	 */
-	public ListenableFuture<PaymentIncrementAck> incrementPayment(
-		Coin size
-	) throws ValueOutOfRangeException, IllegalStateException {
-		return channelClient.incrementPayment(size, null, null);    	
-	}
-	
 	public ListenableFuture<FlowResponse> nodeStats() {
 		return channelClient.nodeStats();
 	}
@@ -169,6 +162,14 @@ public class HTLCBuyerClientConnection {
 	
 	public ListenableFuture<List<PriceInfo>> select(String sensorType) {
 		return channelClient.select(sensorType);
+	}
+	
+	public ListenableFuture<HTLCPaymentReceipt> buy(
+		String sensorType, 
+		String deviceId, 
+		Coin value
+	) {
+		return channelClient.buy(sensorType, deviceId, value);
 	}
 	
 	/**

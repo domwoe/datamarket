@@ -297,8 +297,10 @@ message HTLCRoundDone {
 }
 
 message HTLCPayment {
-	required bytes request_id = 1;
-	required uint64 value  = 2;
+	required string request_id = 1;
+	required string device_id = 2;
+	required string sensor_type = 3;
+	required uint64 value  = 4;
 }
 
 message HTLCInit {
@@ -306,8 +308,8 @@ message HTLCInit {
 }
 
 message HTLCPaymentReply {
-	required bytes id = 1;
-	required bytes client_request_id = 2;
+	required string id = 1;
+	required string client_request_id = 2;
 }
 
 message HTLCInitReply {
@@ -325,7 +327,7 @@ message HTLCSignedTransaction {
 message HTLCProvideSignedTeardown {
 	// This is sent by the client to the server providing the teardownTx with its signature
 	// Used both when client creates new HTLC outputs and when the server closes some HTLCs
-	repeated bytes ids = 1;
+	repeated string ids = 1;
 	repeated int32 idx = 2;
 	required HTLCSignedTransaction signed_teardown = 3;
 }
@@ -333,14 +335,14 @@ message HTLCProvideSignedTeardown {
 message HTLCSignedRefundWithHash {
 	// This is sent by the server to the client as a reply to the HTLCProvideSignedTeardown 
 	// message with the signed HTLC refundTx, and the teardownTx hash
-	repeated bytes ids = 1;
+	repeated string ids = 1;
 	repeated HTLCSignedTransaction signed_refund = 2;
 }
 
 message HTLCSignedSettleAndForfeit {
 	// This is sent by the client to the server after receiving the refund tx 
 	// and the teardown hash
-	repeated bytes ids = 1;
+	repeated string ids = 1;
 	repeated HTLCSignedTransaction signed_forfeit = 2;
 	repeated HTLCSignedTransaction signed_settle = 3;
 	required bytes client_secondary_key = 4;
@@ -348,7 +350,7 @@ message HTLCSignedSettleAndForfeit {
 
 message HTLCSetupComplete {
 	// This is sent by the server to the client to ACK the successful HTLC setup
-	repeated bytes ids = 1;
+	repeated string ids = 1;
 }
 
 message HTLCRevealSecret {
@@ -383,6 +385,7 @@ message HTLCFlow {
 		REGISTER_SENSORS = 5;
 		SELECT = 6;
 		PAYMENT_INFO = 7;
+		RESUME_SETUP = 8;
 	};
 	
 	required string id = 1;
@@ -392,6 +395,7 @@ message HTLCFlow {
 	optional HTLCSensorStats sensor_stats = 5;
 	optional HTLCSelectData select_data = 6;
 	optional HTLCPaymentInfo payment_info = 7;
+	optional HTLCResumeSetup resume_setup = 8;
 }
 
 message HTLCRegisterSensors {
@@ -418,8 +422,15 @@ message HTLCSelectData {
 message HTLCPaymentInfo {
 	// Sent by the hub back to the buyer to provide payment 
 	// info on the selected data
-	repeated string sensorTypes = 1;
-	repeated uint64 prices = 2;
+	repeated string deviceIds = 1;
+	repeated string sensorTypes = 2;
+	repeated uint64 prices = 3;
+}
+
+message HTLCResumeSetup {
+	// Sent by the buyer hub to the android hub to resume the HTLC setup after
+	// the one between the buyer and the buyer hub was completed
+	repeated string htlc_id = 1;
 }
 
 // An Error can be sent by either party at any time

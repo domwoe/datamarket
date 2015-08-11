@@ -19,3 +19,8 @@ Idea: use htlcIds to identify the connection, but then a lot of msg processing w
 to inspect which payment is whose and will need to recreate the batch messages.
 3. When revealing a secret, do we first update all transactions between the hub and the device, then forward it
 to the client?  
+
+## Next steps
+1. Fix current issues.
+2. Test the system.
+3. Start report.

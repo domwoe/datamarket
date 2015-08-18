@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +50,7 @@ public class HTLCHubServerListener {
 
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCHubServerListener.class);
-	protected final ReentrantLock lock = 
-		Threading.lock("HTLCHubServerListener");
+	protected final ReentrantLock lock = new ReentrantLock();
 	
 	private final Wallet wallet;
 	private final Coin value;
@@ -71,19 +71,11 @@ public class HTLCHubServerListener {
     private final int timeoutSeconds;
     
     private final List<HTLCHubBuyerServer> buyers;
-    private final Map<String, HTLCHubAndroidServer> idToDeviceMap;
     
-    /**
-     * Map the HTLC ids to the devices and the buyers so we can identify them
-     * fast and efficiently
-     */
-    private final Map<String, HTLCHubBuyerServer> requestIdToBuyerMap;
-    private final Map<String, HTLCHubAndroidServer> requestIdToAndroidMap;
-    
-    // TODO: Remove this map
     private final Map<HTLCHubAndroidServer, List<PriceInfo>> deviceMap;
     private final Map<String, List<AndroidData>> sensorToDeviceMap;
-    private final Map<HTLCHubBuyerServer, RequestResponse> responseMap;
+    
+    private final HTLCHubMessageFilter messageFilter;
     
     class AndroidData {
     	private List<PriceInfo> priceInfoList;
@@ -178,8 +170,12 @@ public class HTLCHubServerListener {
 					@Override
 					public List<String> nodeStats() {
 						List<String> nodes = new ArrayList<String>();
-						nodes.add("device1");
-						nodes.add("device2");
+						for (
+							Map.Entry<HTLCHubAndroidServer, List<PriceInfo>> 
+								entry: deviceMap.entrySet()
+						) {
+							nodes.add(entry.getKey().getDeviceId());
+						}
 						return nodes;
 					}
 
@@ -196,60 +192,50 @@ public class HTLCHubServerListener {
 					) {
 						lock.lock();
 						try {
-							List<AndroidData> androidDataList = 
-								sensorToDeviceMap.get(sensorType);
+							log.info("SensorType selected: {}", sensorType);
 							List<String> deviceIdList = new ArrayList<String>();
-							List<Long> priceList = new ArrayList<Long>();
 							List<String> sensorList = new ArrayList<String>();
-							
-							for (AndroidData data: androidDataList) {
-								List<PriceInfo> priceInfoList = 
-									data.getPriceInfoList();
-								// TODO: This is 99.9% a one element list. Fix
-								for (PriceInfo priceInfo: priceInfoList) {
-									priceList.add(priceInfo.getPrice());
-									sensorList.add(priceInfo.getSensor());
+							List<Long> priceList = new ArrayList<Long>();
+							for (
+								Map.Entry<HTLCHubAndroidServer, List<PriceInfo>> 
+									entry: deviceMap.entrySet() 
+							) {
+								List<PriceInfo> priceInfoList = entry.getValue();
+								for (PriceInfo price: priceInfoList) {
+									if (price.getSensor().equals(sensorType)) {
+										log.info("Sensor back: {} {}", price.getSensor(), price.getPrice());
+										deviceIdList.add(price.getDeviceId());
+										sensorList.add(price.getSensor());
+    									priceList.add(price.getPrice());
+									}
 								}
-								deviceIdList.add(data.getServer().getDeviceId());
 							}
+							
 							buyerServer.sendSelectResult(
-								id,
-								deviceIdList,
-								sensorList,
+								id, 
+								deviceIdList, 
+								sensorList, 
 								priceList
-							);			
+							);
 						} finally {
 							lock.unlock();
 						}
 					}
 
 					@Override
-					public void forwardToAndroidServer(
-						String deviceId,
-						List<String> requestIdList,
-						Protos.TwoWayChannelMessage msg,
-						HTLCHubBuyerServer server
+					public void forwardToAndroidServers(
+						HTLCHubBuyerServer fromBuyerServer,
+						TwoWayChannelMessage msg
 					) {
 						lock.lock();
 						try {
-							idToDeviceMap.get(deviceId).receiveMessage(msg);
-							// Register the requestIds with the server
-							// These ids will get updated to the real HTLC
-							// ids once we get them from the devices
-							for (String requestId: requestIdList) {
-								requestIdToBuyerMap.put(requestId, server);
-							}
+							messageFilter.filterMessageForAndroid(
+								fromBuyerServer, 
+								msg
+							);
 						} finally {
 							lock.unlock();
 						}
-					}
-
-					@Override
-					public void forwardToAndroidServer(
-						String deviceId,
-						Protos.TwoWayChannelMessage msg
-					) {
-						requestIdToAndroidMap.get(deviceId).receiveMessage(msg);
 					}
 				}
 			);
@@ -295,6 +281,8 @@ public class HTLCHubServerListener {
 					}
     			
 				};
+				
+			log.info("timeoutSeconds*1000: {}", timeoutSeconds*1000);
     		
 			socketProtobufHandler = 
 				new ProtobufParser<Protos.TwoWayChannelMessage>(
@@ -345,8 +333,9 @@ public class HTLCHubServerListener {
         			
         			@Override public void registerSensors(
     					List<String> sensors,
-    					List<Integer> prices
+    					List<Long> prices
 					) {
+        				log.info("Registered sensors: {}", Arrays.toString(sensors.toArray()));
         				HTLCHubServerListener.this.registerSensors(
         					AndroidServerHandler.this.paymentChannelManager, 
     						sensors,
@@ -377,32 +366,16 @@ public class HTLCHubServerListener {
 					}
 
 					@Override
-					public void forwardToBuyerServer(
-						String buyerId,
-						List<String> requestIds,
-						List<String> htlcIds,
-						TwoWayChannelMessage msg,
-						HTLCHubAndroidServer currentAndroidServer
+					public void forwardToBuyerServers(
+						HTLCHubAndroidServer fromAndroidServer,
+						TwoWayChannelMessage msg
 					) {
 						lock.lock();
 						try {
-							// TODO: DOES THIS DEADLOCK ? it locks in again in
-							// the buyer server on receiveMessage()
-							HTLCHubBuyerServer currentBuyerServer = 
-								requestIdToBuyerMap.get(buyerId);
-							for (int i = 0; i < requestIds.size(); i++) {
-								requestIdToBuyerMap.remove(requestIds.get(i));
-								requestIdToBuyerMap.put(
-									htlcIds.get(i), 
-									currentBuyerServer
-								);
-								requestIdToAndroidMap.remove(requestIds.get(i));
-								requestIdToAndroidMap.put(
-									htlcIds.get(i), 
-									currentAndroidServer
-								);
-							}
-							currentBuyerServer.receiveMessage(msg);
+							messageFilter.filterMessageForBuyer(
+								fromAndroidServer, 
+								msg
+							);
 						} finally {
 							lock.unlock();
 						}
@@ -449,6 +422,8 @@ public class HTLCHubServerListener {
 	                    }
 	                }
         	};
+        	
+        	log.info("timeoutSeconds*1000: {}", timeoutSeconds*1000);
 
             socketProtobufHandler = 
         		new ProtobufParser<Protos.TwoWayChannelMessage>(
@@ -485,7 +460,7 @@ public class HTLCHubServerListener {
 		Coin value,
 		long timeWindow,
 		ECKey serverKey,
-		final int timeoutSeconds,
+		int timeoutSeconds,
 		Coin minAcceptedChannelSize,
 		AndroidHandlerFactory androidHandlerFactory,
 		BuyerHandlerFactory buyerHandlerFactory
@@ -503,11 +478,8 @@ public class HTLCHubServerListener {
     	this.timeoutSeconds = timeoutSeconds;
     	this.buyers = new ArrayList<HTLCHubBuyerServer>();
     	this.deviceMap = new HashMap<HTLCHubAndroidServer, List<PriceInfo>>();
-    	this.responseMap = new HashMap<HTLCHubBuyerServer, RequestResponse>();
     	this.sensorToDeviceMap = new HashMap<String, List<AndroidData>>();
-    	this.idToDeviceMap = new HashMap<String, HTLCHubAndroidServer>();
-    	this.requestIdToBuyerMap = new HashMap<String, HTLCHubBuyerServer>();
-    	this.requestIdToAndroidMap = new HashMap<String, HTLCHubAndroidServer>();
+    	this.messageFilter = new HTLCHubMessageFilter();
     }
 
     /**
@@ -542,13 +514,14 @@ public class HTLCHubServerListener {
 	        		int port
 	    		) {
 	            	String deviceId = UUID.randomUUID().toString();
+	            	log.info("Launched new AndroidServer with id {}", deviceId);
 	            	AndroidServerHandler handler = new AndroidServerHandler(
 	            		deviceId,
                 		new InetSocketAddress(inetAddress, port), 
                 		timeoutSeconds
             		);
-	            	idToDeviceMap.put(
-	            		deviceId,
+	            	messageFilter.registerDevice(
+            			deviceId, 
             			handler.paymentChannelManager
         			);
 	                return handler.socketProtobufHandler;
@@ -581,21 +554,22 @@ public class HTLCHubServerListener {
     private void registerSensors(
 		HTLCHubAndroidServer server, 
 		List<String> sensors,
-		List<Integer> prices
+		List<Long> prices
 	) {
     	lock.lock();
     	try {
-    		List<PriceInfo> currentSensors = deviceMap.get(sensors);
-    		if (currentSensors == null) {
-    			log.info("Hit null get on deviceMap"); 
-    			return;
-    		}
     		List<PriceInfo> updatedSensors = new ArrayList<PriceInfo>();
     		for (int i = 0; i < sensors.size(); i++) {
-    			// TODO: lalla
-//    			updatedSensors.add(new PriceInfo(sensors.get(i), prices.get(i)));
+    			updatedSensors.add(
+					new PriceInfo(
+						server.getDeviceId(), 
+						sensors.get(i), 
+						prices.get(i)
+					)
+				);
     		}
     		deviceMap.put(server, updatedSensors);
+    		log.info("Received new update on sensors");
     	} finally {
     		lock.unlock();
     	}

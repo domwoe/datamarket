@@ -76,7 +76,7 @@ public class HTLCServerState extends HTLCState {
 		ECKey clientKey,
 		ECKey serverKey
 	) {
-		checkState(state == State.NEW);
+		checkState(state == State.NEW || state == State.FORFEIT_RECEIVED);
 		TransactionOutput htlcOut = teardownTx.getOutput(idx);
 		refundTx = new Transaction(PARAMS);
 		refundTx.addOutput(htlcOut.getValue(), clientKey.toAddress(PARAMS));

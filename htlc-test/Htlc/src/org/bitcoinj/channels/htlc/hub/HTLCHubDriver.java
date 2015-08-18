@@ -30,6 +30,8 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
 	private static final NetworkParameters PARAMS = RegTestParams.get();
 	private static final Integer ANDROID_PORT = 4242;
 	private static final Integer BUYER_PORT = 4243;
+	private static final Integer NETWORK_TIMEOUT = 6000;
+	private static final Long CHANNEL_TIME_WINDOW = 6000L;
 	
 	private WalletAppKit appKit;
 	
@@ -38,7 +40,7 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
 	}
 	
 	public void run() throws Exception {
-		appKit = new WalletAppKit(PARAMS, new File("."), "inner_hub");
+		appKit = new WalletAppKit(PARAMS, new File("."), "hub");
 		appKit.connectToLocalHost();
 		appKit.startAsync();
 		appKit.awaitRunning();
@@ -56,7 +58,6 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
 		ECKey secondaryKey = appKit.wallet().getImportedKeys().get(1);
 		ECKey receivingKey = appKit.wallet().getImportedKeys().get(2);
 	
-		final long timeWindow = 3000L;
 		Coin value = Coin.valueOf(5, 0);
 		
 		log.info(
@@ -75,9 +76,9 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
     		secondaryKey,
     		receivingKey,
     		value,
-    		timeWindow,
+    		CHANNEL_TIME_WINDOW,
     		primaryKey, 
-    		15, 
+    		NETWORK_TIMEOUT, 
     		Coin.valueOf(100000), 
     		this,
     		this
@@ -88,14 +89,15 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
 	@Nullable
 	public ServerConnectionEventHandler onNewConnection(
 			final SocketAddress clientAddress) {
-	//	log.info("New connection initiated");
-		
 		return new ServerConnectionEventHandler() {
 			
 			@Override
 			@Nullable
-			public ListenableFuture<ByteString> paymentIncrease(Coin arg0, Coin arg1,
-					ByteString arg2) {
+			public ListenableFuture<ByteString> paymentIncrease(
+				Coin arg0, 
+				Coin arg1,
+				ByteString arg2
+			) {
 				return null;
 			}
 			

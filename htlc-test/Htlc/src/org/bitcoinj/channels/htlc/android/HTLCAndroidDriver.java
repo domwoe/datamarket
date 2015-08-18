@@ -1,9 +1,6 @@
 package org.bitcoinj.channels.htlc.android;
 
-import static org.bitcoinj.core.Coin.CENT;
-
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -12,22 +9,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
-import org.bitcoinj.channels.htlc.test.HTLCClientDriver;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.PeerAddress;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 
 public class HTLCAndroidDriver {
 	private static final Logger log = 
 		Logger.getLogger("HTLCClientDriver");
 	private static final NetworkParameters PARAMS = RegTestParams.get();
-	private final Coin MICROPAYMENT_SIZE = CENT;
-	
-	private CountDownLatch latch;
+	private static final Integer NETWORK_TIMEOUT = 6000;
 	
 	private WalletAppKit appKit;
 	
@@ -63,7 +56,6 @@ public class HTLCAndroidDriver {
         
         log.log(Level.INFO, "Android address: {}", key.toAddress(PARAMS));
         
-		final int timeoutSecs = 15;
 		final InetSocketAddress server = 
 			new InetSocketAddress("192.168.0.101", 4242);
 
@@ -75,64 +67,11 @@ public class HTLCAndroidDriver {
 		HTLCAndroidClientConnection client = 
 			new HTLCAndroidClientConnection(
 				server,
-				timeoutSecs,
+				NETWORK_TIMEOUT,
 				appKit.wallet(),
 				broadcastScheduler,
 				key,
 				minPayment
 			);
-
-		/*
-		latch = new CountDownLatch(1);
-		
-		Futures.addCallback(
-			client.getChannelOpenFuture(), 
-			new FutureCallback<HTLCPaymentChannelClientConnection>() {
-			    @Override public void onSuccess(
-		    		final HTLCPaymentChannelClientConnection client
-	    		) {
-			    	log.info("Channel open! Trying to make micropayments");			    	
-			    	try {
-						paymentIncrementCallback(client);
-					} catch (
-						IllegalStateException | 
-						ValueOutOfRangeException e
-					) {
-						e.printStackTrace();
-					}
-			    }
-			    @Override public void onFailure(Throwable throwable) {
-			    	log.error(throwable.getLocalizedMessage());
-			    }
-		}, Threading.USER_THREAD);
-		latch.await();*/
 	}
-	/*
-	private void paymentIncrementCallback(
-		final HTLCAndroidClientConnection client
-	) throws IllegalStateException, ValueOutOfRangeException {
-		Futures.addCallback(
-			client.incrementPayment(MICROPAYMENT_SIZE), 
-			new FutureCallback<PaymentIncrementAck>() {
-				@Override public void onSuccess(PaymentIncrementAck ack) {
-					try {
-						log.info(
-							"Successfully made payment {} {}", 
-							new String(ack.getInfo().toByteArray(), "UTF-8"), 
-							ack.getValue()
-						);
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
-					log.info("Closing channel");
-			    	client.settle();
-			    	latch.countDown();
-				}
-				@Override public void onFailure(Throwable throwable) {
-					log.error(throwable.getLocalizedMessage());
-					latch.countDown();
-				}
-			}
-		);
-	}*/
 }

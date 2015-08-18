@@ -2,6 +2,7 @@ package org.bitcoinj.channels.htlc.android;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
@@ -103,6 +104,9 @@ public class HTLCAndroidClientConnection extends Thread {
 				}
 			}
 		);
+    	
+    	log.info("timeoutSeconds*1000: {}", timeoutSeconds*1000);
+    	
     	 // And glue back in the opposite direction - network to the channelClient.
         wireParser = new ProtobufParser<Protos.TwoWayChannelMessage>(
     		new ProtobufParser.Listener<Protos.TwoWayChannelMessage>() {
@@ -150,5 +154,9 @@ public class HTLCAndroidClientConnection extends Thread {
 	
 	public ListenableFuture<HTLCAndroidClientConnection> getChannelOpenFuture() {
 		return channelOpenFuture;
+	}
+	
+	public void updateSensors(List<String> sensors, List<Long> prices) {
+		channelClient.updateSensors(sensors, prices);
 	}
 }

@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +18,12 @@ import javax.annotation.concurrent.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType;
+import org.bitcoin.paymentchannel.Protos.HTLCBackOff;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow;
 import org.bitcoin.paymentchannel.Protos.HTLCPayment;
 import org.bitcoin.paymentchannel.Protos.HTLCPaymentReply;
+import org.bitcoin.paymentchannel.Protos.HTLCRevealSecret;
+import org.bitcoin.paymentchannel.Protos.HTLCServerUpdate;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
 import org.bitcoinj.channels.htlc.HTLCBlockingQueue;
@@ -28,6 +32,7 @@ import org.bitcoinj.channels.htlc.HTLCServerState;
 import org.bitcoinj.channels.htlc.SignedTransaction;
 import org.bitcoinj.channels.htlc.SignedTransactionWithHash;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
+import org.bitcoinj.channels.htlc.hub.HTLCHubAndroidServer.HTLCRound;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
@@ -60,7 +65,7 @@ public class HTLCHubBuyerServer {
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCHubBuyerServer.class);
 	
-	private final ReentrantLock lock = Threading.lock("htlcchannelserver");
+	private final ReentrantLock lock = new ReentrantLock();
 	private final int MAX_MESSAGES = 100;
 	
 	private final int SERVER_MAJOR_VERSION = 1;
@@ -110,18 +115,11 @@ public class HTLCHubBuyerServer {
 			HTLCHubBuyerServer server
 		);
     	
-    	public void sendToBuyer(Protos.TwoWayChannelMessage msg);
+    	public void sendToBuyer(TwoWayChannelMessage msg);
     	
-    	public void forwardToAndroidServer(
-    		String deviceId,
-    		List<String> requestIdList,
-    		Protos.TwoWayChannelMessage msg,
-    		HTLCHubBuyerServer server
-		);
-    	
-    	public void forwardToAndroidServer(
-			String deviceId,
-			TwoWayChannelMessage msg
+    	public void forwardToAndroidServers(
+			HTLCHubBuyerServer server,
+			TwoWayChannelMessage msg			
 		);
     	
         /**
@@ -282,6 +280,10 @@ public class HTLCHubBuyerServer {
             			return;
             		case HTLC_SIGNED_SETTLE_FORFEIT:
             			receiveSignedSettleAndForfeitMsg(msg);
+            			return;
+            		case HTLC_SERVER_UPDATE:
+            			// This must have been forwarded from the android server!
+            			receiveServerUpdateMsg(msg);
             			return;
             		case HTLC_FLOW:
             			receiveHTLCFlowMsg(msg);
@@ -535,6 +537,7 @@ public class HTLCHubBuyerServer {
     @GuardedBy("lock") 
     private void receiveHTLCRoundDoneMessage(TwoWayChannelMessage msg) {
     	// Set the htlcRound state
+    	log.info("Received HTLCRound Done. Closing round");
     	htlcRound = HTLCRound.OFF;
     	if (!blockingQueue.isEmpty()) {
     		// Start new server update round  
@@ -563,53 +566,20 @@ public class HTLCHubBuyerServer {
      */
     @GuardedBy("lock")
     private void receiveHTLCInitMessage(TwoWayChannelMessage msg) {
-    	log.info("Receive HTLC INIT msg, forwarding to devices");
+    	log.info("Received HTLC INIT msg, forwarding to devices");
     	
     	final Protos.HTLCInit htlcInit = msg.getHtlcInit();
     	List<Protos.HTLCPayment> paymentList = htlcInit.getNewPaymentsList();
     	
-    	// We have to process the payments so we sort all payments by deviceId
-    	Map<String, List<HTLCPayment>> deviceIdToPaymentsMap = 
-			new HashMap<String, List<HTLCPayment>>();
-    	    	
     	for (Protos.HTLCPayment payment: paymentList) {
     		String deviceId = payment.getDeviceId();
+    		log.info("Received HTLCINIT for {}", deviceId);
     		String requestId = payment.getRequestId();
     		// Store these payments in a map
     		htlcPaymentMap.put(requestId, payment);
-    	    		
-    		List<HTLCPayment> paymentsForDevice = 
-				deviceIdToPaymentsMap.get(deviceId);
-    		paymentsForDevice.add(payment);
-    		deviceIdToPaymentsMap.put(deviceId, paymentsForDevice);
-    	}
-    	
-    	for (
-			Map.Entry<String, List<HTLCPayment>> paymentEntry: 
-				deviceIdToPaymentsMap.entrySet()
-		) {
-    		List<HTLCPayment> paymentsToDevice = paymentEntry.getValue();
-    		
-    		List<String> requestIdList = new ArrayList<String>();
-    		for (HTLCPayment payment: paymentsToDevice) {
-        		requestIdList.add(payment.getRequestId());
-    		}
-    		
-    		Protos.HTLCInit.Builder htlcInitToDevice = 
-				Protos.HTLCInit.newBuilder()
-					.addAllNewPayments(paymentsToDevice);
-    		final Protos.TwoWayChannelMessage channelMsg = 
-				Protos.TwoWayChannelMessage.newBuilder()
-					.setType(MessageType.HTLC_INIT)
-					.setHtlcInit(htlcInitToDevice)
-					.build();
-    		conn.forwardToAndroidServer(
-				paymentEntry.getKey(), 
-				requestIdList,
-				channelMsg,
-				this
-			);
        	}
+    	
+    	conn.forwardToAndroidServers(this, msg);
     }
     
     @GuardedBy("lock") 
@@ -688,7 +658,8 @@ public class HTLCHubBuyerServer {
 			msg.getHtlcSignedTeardown();
     	final Protos.HTLCSignedTransaction signedTeardown = 
 			teardownMsg.getSignedTeardown();
-    	List<String> htlcIds = new ArrayList<String>();
+    	List<String> htlcIds = teardownMsg.getIdsList();
+    	log.info("BUYER SERVER IDS: {}", Arrays.toString(htlcIds.toArray()));
     	
     	List<Integer> htlcIdxs = teardownMsg.getIdxList();
     	Transaction teardownTx = new Transaction(
@@ -704,7 +675,6 @@ public class HTLCHubBuyerServer {
     	
     	List<Protos.HTLCSignedTransaction> allSignedRefunds = 
     		new ArrayList<Protos.HTLCSignedTransaction>();
-    	List<String> allIds = new ArrayList<String>();
     	
     	for (int i = 0; i < htlcIds.size(); i++) {
     		String htlcId = htlcIds.get(i);
@@ -725,7 +695,6 @@ public class HTLCHubBuyerServer {
 					))
 					.build();
     		allSignedRefunds.add(signedRefund);
-    		allIds.add(htlcId);
     	}
     	
     	log.info("Done signing refund and teardown hash");
@@ -733,7 +702,8 @@ public class HTLCHubBuyerServer {
     	
     	Protos.HTLCSignedRefundWithHash.Builder htlcSigRefund = 
 			Protos.HTLCSignedRefundWithHash.newBuilder()
-				.addAllSignedRefund(allSignedRefunds);
+				.addAllSignedRefund(allSignedRefunds)
+				.addAllIds(htlcIds);
     	
     	final TwoWayChannelMessage channelMsg = TwoWayChannelMessage.newBuilder()
 			.setHtlcSignedRefundWithHash(htlcSigRefund)
@@ -745,6 +715,7 @@ public class HTLCHubBuyerServer {
     
     @GuardedBy("lock")
     private void receiveSignedSettleAndForfeitMsg(TwoWayChannelMessage msg) {
+    	log.info("Received Signed Settle and Forfeit");
     	Protos.HTLCSignedSettleAndForfeit htlcMsg = 
 			msg.getHtlcSignedSettleAndForfeit();
     	List<String> allIds = htlcMsg.getIdsList();
@@ -795,7 +766,10 @@ public class HTLCHubBuyerServer {
     		);
         	// If we already have some secrets, queue them up for the next
         	// server update round
-        	queueUpSecret(htlcId);
+        	if (htlcRound == HTLCRound.CLIENT) {
+        		log.info("Queueing up secret for HTLC ID {}", htlcId);
+        		queueUpSecret(htlcId);
+        	}
     	}
     	
     	if (htlcRound == HTLCRound.CONFIRMED) { 
@@ -822,37 +796,48 @@ public class HTLCHubBuyerServer {
 							.MessageType.HTLC_SETUP_COMPLETE
 					);
 	    	conn.sendToBuyer(htlcSetupMsg.build());
+	    	
 	    	// Call all the Android handlers to create the corresponding HTLCs
-	    	Map<String, List<String>> deviceIdToHTLCsMap = 
-    			new HashMap<String, List<String>>();
-	    	for (String htlcId: allIds) {
-	    		HTLCPayment payment = htlcPaymentMap.get(htlcId);
-	    		String deviceId = payment.getDeviceId();
-	    		List<String> htlcsForDevice = 
-    				deviceIdToHTLCsMap.get(htlcId);
-	    		htlcsForDevice.add(htlcId);
-	    		deviceIdToHTLCsMap.put(deviceId, htlcsForDevice);
-	    	}
-	    	for (
-    			Map.Entry<String, List<String>> entry: 
-    				deviceIdToHTLCsMap.entrySet()
-			) {
-	    		Protos.HTLCResumeSetup.Builder htlcResume = 
-    				Protos.HTLCResumeSetup.newBuilder()
-    					.addAllHtlcIds(entry.getValue());
-	    		Protos.HTLCFlow flow = Protos.HTLCFlow.newBuilder()
-    				.setType(FlowType.RESUME_SETUP)
-    				.setResumeSetup(htlcResume)
+	    	// on the path
+	    	log.info("Sending resume setup for {}", Arrays.toString(allIds.toArray()));
+	    	Protos.HTLCResumeSetup.Builder htlcResume = 	
+				Protos.HTLCResumeSetup.newBuilder()
+					.addAllHtlcId(allIds);
+	    	Protos.HTLCFlow flow = Protos.HTLCFlow.newBuilder()
+				.setType(FlowType.RESUME_SETUP)
+				.setResumeSetup(htlcResume)
+				.build();
+    		final Protos.TwoWayChannelMessage channelMsg = 
+    			Protos.TwoWayChannelMessage.newBuilder()
+    				.setType(MessageType.HTLC_FLOW)
+    				.setHtlcFlow(flow)
     				.build();
-	    		final Protos.TwoWayChannelMessage channelMsg = 
-	    			Protos.TwoWayChannelMessage.newBuilder()
-	    				.setType(MessageType.HTLC_FLOW)
-	    				.setHtlcFlow(flow)
-	    				.build();
-	    		conn.forwardToAndroidServer(entry.getKey(), channelMsg);
-	    	}
+    		conn.forwardToAndroidServers(this, channelMsg);
     	}
     }
+    
+    @GuardedBy("lock")
+    private void receiveServerUpdateMsg(TwoWayChannelMessage msg) {
+    	log.info("Received Server Update msg");
+    	checkState(step == InitStep.CHANNEL_OPEN);
+    	HTLCServerUpdate updateMsg = msg.getHtlcServerUpdate();
+    	List<Protos.HTLCRevealSecret> allSecrets = 
+			updateMsg.getRevealSecretsList();
+    	List<Protos.HTLCBackOff> allBackOffs = updateMsg.getBackOffsList();
+    	for (HTLCRevealSecret secret: allSecrets) {
+    		blockingQueue.put(secret);
+    	}
+    	for (HTLCBackOff backoff: allBackOffs) {
+    		blockingQueue.put(backoff);
+    	}
+    	if (canInitHTLCRound()) {
+			initializeHTLCRound();
+		}
+    }
+    
+    private boolean canInitHTLCRound() {
+		return (htlcRound == HTLCRound.OFF);
+	}
     
     @GuardedBy("lock") 
     private void queueUpSecret(String htlcId) {
@@ -861,8 +846,8 @@ public class HTLCHubBuyerServer {
     		log.info("Queueing up secret for next Hub Buyer round");
     		Protos.HTLCRevealSecret.Builder revealMsg = 
 				Protos.HTLCRevealSecret.newBuilder()
-					.setId(ByteString.copyFrom(htlcId.getBytes()))
-					.setSecret(ByteString.copyFrom(secret.getBytes()));
+					.setId(htlcId)
+					.setSecret(secret);
     		blockingQueue.put(revealMsg);
     	}
     }
@@ -926,6 +911,7 @@ public class HTLCHubBuyerServer {
     			return;
     		case SELECT:
     			receiveSelectMsg(flowMsg.getId(), flowMsg.getSelectData());
+    			return;
     		default:
     			return;
     	}
@@ -943,6 +929,7 @@ public class HTLCHubBuyerServer {
 			.setType(FlowType.NODE_STATS_REPLY); 
     	conn.sendToBuyer(
 			Protos.TwoWayChannelMessage.newBuilder()
+				.setType(MessageType.HTLC_FLOW)
 				.setHtlcFlow(flowMsg).build()
 		);			
     }
@@ -974,6 +961,7 @@ public class HTLCHubBuyerServer {
 			.build();
     	conn.sendToBuyer(
 			Protos.TwoWayChannelMessage.newBuilder()
+				.setType(MessageType.HTLC_FLOW)
 				.setHtlcFlow(flow).build()
 		);
     }

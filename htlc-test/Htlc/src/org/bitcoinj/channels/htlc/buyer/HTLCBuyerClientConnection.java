@@ -100,7 +100,6 @@ public class HTLCBuyerClientConnection {
 	        		Protos.TwoWayChannelMessage msg
 	    		) {
 	                try {
-	                	System.out.println("Message received from server");
 	                    channelClient.receiveMessage(msg);
 	                } catch (InsufficientMoneyException e) {
 	                    // We should only get this exception during INITIATE, 

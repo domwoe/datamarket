@@ -464,17 +464,15 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	
     	Protos.HTLCInitReply htlcInitReply = msg.getHtlcInitReply();
     	
-    	List<ByteString> ids = new ArrayList<ByteString>();
+    	List<String> ids = new ArrayList<String>();
     	List<Integer> idxs = new ArrayList<Integer>();
     	List<Protos.HTLCPaymentReply> paymentsReply = 
 			htlcInitReply.getNewPaymentsReplyList();
     	
     	for (Protos.HTLCPaymentReply paymentReply: paymentsReply) {
-    		ByteString requestId = paymentReply.getClientRequestId();
-    		ByteString hashId = paymentReply.getId();
     		
-    		String requestIdString = new String(requestId.toByteArray());
-    		String id = new String(hashId.toByteArray());
+    		String requestIdString = paymentReply.getClientRequestId();
+    		String id = paymentReply.getId();
     		
     		// Update the key in the map to only use one id from now on
         	SettableFuture<PaymentIncrementAck> paymentAckFuture = 
@@ -487,7 +485,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
         	paymentValueMap.put(id, storedValue);
         
     		int htlcIdx = state.updateTeardownTxWithHTLC(id, storedValue);
-    		ids.add(hashId);
+    		ids.add(id);
     		idxs.add(htlcIdx);
     	}
     	
@@ -532,7 +530,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	
     	List<Protos.HTLCSignedTransaction> allSignedRefunds = 
 			htlcSigRefundMsg.getSignedRefundList();
-    	List<ByteString> allIds = htlcSigRefundMsg.getIdsList();
+    	List<String> allIds = htlcSigRefundMsg.getIdsList();
     	List<Protos.HTLCSignedTransaction> allSignedForfeits =
 			new ArrayList<Protos.HTLCSignedTransaction>();
     	List<Protos.HTLCSignedTransaction> allSignedSettles =
@@ -540,7 +538,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	
     	for (int i = 0; i < allSignedRefunds.size(); i++) {
     		Protos.HTLCSignedTransaction signedRefund = allSignedRefunds.get(i);
-    		ByteString htlcId = allIds.get(i);
+    		String htlcId = allIds.get(i);
     		Sha256Hash teardownHash = new Sha256Hash(
 				signedRefund.getTxHash().toByteArray()
 			);
@@ -553,11 +551,15 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 					signedRefund.getSignature().toByteArray(),
 					true
 				);
-    		String id = new String(htlcId.toByteArray());
-    		state.finalizeHTLCRefundTx(id, refundTx, refundSig, teardownHash);	
+    		state.finalizeHTLCRefundTx(
+				htlcId, 
+				refundTx, 
+				refundSig, 
+				teardownHash
+			);	
     		
     		SignedTransaction signedForfeit = state.getHTLCForfeitTx(
-				id,
+				htlcId,
 				teardownHash
 			);
     		Protos.HTLCSignedTransaction signedForfeitProto = 
@@ -567,7 +569,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 					.build();
     		
     		SignedTransaction signedSettle = state.getHTLCSettlementTx(
-				id, 
+				htlcId, 
 				teardownHash
 			);
     		Protos.HTLCSignedTransaction signedSettleProto =
@@ -603,10 +605,10 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     private void receiveHTLCSetupComplete(Protos.TwoWayChannelMessage msg) 
     		throws ValueOutOfRangeException {
     	checkState(step == InitStep.CHANNEL_OPEN);
-    	List<ByteString> allIds = msg.getHtlcSetupComplete().getIdsList();
-    	for (ByteString id: allIds) {
-        	log.info("received HTLC setup complete for {}", new String(id.toByteArray()));
-    		state.makeSettleable(new String(id.toByteArray()));
+    	List<String> allIds = msg.getHtlcSetupComplete().getIdsList();
+    	for (String id: allIds) {
+        	log.info("received HTLC setup complete for {}", id);
+    		state.makeSettleable(id);
     	}
     	htlcRound = HTLCRound.OFF;
     	
@@ -629,8 +631,8 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	List<Protos.HTLCBackOff> allBackOffs = updateMsg.getBackOffsList();
     	
     	for (Protos.HTLCRevealSecret secretMsg: allSecrets) {
-    		String htlcId = new String(secretMsg.getId().toByteArray());
-    		String secret = new String(secretMsg.getSecret().toByteArray());
+    		String htlcId = secretMsg.getId();
+    		String secret = secretMsg.getSecret();
     		state.attemptSettle(htlcId, secret);
     	}
     	
@@ -653,10 +655,10 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
     	// TODO: CONTINUE FROM HERE TO GET LIST OF REMAINING HTLCS THAT
     	// NEED UPDATES REFUNDS AND THEN FORFEITS/SETTLES
     	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCs();
-    	List<ByteString> allIds = new ArrayList<ByteString>();
+    	List<String> allIds = new ArrayList<String>();
     	List<Integer> allIdxs = new ArrayList<Integer>();
     	for (HTLCClientState htlcState: allHTLCs) {
-    		ByteString htlcId = ByteString.copyFrom(htlcState.getId().getBytes());
+    		String htlcId = htlcState.getId();
     		int htlcIdx = htlcState.getIndex();
     		allIds.add(htlcId);
     		allIdxs.add(htlcIdx);
@@ -762,7 +764,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 			paymentValueMap.put(reqIdString, value);
 			
 			Protos.HTLCPayment newPayment = Protos.HTLCPayment.newBuilder()
-				.setRequestId(ByteString.copyFrom(reqIdString.getBytes()))
+				.setRequestId(reqIdString)
 				.setValue(value.getValue())
 				.build();
 			

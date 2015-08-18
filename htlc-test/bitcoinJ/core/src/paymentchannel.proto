@@ -354,13 +354,13 @@ message HTLCSetupComplete {
 }
 
 message HTLCRevealSecret {
-	required bytes id = 1;
-	required bytes secret = 2;
+	required string id = 1;
+	required string secret = 2;
 }
 
 message HTLCBackOff {
 	// back off, close and return money to client
-	required bytes id = 1;
+	required string id = 1;
 	required HTLCSignedTransaction signed_forfeit = 2; 
 }
 
@@ -373,7 +373,7 @@ message HTLCServerUpdate {
 
 message HTLCPaymentAck {
 	// Sent by the server to the client to ack that the HTLC is confirmed
-	required bytes id = 1;
+	repeated string id = 1;
 }
 
 message HTLCFlow {
@@ -388,8 +388,8 @@ message HTLCFlow {
 		RESUME_SETUP = 8;
 	};
 	
-	required string id = 1;
-	required FlowType type = 2;
+	required FlowType type = 1;
+	optional string id = 2;
 	optional HTLCRegisterSensors register_sensors = 3;
 	optional HTLCNodeStats node_stats = 4;
 	optional HTLCSensorStats sensor_stats = 5;
@@ -402,6 +402,7 @@ message HTLCRegisterSensors {
 	// Sent by the Android devices to the hub, immediately after successfully 
 	// establishing a micropayment channel
 	repeated string sensors = 1;
+	repeated uint64 prices = 2;
 }
 
 message HTLCNodeStats {

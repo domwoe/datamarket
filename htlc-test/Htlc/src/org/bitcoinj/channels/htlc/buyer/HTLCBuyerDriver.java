@@ -1,15 +1,13 @@
 package org.bitcoinj.channels.htlc.buyer;
 
-import static org.bitcoinj.core.Coin.CENT;
-
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 
 import org.bitcoinj.channels.htlc.FlowResponse;
+import org.bitcoinj.channels.htlc.HTLCPaymentReceipt;
 import org.bitcoinj.channels.htlc.PriceInfo;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
@@ -17,8 +15,6 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.protocols.channels.PaymentIncrementAck;
-import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +28,8 @@ public class HTLCBuyerDriver {
 		LoggerFactory.getLogger(HTLCBuyerDriver.class);
 	private static final NetworkParameters PARAMS = RegTestParams.get();
 	private static final Integer BUYER_PORT = 4243;
-	private final Coin MICROPAYMENT_SIZE = CENT; 
+	private static final Long CHANNEL_TIME_WINDOW = 6000L;
+	private static final Integer NETWORK_TIMEOUT = 6000;
 	
 	private CountDownLatch latch;
 	private HTLCBuyerClientConnection client;
@@ -66,11 +63,8 @@ public class HTLCBuyerDriver {
     		secondaryKey.toAddress(PARAMS)
 		);
 
-		final int timeoutSecs = 15;
 		final InetSocketAddress server = 
 			new InetSocketAddress("localhost", BUYER_PORT);
-		// 10 minutes
-		final long timeWindow = 300L;
 		Coin value = Coin.valueOf(1, 0);
 		
 		TransactionBroadcastScheduler broadcastScheduler = 
@@ -78,13 +72,13 @@ public class HTLCBuyerDriver {
 		
 		client = new HTLCBuyerClientConnection(
 			server,
-			timeoutSecs,
+			NETWORK_TIMEOUT,
 			appKit.wallet(),
 			broadcastScheduler,
 			primaryKey, 
 			secondaryKey,
 			value,
-			timeWindow
+			CHANNEL_TIME_WINDOW
 		);
 		latch = new CountDownLatch(1);
 		Futures.addCallback(
@@ -128,12 +122,17 @@ public class HTLCBuyerDriver {
 					error("Invalid stats query.");
 				}
 			} else if (tokens[0].equalsIgnoreCase("select")) {
-				String sensorType = tokens[1];
+				String sensorType = 
+					query.substring(query.indexOf('<') + 1, query.indexOf('>'));
 				waitForSelect(client.select(sensorType));
 			} else if (tokens[0].equalsIgnoreCase("buy")) {
-				String sensorType = tokens[1];
-				String deviceId = tokens[2];
-				Long value = Long.parseLong(tokens[3]);
+				String sensorType = 
+					query.substring(query.indexOf('<') + 1, query.indexOf('>'));
+				query = query.replaceAll("<.*?>", "");
+				tokens = query.split(delims);
+				String deviceId = tokens[1];
+				Long value = Long.parseLong(tokens[2]);
+				
 				waitForData(
 					client.buy(sensorType, deviceId, Coin.valueOf(value))
 				);
@@ -143,12 +142,35 @@ public class HTLCBuyerDriver {
 		}
 	}
 	
+	private void waitForData(
+		ListenableFuture<HTLCPaymentReceipt> future
+	) {
+		Futures.addCallback(
+			future, 
+			new FutureCallback<HTLCPaymentReceipt>() {
+				@Override
+				public void onSuccess(HTLCPaymentReceipt receiptWithData) {
+					System.out.println(
+						"Successfully paid " + receiptWithData.getValue() + 
+						" for " + receiptWithData.getData()
+					);
+				}
+				
+				@Override
+				public void onFailure(Throwable throwable) {
+					
+				}
+			}
+		);
+	}
+	
 	private void waitForSelect(ListenableFuture<List<PriceInfo>> future) {
 		Futures.addCallback(
 			future, 
 			new FutureCallback<List<PriceInfo>>() {
 				@Override
 				public void onSuccess(List<PriceInfo> pInfoList) {
+					System.out.println("Received query result");
 					for (PriceInfo pInfo: pInfoList) {
 						System.out.println(
 							pInfo.getDeviceId() + ": " + 
@@ -171,7 +193,9 @@ public class HTLCBuyerDriver {
 			future,
 			new FutureCallback<FlowResponse>() {
 				@Override public void onSuccess(FlowResponse response) {
-					
+					for (String stat: response.getStats()) {
+						System.out.println(stat);
+					}
 				}
 				
 				@Override public void onFailure(Throwable throwable) {

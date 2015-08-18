@@ -518,12 +518,12 @@ public class HTLCPaymentChannelServer {
     	
     	for (Protos.HTLCPayment payment: newPayments) {
     		long value = payment.getValue();
-    		ByteString clientRequestId = payment.getRequestId();
+    		String clientRequestId = payment.getRequestId();
     		HTLCServerState newHTLCState = 
 				state.createNewHTLC(Coin.valueOf(value));
     		Protos.HTLCPaymentReply paymentReply = 
 				Protos.HTLCPaymentReply.newBuilder()
-					.setId(ByteString.copyFrom(newHTLCState.getId().getBytes()))
+					.setId(newHTLCState.getId())
 					.setClientRequestId(clientRequestId)
 					.build();
     		paymentsReply.add(paymentReply);
@@ -627,7 +627,7 @@ public class HTLCPaymentChannelServer {
     private void receiveSignedSettleAndForfeitMsg(TwoWayChannelMessage msg) {
     	Protos.HTLCSignedSettleAndForfeit htlcMsg = 
 			msg.getHtlcSignedSettleAndForfeit();
-    	List<ByteString> allIds = htlcMsg.getIdsList();
+    	List<String> allIds = htlcMsg.getIdsList();
     	List<Protos.HTLCSignedTransaction> allForfeits = 
 			htlcMsg.getSignedForfeitList();
     	List<Protos.HTLCSignedTransaction> allSettles = 
@@ -640,8 +640,7 @@ public class HTLCPaymentChannelServer {
     	state.setClientSecondaryKey(clientSecondaryKey);
     	
     	for (int i = 0; i < allIds.size(); i++) {
-    		ByteString htlcId = allIds.get(i);
-    		String id = new String(htlcId.toByteArray());
+    		String htlcId = allIds.get(i);
     		Protos.HTLCSignedTransaction signedForfeit = allForfeits.get(i);
     		Protos.HTLCSignedTransaction signedSettle = allSettles.get(i);
     		
@@ -655,7 +654,7 @@ public class HTLCPaymentChannelServer {
 					true
 				);
 	    	state.finalizeHTLCSettlementTx(
-    			id, 
+    			htlcId, 
     			settleTx,
     			settleSig
     		);
@@ -670,13 +669,13 @@ public class HTLCPaymentChannelServer {
 	    			true
 	    		);
         	state.finalizeHTLCForfeitTx(
-        		id,
+    			htlcId,
         		forfeitTx,
         		forfeitSig
     		);
         	// If we already have some secrets, queue them up for the next
         	// server update round
-        	queueUpSecret(id);
+        	queueUpSecret(htlcId);
     	}
     	
     	if (htlcRound == HTLCRound.CONFIRMED) { 
@@ -712,8 +711,8 @@ public class HTLCPaymentChannelServer {
     		log.info("Queueing up secret for next SERVER round");
     		Protos.HTLCRevealSecret.Builder revealMsg = 
 				Protos.HTLCRevealSecret.newBuilder()
-					.setId(ByteString.copyFrom(htlcId.getBytes()))
-					.setSecret(ByteString.copyFrom(secret.getBytes()));
+					.setId(htlcId)
+					.setSecret(secret);
     		blockingQueue.put(revealMsg);
     	}
     }

@@ -4,6 +4,7 @@ package org.bitcoinj.channels.htlc.buyer;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	private final long timeWindow;
 	@GuardedBy("lock") private long minPayment;
 	
-	private final ReentrantLock lock = Threading.lock("htlcchannelclient");
+	private final ReentrantLock lock = Threading.lock("HTLCBuyerClient");
 	private final HTLCBlockingQueue<Protos.HTLCPayment> blockingQueue;
 	private List<Protos.HTLCPayment> currentBatch;
 
@@ -453,7 +454,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     
     @GuardedBy("lock")
     private void receiveHTLCRoundAck() {
-    	log.info("We can now push our batched updates to the server");
+    	log.info("Round Acked by server. We can now push our batched updates to the server");
     	htlcRound = HTLCRound.CONFIRMED;
     	// Retrieve all queued up updates
     	currentBatch = blockingQueue.getAll();
@@ -544,12 +545,14 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 		Protos.TwoWayChannelMessage msg
 	) {
     	checkState(step == InitStep.CHANNEL_OPEN);
+    	log.info("Received HTLC Signed Refund with Hash");
     	Protos.HTLCSignedRefundWithHash htlcSigRefundMsg = 
 			msg.getHtlcSignedRefundWithHash();
     	
     	List<Protos.HTLCSignedTransaction> allSignedRefunds = 
 			htlcSigRefundMsg.getSignedRefundList();
     	List<String> allIds = htlcSigRefundMsg.getIdsList();
+    	log.info("IDS: {}", Arrays.toString(allIds.toArray()));
     	List<Protos.HTLCSignedTransaction> allSignedForfeits =
 			new ArrayList<Protos.HTLCSignedTransaction>();
     	List<Protos.HTLCSignedTransaction> allSignedSettles =
@@ -612,6 +615,8 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 			Protos.TwoWayChannelMessage.MessageType.HTLC_SIGNED_SETTLE_FORFEIT
 		);
     	
+    	log.info("Replying with HTLC Signed Settle Forfeit");
+    	
     	conn.sendToServer(serverMsg.build());
     }
     
@@ -619,6 +624,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     private void receiveHTLCSetupComplete(Protos.TwoWayChannelMessage msg) 
     		throws ValueOutOfRangeException {
     	checkState(step == InitStep.CHANNEL_OPEN);
+    	log.info("Received HTLC Setup Complete");
     	List<String> allIds = msg.getHtlcSetupComplete().getIdsList();
     	for (String id: allIds) {
         	log.info("received HTLC setup complete for {}", id);
@@ -646,8 +652,8 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     	List<Protos.HTLCBackOff> allBackOffs = updateMsg.getBackOffsList();
     	
     	for (Protos.HTLCRevealSecret secretMsg: allSecrets) {
-    		String htlcId = new String(secretMsg.getId().toByteArray());
-    		String secret = new String(secretMsg.getSecret().toByteArray());
+    		String htlcId = secretMsg.getId();
+    		String secret = secretMsg.getSecret();
     		state.attemptSettle(htlcId, secret);
     	}
     	
@@ -675,6 +681,8 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     		allIds.add(htlcState.getId());
     		allIdxs.add(htlcIdx);
     	}
+    	
+    	log.info("AllIds in HTLCSignedTransaction {}", Arrays.toString(allIds.toArray()));
 
     	SignedTransaction signedTx = state.getSignedTeardownTx();
     	Protos.HTLCSignedTransaction.Builder signedTeardown =
@@ -920,9 +928,11 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 				.build();
 			
 			if (canInitHTLCRound()) {
-				currentBatch.add(newPayment);
+				log.info("Can init round. Hitting it");
+				blockingQueue.put(newPayment);
 				initializeHTLCRound();
 			} else {
+				log.info("Cannot initialized round. Queue up");
 				blockingQueue.put(newPayment);
 			}
 			return incrementPaymentFuture;

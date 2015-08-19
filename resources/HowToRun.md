@@ -7,17 +7,16 @@
 
 ## Android App
 1. in HTLCService, replace 
-```
-appKit.setPeerNodes(
+```appKit.setPeerNodes(
     new PeerAddress(
         InetAddress.getByName("192.168.0.102"),
         PARAMS.getPort()
     )
-);```
+);
+```
 with appropriate IP for the regtest net.
 2. In the same file, replace 
-```
-final InetSocketAddress server =
+```final InetSocketAddress server =
 	new InetSocketAddress("192.168.0.102", 4242);
 ```
 with appropriate hub address (port stays).
@@ -27,8 +26,7 @@ time with the app.
 ## Buyer 
 1. It needs the regtest bitcoin net running on the localhost. If you want it to
 connect to a remote regtest net, replace:
-```
-appKit = new WalletAppKit(PARAMS, new File("."), "hub");
+```appKit = new WalletAppKit(PARAMS, new File("."), "hub");
 appKit.connectToLocalHost();
 with:
 appKit = new WalletAppKit(PARAMS, new File(path), "htlc_client");
@@ -41,10 +39,10 @@ try {
 	);
 } catch (UnknownHostException e1) {
 	e1.printStackTrace();
-}```
-2. Replace "localhost"
+}
 ```
-final InetSocketAddress server = 
+2. Replace "localhost"
+```final InetSocketAddress server = 
 	new InetSocketAddress("localhost", BUYER_PORT);
 ```
 with appropriate IP for Hub.

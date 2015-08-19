@@ -6,7 +6,7 @@
 3. Can be run in Eclipse using the HTLCHubDriver main.
 
 ## Android App
-1. In HTLCService, replace 
+* In HTLCService, replace 
 ```
 appKit.setPeerNodes(
     new PeerAddress(
@@ -17,14 +17,14 @@ appKit.setPeerNodes(
 ```
 with appropriate IP for the regtest net.
 
-2. In the same file, replace 
+* In the same file, replace 
 ```
 final InetSocketAddress server =
 	new InetSocketAddress("192.168.0.102", 4242);
 ```
 with appropriate hub address (port stays).
 
-3. Run with Android Studio, service will be started at the same
+* Run with Android Studio, service will be started at the same
 time with the app.
 
 ## Buyer 

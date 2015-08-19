@@ -18,7 +18,8 @@ with appropriate IP for the regtest net.
 final InetSocketAddress server =
     new InetSocketAddress("192.168.0.102", 4242);
 with appropriate hub address (port stays).
-3. Run with Android Studio.
+3. Run with Android Studio, service will be started at the same
+time with the app.
 
 ## Buyer 
 1. It needs the regtest bitcoin net running on the localhost. If you want it to

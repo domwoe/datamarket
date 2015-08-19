@@ -32,7 +32,7 @@ time with the app.
 connect to a remote regtest net, replace:
 ```
 appKit = new WalletAppKit(PARAMS, new File("."), "hub");
-    appKit.connectToLocalHost();
+appKit.connectToLocalHost();
 ```
 with:
 ```

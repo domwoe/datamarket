@@ -7,14 +7,14 @@
 
 ## Android App
 1. in HTLCService, replace 
-'''
-    appKit.setPeerNodes(
-	    new PeerAddress(
-	        InetAddress.getByName("192.168.0.102"),
-	        PARAMS.getPort()
-	    )
-	);
-'''
+```
+appKit.setPeerNodes(
+    new PeerAddress(
+        InetAddress.getByName("192.168.0.102"),
+        PARAMS.getPort()
+    )
+);
+```
 with appropriate IP for the regtest net.
 2. In the same file, replace 
     final InetSocketAddress server =

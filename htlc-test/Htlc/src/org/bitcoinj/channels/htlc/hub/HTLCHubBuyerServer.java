@@ -32,7 +32,6 @@ import org.bitcoinj.channels.htlc.HTLCServerState;
 import org.bitcoinj.channels.htlc.SignedTransaction;
 import org.bitcoinj.channels.htlc.SignedTransactionWithHash;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
-import org.bitcoinj.channels.htlc.hub.HTLCHubAndroidServer.HTLCRound;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;

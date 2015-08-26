@@ -140,6 +140,7 @@ public class HTLCBuyerDriver {
 				error("Invalid query.");
 			}
 		}
+		
 	}
 	
 	private void waitForData(

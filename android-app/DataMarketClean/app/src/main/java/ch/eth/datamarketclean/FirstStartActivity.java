@@ -1,5 +1,6 @@
 package ch.eth.datamarketclean;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -10,7 +11,7 @@ import android.widget.Button;
 /**
  * Created by frabu on 20.04.2015.
  */
-public class FirstStartActivity extends ActionBarActivity {
+public class FirstStartActivity extends Activity {
 
     private static final String PREFERENCES = "DataMarketPreferences";
     private StartMainActivityButtonClickListener mButtonListener;

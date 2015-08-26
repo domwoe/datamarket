@@ -11,9 +11,8 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:layout_weight="0.09"
-        android:background="#fff0fcff"
         android:layout_margin="0dp"
         android:layout_marginLeft="0dp"
         android:layout_marginTop="0dp"
@@ -27,7 +26,7 @@
             android:text="Wallet: "
             android:id="@+id/WalletLabel"
             android:layout_gravity="left|center_vertical"
-            android:textColor="#ff000000"
+            android:textColor="#FFFFFF"
             android:layout_marginLeft="10dp" />
 
         <TextView
@@ -37,6 +36,19 @@
             android:text="0.000000"
             android:id="@+id/WalletValueLabel"
             android:layout_gravity="center"
-            android:textColor="#ff000000" />
+            android:textColor="#FFFFFF" />
     </FrameLayout>
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:id="@+id/sensor_scroll_view" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sensor_linear_layout"
+            android:orientation="vertical">
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

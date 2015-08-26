@@ -714,8 +714,6 @@ public class HTLCHubAndroidServer {
     		state.attemptBackoff(htlcId, forfeitTx, forfeitSig);
     	}
     	
-    	// TODO: CONTINUE FROM HERE TO GET LIST OF REMAINING HTLCS THAT
-    	// NEED UPDATES REFUNDS AND THEN FORFEITS/SETTLES
     	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCs();
     	List<String> allIds = new ArrayList<String>();
     	List<Integer> allIdxs = new ArrayList<Integer>();
@@ -763,15 +761,11 @@ public class HTLCHubAndroidServer {
     	checkState(step == InitStep.CHANNEL_OPEN);
     	log.info("Received HTLC payment ACK message");
     	Protos.HTLCPaymentAck ack = msg.getHtlcPaymentAck();
-    	ByteString htlcId = ack.getId();
-    	String id = new String(htlcId.toByteArray());
-    	Coin value = paymentValueMap.remove(id);
+    	// TODO: add processing of PaymentAck with Data
+    //	String htlcId = ack.getId();
+    //	Coin value = paymentValueMap.remove(htlcId);
     	// This will cancel the broadcast of the HTLC refund Tx
-    	state.cancelHTLCRefundTxBroadcast(id);
-    	// Let's set the future - we are done with this HTLC
-    	SettableFuture<PaymentIncrementAck> future = 
-			paymentAckFutureMap.get(id);
-    	future.set(new PaymentIncrementAck(value, htlcId));
+    //	state.cancelHTLCRefundTxBroadcast(htlcId);
     }
     
     @GuardedBy("lock")
@@ -859,50 +853,6 @@ public class HTLCHubAndroidServer {
             conn.destroyConnection(CloseReason.SERVER_REQUESTED_CLOSE);
         step = InitStep.CHANNEL_CLOSED;
     }
-    
-	public ListenableFuture<PaymentIncrementAck> incrementPayment(
-		Coin value,
-		@Nullable ByteString arg1,
-		@Nullable KeyParameter arg2
-	) throws ValueOutOfRangeException, IllegalStateException {
-		lock.lock();
-		try {
-			checkState(step == InitStep.CHANNEL_OPEN);
-						
-			final SettableFuture<PaymentIncrementAck> incrementPaymentFuture = 
-				SettableFuture.create();
-			
-			incrementPaymentFuture.addListener(new Runnable() {
-	            @Override
-	            public void run() {
-	                lock.lock();
-	                paymentAckFutureMap.values().remove(incrementPaymentFuture);
-	                lock.unlock();
-	            }
-	        }, MoreExecutors.sameThreadExecutor());
-			
-			// We can generate a UUID to identify the token request response
-			// This UUID will be mirrored back by the server
-			String reqIdString = new String(UUID.randomUUID().toString());
-			paymentAckFutureMap.put(reqIdString, incrementPaymentFuture);
-			paymentValueMap.put(reqIdString, value);
-			
-			Protos.HTLCPayment newPayment = Protos.HTLCPayment.newBuilder()
-				.setRequestId(reqIdString)
-				.setValue(value.getValue())
-				.build();
-			
-			if (canInitHTLCRound()) {
-				currentBatch.add(newPayment);
-				initializeHTLCRound();
-			} else {
-				blockingQueue.put(newPayment);
-			}
-			return incrementPaymentFuture;
-		} finally {
-			lock.unlock();
-		}
-	}
 	
 	private boolean canInitHTLCRound() {
 		return (

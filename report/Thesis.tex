@@ -1,0 +1,105 @@
+\documentclass[a4paper, oneside]{discothesis}
+
+% use utf8 instead of latin1 when using LaTeX in windows
+\usepackage[latin1]{inputenc}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DOCUMENT METADATA
+
+\thesistype{Master Thesis}
+\title{Towards atamarkets with Bitcoin}
+
+\author{Francisc Nicolae Bungiu}
+\email{fbungiu@student@ethz.ch}
+\institute{Distributed Computing Group \\[2pt]
+Computer Engineering and Networks Laboratory \\[2pt]
+ETH Zürich}
+
+% You can put in your own logo here "\includegraphics{...}" or just comment the command
+% \logo{}
+
+\supervisors{Christian Decker, Dominic W{\"o}rner, Laura Peer\\[2pt] Prof.\ Dr.\ Roger Wattenhofer}
+
+% You can comment the following two commands if you don't need them
+% \keywords{Keywords go here.}
+% \categories{ACM categories go here.}
+
+\date{\today}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\frontmatter % do not remove this line
+\maketitle
+
+\cleardoublepage
+
+\begin{acknowledgements}
+	I thank Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+\end{acknowledgements}
+
+
+\begin{abstract}
+
+\hspace*{12pt} In recent years, there has been a widespread expansion of data collection and complex methods to analyze such 
+collected data. Everyone is constantly generating data by using a large range of computers, smartphones, and gadgets.
+In addition, there is an emerging trend towards the Internet-of-Things technologies that consist
+of billions of sensor nodes bridging the gap between the physical and the digital world, and creating massive amounts
+of data, but with no incentive to share. 
+
+	In order to provide an incentive for the sensor node owners to share the generated data, these sensor networks
+have to initiate data markets that interested customers can subscribe to and pay for the acquired data. Bitcoin provides
+an Internet-native payment mechanism and protocols on top of Bitcoin are able to support small payments and avoid 
+high cumulated transaction processing costs.
+
+	This thesis proposes a centralized secure scheme that allows data purchasing from any Internet-connected sensor
+node using the Bitcoin payments. Based on micropayment channels to aggregate payments and minimize transaction fees, 
+and on contracts between the protocol participants to minimize trust, the scheme allows human judgements to be taken
+out of the loop and supports complete automation. 
+\end{abstract}
+
+\tableofcontents
+
+\mainmatter % do not remove this line
+
+% Start writing here
+\chapter{Introduction}
+
+\section{Bitcoin}
+
+\section{Related work}
+
+\chapter{Design}
+
+\chapter{Implementation}
+
+\chapter{Evaluation}
+
+\chapter{Conclusion}
+
+\chapter{References}
+
+\begin{theorem}[First Theorem] \label{thm:first theorem}
+	This is our first theorem.
+\end{theorem}
+
+\begin{proof}
+	And this is the proof of the first theorem with a complicated formula and a reference to Theorem \ref{thm:first theorem}. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+	\begin{equation}
+		{\frac {\mathrm d}{\mathrm dx}}\arctan(\sin({x}^{2}))=-2 \cdot {\frac {\cos({x}^{2})x}{-2+\left (\cos({x}^{2})\right )^{2}}}
+	\end{equation}	
+\end{proof}
+
+And here we cite an external document~\cite{TestReference}.
+
+% This displays the bibliography for all cited external documents. All references have to be defined in the file references.bib and can then be cited from within this document.
+\bibliographystyle{splncs}
+\bibliography{references}
+
+% This creates an appendix chapter, comment if not needed.
+\appendix
+\chapter{Appendix Chapter}
+
+\end{document}

@@ -374,6 +374,7 @@ message HTLCServerUpdate {
 message HTLCPaymentAck {
 	// Sent by the server to the client to ack that the HTLC is confirmed
 	repeated string id = 1;
+	repeated string data = 2;
 }
 
 message HTLCFlow {

@@ -5,7 +5,6 @@ package ch.eth.datamarketclean;
 import ch.eth.datamarketclean.HTLCServiceListener;
 
 interface HTLCServiceApi {
-   void registerDevice(in String device);
    void updateSensors(in List<String> sensors);
    void addListener(HTLCServiceListener listener);
    void removeListener(HTLCServiceListener listener);

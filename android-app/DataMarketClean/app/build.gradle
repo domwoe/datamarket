@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "ch.eth.datamarketclean"
-        minSdkVersion 11
+        minSdkVersion 14
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"

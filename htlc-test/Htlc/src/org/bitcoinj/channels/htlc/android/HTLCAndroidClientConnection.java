@@ -13,7 +13,6 @@ import org.bitcoinj.core.Wallet;
 import org.bitcoinj.net.NioClient;
 import org.bitcoinj.net.ProtobufParser;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
-import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +36,7 @@ public class HTLCAndroidClientConnection extends Thread {
 	private final TransactionBroadcastScheduler broadcastScheduler;
 	private final ECKey key;
 	private final Coin minPayment;
+	private final AppConnection appConn;
 	
 	public HTLCAndroidClientConnection(
 		InetSocketAddress server,
@@ -44,7 +44,8 @@ public class HTLCAndroidClientConnection extends Thread {
 		Wallet wallet,
 		TransactionBroadcastScheduler broadcastScheduler,
 		ECKey key,
-		Coin minPayment
+		Coin minPayment,
+		AppConnection appConn
 	)  {
 		this.server = server;
 		this.timeoutSeconds = timeoutSeconds;
@@ -52,6 +53,11 @@ public class HTLCAndroidClientConnection extends Thread {
 		this.broadcastScheduler = broadcastScheduler;
 		this.key = key;
 		this.minPayment = minPayment;
+		this.appConn = appConn;
+	}
+	
+	public interface AppConnection {
+		List<String> getDataFromSensor(String sensorType);
 	}
 	
 	@Override 
@@ -67,6 +73,11 @@ public class HTLCAndroidClientConnection extends Thread {
 			key,
 			minPayment,
 			new HTLCAndroidClient.ClientConnection() {
+				
+				@Override
+				public List<String> getDataFromSensor(String sensorType) {
+					return appConn.getDataFromSensor(sensorType);
+				}
 				
 				@Override
 	            public void sendToHub(Protos.TwoWayChannelMessage msg) {

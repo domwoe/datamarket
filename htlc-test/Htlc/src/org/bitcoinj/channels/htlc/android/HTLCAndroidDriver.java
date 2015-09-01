@@ -71,7 +71,8 @@ public class HTLCAndroidDriver {
 				appKit.wallet(),
 				broadcastScheduler,
 				key,
-				minPayment
+				minPayment, 
+				null
 			);
 	}
 }

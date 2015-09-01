@@ -283,19 +283,19 @@ public final class Protos {
      */
     org.bitcoin.paymentchannel.Protos.HTLCServerUpdateOrBuilder getHtlcServerUpdateOrBuilder();
 
-    // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;
+    // optional .paymentchannels.HTLCData htlc_data = 21;
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+     * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
      */
-    boolean hasHtlcPaymentAck();
+    boolean hasHtlcData();
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+     * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
      */
-    org.bitcoin.paymentchannel.Protos.HTLCPaymentAck getHtlcPaymentAck();
+    org.bitcoin.paymentchannel.Protos.HTLCData getHtlcData();
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+     * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
      */
-    org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder getHtlcPaymentAckOrBuilder();
+    org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder getHtlcDataOrBuilder();
 
     // optional .paymentchannels.HTLCRoundInit htlc_round_init = 22;
     /**
@@ -670,14 +670,14 @@ public final class Protos {
               break;
             }
             case 170: {
-              org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder subBuilder = null;
+              org.bitcoin.paymentchannel.Protos.HTLCData.Builder subBuilder = null;
               if (((bitField0_ & 0x00040000) == 0x00040000)) {
-                subBuilder = htlcPaymentAck_.toBuilder();
+                subBuilder = htlcData_.toBuilder();
               }
-              htlcPaymentAck_ = input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.PARSER, extensionRegistry);
+              htlcData_ = input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCData.PARSER, extensionRegistry);
               if (subBuilder != null) {
-                subBuilder.mergeFrom(htlcPaymentAck_);
-                htlcPaymentAck_ = subBuilder.buildPartial();
+                subBuilder.mergeFrom(htlcData_);
+                htlcData_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00040000;
               break;
@@ -1567,26 +1567,26 @@ public final class Protos {
       return htlcServerUpdate_;
     }
 
-    // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;
-    public static final int HTLC_PAYMENT_ACK_FIELD_NUMBER = 21;
-    private org.bitcoin.paymentchannel.Protos.HTLCPaymentAck htlcPaymentAck_;
+    // optional .paymentchannels.HTLCData htlc_data = 21;
+    public static final int HTLC_DATA_FIELD_NUMBER = 21;
+    private org.bitcoin.paymentchannel.Protos.HTLCData htlcData_;
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+     * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
      */
-    public boolean hasHtlcPaymentAck() {
+    public boolean hasHtlcData() {
       return ((bitField0_ & 0x00040000) == 0x00040000);
     }
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+     * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
      */
-    public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck getHtlcPaymentAck() {
-      return htlcPaymentAck_;
+    public org.bitcoin.paymentchannel.Protos.HTLCData getHtlcData() {
+      return htlcData_;
     }
     /**
-     * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+     * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
      */
-    public org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder getHtlcPaymentAckOrBuilder() {
-      return htlcPaymentAck_;
+    public org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder getHtlcDataOrBuilder() {
+      return htlcData_;
     }
 
     // optional .paymentchannels.HTLCRoundInit htlc_round_init = 22;
@@ -1718,7 +1718,7 @@ public final class Protos {
       htlcSignedSettleAndForfeit_ = org.bitcoin.paymentchannel.Protos.HTLCSignedSettleAndForfeit.getDefaultInstance();
       htlcSetupComplete_ = org.bitcoin.paymentchannel.Protos.HTLCSetupComplete.getDefaultInstance();
       htlcServerUpdate_ = org.bitcoin.paymentchannel.Protos.HTLCServerUpdate.getDefaultInstance();
-      htlcPaymentAck_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
+      htlcData_ = org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance();
       htlcRoundInit_ = org.bitcoin.paymentchannel.Protos.HTLCRoundInit.getDefaultInstance();
       htlcRoundAck_ = org.bitcoin.paymentchannel.Protos.HTLCRoundAck.getDefaultInstance();
       htlcRoundDone_ = org.bitcoin.paymentchannel.Protos.HTLCRoundDone.getDefaultInstance();
@@ -1824,6 +1824,12 @@ public final class Protos {
           return false;
         }
       }
+      if (hasHtlcData()) {
+        if (!getHtlcData().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
       if (hasHtlcFlow()) {
         if (!getHtlcFlow().isInitialized()) {
           memoizedIsInitialized = 0;
@@ -1895,7 +1901,7 @@ public final class Protos {
         output.writeMessage(19, htlcServerUpdate_);
       }
       if (((bitField0_ & 0x00040000) == 0x00040000)) {
-        output.writeMessage(21, htlcPaymentAck_);
+        output.writeMessage(21, htlcData_);
       }
       if (((bitField0_ & 0x00080000) == 0x00080000)) {
         output.writeMessage(22, htlcRoundInit_);
@@ -1996,7 +2002,7 @@ public final class Protos {
       }
       if (((bitField0_ & 0x00040000) == 0x00040000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(21, htlcPaymentAck_);
+          .computeMessageSize(21, htlcData_);
       }
       if (((bitField0_ & 0x00080000) == 0x00080000)) {
         size += com.google.protobuf.CodedOutputStream
@@ -2145,7 +2151,7 @@ public final class Protos {
           getHtlcSignedSettleAndForfeitFieldBuilder();
           getHtlcSetupCompleteFieldBuilder();
           getHtlcServerUpdateFieldBuilder();
-          getHtlcPaymentAckFieldBuilder();
+          getHtlcDataFieldBuilder();
           getHtlcRoundInitFieldBuilder();
           getHtlcRoundAckFieldBuilder();
           getHtlcRoundDoneFieldBuilder();
@@ -2263,10 +2269,10 @@ public final class Protos {
           htlcServerUpdateBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00020000);
-        if (htlcPaymentAckBuilder_ == null) {
-          htlcPaymentAck_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
+        if (htlcDataBuilder_ == null) {
+          htlcData_ = org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance();
         } else {
-          htlcPaymentAckBuilder_.clear();
+          htlcDataBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00040000);
         if (htlcRoundInitBuilder_ == null) {
@@ -2470,10 +2476,10 @@ public final class Protos {
         if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
           to_bitField0_ |= 0x00040000;
         }
-        if (htlcPaymentAckBuilder_ == null) {
-          result.htlcPaymentAck_ = htlcPaymentAck_;
+        if (htlcDataBuilder_ == null) {
+          result.htlcData_ = htlcData_;
         } else {
-          result.htlcPaymentAck_ = htlcPaymentAckBuilder_.build();
+          result.htlcData_ = htlcDataBuilder_.build();
         }
         if (((from_bitField0_ & 0x00080000) == 0x00080000)) {
           to_bitField0_ |= 0x00080000;
@@ -2585,8 +2591,8 @@ public final class Protos {
         if (other.hasHtlcServerUpdate()) {
           mergeHtlcServerUpdate(other.getHtlcServerUpdate());
         }
-        if (other.hasHtlcPaymentAck()) {
-          mergeHtlcPaymentAck(other.getHtlcPaymentAck());
+        if (other.hasHtlcData()) {
+          mergeHtlcData(other.getHtlcData());
         }
         if (other.hasHtlcRoundInit()) {
           mergeHtlcRoundInit(other.getHtlcRoundInit());
@@ -2698,6 +2704,12 @@ public final class Protos {
         }
         if (hasHtlcServerUpdate()) {
           if (!getHtlcServerUpdate().isInitialized()) {
+            
+            return false;
+          }
+        }
+        if (hasHtlcData()) {
+          if (!getHtlcData().isInitialized()) {
             
             return false;
           }
@@ -4815,121 +4827,121 @@ public final class Protos {
         return htlcServerUpdateBuilder_;
       }
 
-      // optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;
-      private org.bitcoin.paymentchannel.Protos.HTLCPaymentAck htlcPaymentAck_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
+      // optional .paymentchannels.HTLCData htlc_data = 21;
+      private org.bitcoin.paymentchannel.Protos.HTLCData htlcData_ = org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
-          org.bitcoin.paymentchannel.Protos.HTLCPaymentAck, org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder, org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder> htlcPaymentAckBuilder_;
+          org.bitcoin.paymentchannel.Protos.HTLCData, org.bitcoin.paymentchannel.Protos.HTLCData.Builder, org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder> htlcDataBuilder_;
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public boolean hasHtlcPaymentAck() {
+      public boolean hasHtlcData() {
         return ((bitField0_ & 0x00040000) == 0x00040000);
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck getHtlcPaymentAck() {
-        if (htlcPaymentAckBuilder_ == null) {
-          return htlcPaymentAck_;
+      public org.bitcoin.paymentchannel.Protos.HTLCData getHtlcData() {
+        if (htlcDataBuilder_ == null) {
+          return htlcData_;
         } else {
-          return htlcPaymentAckBuilder_.getMessage();
+          return htlcDataBuilder_.getMessage();
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public Builder setHtlcPaymentAck(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck value) {
-        if (htlcPaymentAckBuilder_ == null) {
+      public Builder setHtlcData(org.bitcoin.paymentchannel.Protos.HTLCData value) {
+        if (htlcDataBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          htlcPaymentAck_ = value;
+          htlcData_ = value;
           onChanged();
         } else {
-          htlcPaymentAckBuilder_.setMessage(value);
+          htlcDataBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00040000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public Builder setHtlcPaymentAck(
-          org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder builderForValue) {
-        if (htlcPaymentAckBuilder_ == null) {
-          htlcPaymentAck_ = builderForValue.build();
+      public Builder setHtlcData(
+          org.bitcoin.paymentchannel.Protos.HTLCData.Builder builderForValue) {
+        if (htlcDataBuilder_ == null) {
+          htlcData_ = builderForValue.build();
           onChanged();
         } else {
-          htlcPaymentAckBuilder_.setMessage(builderForValue.build());
+          htlcDataBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00040000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public Builder mergeHtlcPaymentAck(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck value) {
-        if (htlcPaymentAckBuilder_ == null) {
+      public Builder mergeHtlcData(org.bitcoin.paymentchannel.Protos.HTLCData value) {
+        if (htlcDataBuilder_ == null) {
           if (((bitField0_ & 0x00040000) == 0x00040000) &&
-              htlcPaymentAck_ != org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance()) {
-            htlcPaymentAck_ =
-              org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.newBuilder(htlcPaymentAck_).mergeFrom(value).buildPartial();
+              htlcData_ != org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance()) {
+            htlcData_ =
+              org.bitcoin.paymentchannel.Protos.HTLCData.newBuilder(htlcData_).mergeFrom(value).buildPartial();
           } else {
-            htlcPaymentAck_ = value;
+            htlcData_ = value;
           }
           onChanged();
         } else {
-          htlcPaymentAckBuilder_.mergeFrom(value);
+          htlcDataBuilder_.mergeFrom(value);
         }
         bitField0_ |= 0x00040000;
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public Builder clearHtlcPaymentAck() {
-        if (htlcPaymentAckBuilder_ == null) {
-          htlcPaymentAck_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
+      public Builder clearHtlcData() {
+        if (htlcDataBuilder_ == null) {
+          htlcData_ = org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance();
           onChanged();
         } else {
-          htlcPaymentAckBuilder_.clear();
+          htlcDataBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00040000);
         return this;
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder getHtlcPaymentAckBuilder() {
+      public org.bitcoin.paymentchannel.Protos.HTLCData.Builder getHtlcDataBuilder() {
         bitField0_ |= 0x00040000;
         onChanged();
-        return getHtlcPaymentAckFieldBuilder().getBuilder();
+        return getHtlcDataFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
-      public org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder getHtlcPaymentAckOrBuilder() {
-        if (htlcPaymentAckBuilder_ != null) {
-          return htlcPaymentAckBuilder_.getMessageOrBuilder();
+      public org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder getHtlcDataOrBuilder() {
+        if (htlcDataBuilder_ != null) {
+          return htlcDataBuilder_.getMessageOrBuilder();
         } else {
-          return htlcPaymentAck_;
+          return htlcData_;
         }
       }
       /**
-       * <code>optional .paymentchannels.HTLCPaymentAck htlc_payment_ack = 21;</code>
+       * <code>optional .paymentchannels.HTLCData htlc_data = 21;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          org.bitcoin.paymentchannel.Protos.HTLCPaymentAck, org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder, org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder> 
-          getHtlcPaymentAckFieldBuilder() {
-        if (htlcPaymentAckBuilder_ == null) {
-          htlcPaymentAckBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              org.bitcoin.paymentchannel.Protos.HTLCPaymentAck, org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder, org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder>(
-                  htlcPaymentAck_,
+          org.bitcoin.paymentchannel.Protos.HTLCData, org.bitcoin.paymentchannel.Protos.HTLCData.Builder, org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder> 
+          getHtlcDataFieldBuilder() {
+        if (htlcDataBuilder_ == null) {
+          htlcDataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              org.bitcoin.paymentchannel.Protos.HTLCData, org.bitcoin.paymentchannel.Protos.HTLCData.Builder, org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder>(
+                  htlcData_,
                   getParentForChildren(),
                   isClean());
-          htlcPaymentAck_ = null;
+          htlcData_ = null;
         }
-        return htlcPaymentAckBuilder_;
+        return htlcDataBuilder_;
       }
 
       // optional .paymentchannels.HTLCRoundInit htlc_round_init = 22;
@@ -23243,756 +23255,6 @@ public final class Protos {
     // @@protoc_insertion_point(class_scope:paymentchannels.HTLCServerUpdate)
   }
 
-  public interface HTLCPaymentAckOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
-
-    // repeated string id = 1;
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    java.util.List<java.lang.String>
-    getIdList();
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    int getIdCount();
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    java.lang.String getId(int index);
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    com.google.protobuf.ByteString
-        getIdBytes(int index);
-
-    // repeated string data = 2;
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    java.util.List<java.lang.String>
-    getDataList();
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    int getDataCount();
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    java.lang.String getData(int index);
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    com.google.protobuf.ByteString
-        getDataBytes(int index);
-  }
-  /**
-   * Protobuf type {@code paymentchannels.HTLCPaymentAck}
-   */
-  public static final class HTLCPaymentAck extends
-      com.google.protobuf.GeneratedMessage
-      implements HTLCPaymentAckOrBuilder {
-    // Use HTLCPaymentAck.newBuilder() to construct.
-    private HTLCPaymentAck(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-      this.unknownFields = builder.getUnknownFields();
-    }
-    private HTLCPaymentAck(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
-
-    private static final HTLCPaymentAck defaultInstance;
-    public static HTLCPaymentAck getDefaultInstance() {
-      return defaultInstance;
-    }
-
-    public HTLCPaymentAck getDefaultInstanceForType() {
-      return defaultInstance;
-    }
-
-    private final com.google.protobuf.UnknownFieldSet unknownFields;
-    @java.lang.Override
-    public final com.google.protobuf.UnknownFieldSet
-        getUnknownFields() {
-      return this.unknownFields;
-    }
-    private HTLCPaymentAck(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      initFields();
-      int mutable_bitField0_ = 0;
-      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
-          com.google.protobuf.UnknownFieldSet.newBuilder();
-      try {
-        boolean done = false;
-        while (!done) {
-          int tag = input.readTag();
-          switch (tag) {
-            case 0:
-              done = true;
-              break;
-            default: {
-              if (!parseUnknownField(input, unknownFields,
-                                     extensionRegistry, tag)) {
-                done = true;
-              }
-              break;
-            }
-            case 10: {
-              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                id_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000001;
-              }
-              id_.add(input.readBytes());
-              break;
-            }
-            case 18: {
-              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-                data_ = new com.google.protobuf.LazyStringArrayList();
-                mutable_bitField0_ |= 0x00000002;
-              }
-              data_.add(input.readBytes());
-              break;
-            }
-          }
-        }
-      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        throw e.setUnfinishedMessage(this);
-      } catch (java.io.IOException e) {
-        throw new com.google.protobuf.InvalidProtocolBufferException(
-            e.getMessage()).setUnfinishedMessage(this);
-      } finally {
-        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-          id_ = new com.google.protobuf.UnmodifiableLazyStringList(id_);
-        }
-        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
-          data_ = new com.google.protobuf.UnmodifiableLazyStringList(data_);
-        }
-        this.unknownFields = unknownFields.build();
-        makeExtensionsImmutable();
-      }
-    }
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCPaymentAck_descriptor;
-    }
-
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCPaymentAck_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.class, org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder.class);
-    }
-
-    public static com.google.protobuf.Parser<HTLCPaymentAck> PARSER =
-        new com.google.protobuf.AbstractParser<HTLCPaymentAck>() {
-      public HTLCPaymentAck parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        return new HTLCPaymentAck(input, extensionRegistry);
-      }
-    };
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<HTLCPaymentAck> getParserForType() {
-      return PARSER;
-    }
-
-    // repeated string id = 1;
-    public static final int ID_FIELD_NUMBER = 1;
-    private com.google.protobuf.LazyStringList id_;
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    public java.util.List<java.lang.String>
-        getIdList() {
-      return id_;
-    }
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    public int getIdCount() {
-      return id_.size();
-    }
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    public java.lang.String getId(int index) {
-      return id_.get(index);
-    }
-    /**
-     * <code>repeated string id = 1;</code>
-     *
-     * <pre>
-     * Sent by the server to the client to ack that the HTLC is confirmed
-     * </pre>
-     */
-    public com.google.protobuf.ByteString
-        getIdBytes(int index) {
-      return id_.getByteString(index);
-    }
-
-    // repeated string data = 2;
-    public static final int DATA_FIELD_NUMBER = 2;
-    private com.google.protobuf.LazyStringList data_;
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    public java.util.List<java.lang.String>
-        getDataList() {
-      return data_;
-    }
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    public int getDataCount() {
-      return data_.size();
-    }
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    public java.lang.String getData(int index) {
-      return data_.get(index);
-    }
-    /**
-     * <code>repeated string data = 2;</code>
-     */
-    public com.google.protobuf.ByteString
-        getDataBytes(int index) {
-      return data_.getByteString(index);
-    }
-
-    private void initFields() {
-      id_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    }
-    private byte memoizedIsInitialized = -1;
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getSerializedSize();
-      for (int i = 0; i < id_.size(); i++) {
-        output.writeBytes(1, id_.getByteString(i));
-      }
-      for (int i = 0; i < data_.size(); i++) {
-        output.writeBytes(2, data_.getByteString(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    private int memoizedSerializedSize = -1;
-    public int getSerializedSize() {
-      int size = memoizedSerializedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      {
-        int dataSize = 0;
-        for (int i = 0; i < id_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(id_.getByteString(i));
-        }
-        size += dataSize;
-        size += 1 * getIdList().size();
-      }
-      {
-        int dataSize = 0;
-        for (int i = 0; i < data_.size(); i++) {
-          dataSize += com.google.protobuf.CodedOutputStream
-            .computeBytesSizeNoTag(data_.getByteString(i));
-        }
-        size += dataSize;
-        size += 1 * getDataList().size();
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSerializedSize = size;
-      return size;
-    }
-
-    private static final long serialVersionUID = 0L;
-    @java.lang.Override
-    protected java.lang.Object writeReplace()
-        throws java.io.ObjectStreamException {
-      return super.writeReplace();
-    }
-
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseDelimitedFrom(input, extensionRegistry);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input);
-    }
-    public static org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return PARSER.parseFrom(input, extensionRegistry);
-    }
-
-    public static Builder newBuilder() { return Builder.create(); }
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck prototype) {
-      return newBuilder().mergeFrom(prototype);
-    }
-    public Builder toBuilder() { return newBuilder(this); }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code paymentchannels.HTLCPaymentAck}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements org.bitcoin.paymentchannel.Protos.HTLCPaymentAckOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCPaymentAck_descriptor;
-      }
-
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCPaymentAck_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.class, org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.Builder.class);
-      }
-
-      // Construct using org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
-        }
-      }
-      private static Builder create() {
-        return new Builder();
-      }
-
-      public Builder clear() {
-        super.clear();
-        id_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
-        return this;
-      }
-
-      public Builder clone() {
-        return create().mergeFrom(buildPartial());
-      }
-
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCPaymentAck_descriptor;
-      }
-
-      public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck getDefaultInstanceForType() {
-        return org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance();
-      }
-
-      public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck build() {
-        org.bitcoin.paymentchannel.Protos.HTLCPaymentAck result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      public org.bitcoin.paymentchannel.Protos.HTLCPaymentAck buildPartial() {
-        org.bitcoin.paymentchannel.Protos.HTLCPaymentAck result = new org.bitcoin.paymentchannel.Protos.HTLCPaymentAck(this);
-        int from_bitField0_ = bitField0_;
-        if (((bitField0_ & 0x00000001) == 0x00000001)) {
-          id_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              id_);
-          bitField0_ = (bitField0_ & ~0x00000001);
-        }
-        result.id_ = id_;
-        if (((bitField0_ & 0x00000002) == 0x00000002)) {
-          data_ = new com.google.protobuf.UnmodifiableLazyStringList(
-              data_);
-          bitField0_ = (bitField0_ & ~0x00000002);
-        }
-        result.data_ = data_;
-        onBuilt();
-        return result;
-      }
-
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof org.bitcoin.paymentchannel.Protos.HTLCPaymentAck) {
-          return mergeFrom((org.bitcoin.paymentchannel.Protos.HTLCPaymentAck)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(org.bitcoin.paymentchannel.Protos.HTLCPaymentAck other) {
-        if (other == org.bitcoin.paymentchannel.Protos.HTLCPaymentAck.getDefaultInstance()) return this;
-        if (!other.id_.isEmpty()) {
-          if (id_.isEmpty()) {
-            id_ = other.id_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-          } else {
-            ensureIdIsMutable();
-            id_.addAll(other.id_);
-          }
-          onChanged();
-        }
-        if (!other.data_.isEmpty()) {
-          if (data_.isEmpty()) {
-            data_ = other.data_;
-            bitField0_ = (bitField0_ & ~0x00000002);
-          } else {
-            ensureDataIsMutable();
-            data_.addAll(other.data_);
-          }
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        return this;
-      }
-
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        org.bitcoin.paymentchannel.Protos.HTLCPaymentAck parsedMessage = null;
-        try {
-          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          parsedMessage = (org.bitcoin.paymentchannel.Protos.HTLCPaymentAck) e.getUnfinishedMessage();
-          throw e;
-        } finally {
-          if (parsedMessage != null) {
-            mergeFrom(parsedMessage);
-          }
-        }
-        return this;
-      }
-      private int bitField0_;
-
-      // repeated string id = 1;
-      private com.google.protobuf.LazyStringList id_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureIdIsMutable() {
-        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          id_ = new com.google.protobuf.LazyStringArrayList(id_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public java.util.List<java.lang.String>
-          getIdList() {
-        return java.util.Collections.unmodifiableList(id_);
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public int getIdCount() {
-        return id_.size();
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public java.lang.String getId(int index) {
-        return id_.get(index);
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public com.google.protobuf.ByteString
-          getIdBytes(int index) {
-        return id_.getByteString(index);
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public Builder setId(
-          int index, java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureIdIsMutable();
-        id_.set(index, value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public Builder addId(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureIdIsMutable();
-        id_.add(value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public Builder addAllId(
-          java.lang.Iterable<java.lang.String> values) {
-        ensureIdIsMutable();
-        super.addAll(values, id_);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public Builder clearId() {
-        id_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string id = 1;</code>
-       *
-       * <pre>
-       * Sent by the server to the client to ack that the HTLC is confirmed
-       * </pre>
-       */
-      public Builder addIdBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureIdIsMutable();
-        id_.add(value);
-        onChanged();
-        return this;
-      }
-
-      // repeated string data = 2;
-      private com.google.protobuf.LazyStringList data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      private void ensureDataIsMutable() {
-        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
-          data_ = new com.google.protobuf.LazyStringArrayList(data_);
-          bitField0_ |= 0x00000002;
-         }
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public java.util.List<java.lang.String>
-          getDataList() {
-        return java.util.Collections.unmodifiableList(data_);
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public int getDataCount() {
-        return data_.size();
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public java.lang.String getData(int index) {
-        return data_.get(index);
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public com.google.protobuf.ByteString
-          getDataBytes(int index) {
-        return data_.getByteString(index);
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public Builder setData(
-          int index, java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataIsMutable();
-        data_.set(index, value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public Builder addData(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataIsMutable();
-        data_.add(value);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public Builder addAllData(
-          java.lang.Iterable<java.lang.String> values) {
-        ensureDataIsMutable();
-        super.addAll(values, data_);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public Builder clearData() {
-        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>repeated string data = 2;</code>
-       */
-      public Builder addDataBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureDataIsMutable();
-        data_.add(value);
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:paymentchannels.HTLCPaymentAck)
-    }
-
-    static {
-      defaultInstance = new HTLCPaymentAck(true);
-      defaultInstance.initFields();
-    }
-
-    // @@protoc_insertion_point(class_scope:paymentchannels.HTLCPaymentAck)
-  }
-
   public interface HTLCFlowOrBuilder
       extends com.google.protobuf.MessageOrBuilder {
 
@@ -24104,6 +23366,31 @@ public final class Protos {
      * <code>optional .paymentchannels.HTLCResumeSetup resume_setup = 8;</code>
      */
     org.bitcoin.paymentchannel.Protos.HTLCResumeSetupOrBuilder getResumeSetupOrBuilder();
+
+    // repeated .paymentchannels.HTLCData data = 9;
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    java.util.List<org.bitcoin.paymentchannel.Protos.HTLCData> 
+        getDataList();
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    org.bitcoin.paymentchannel.Protos.HTLCData getData(int index);
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    int getDataCount();
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    java.util.List<? extends org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder> 
+        getDataOrBuilderList();
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder getDataOrBuilder(
+        int index);
   }
   /**
    * Protobuf type {@code paymentchannels.HTLCFlow}
@@ -24250,6 +23537,14 @@ public final class Protos {
               bitField0_ |= 0x00000080;
               break;
             }
+            case 74: {
+              if (!((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+                data_ = new java.util.ArrayList<org.bitcoin.paymentchannel.Protos.HTLCData>();
+                mutable_bitField0_ |= 0x00000100;
+              }
+              data_.add(input.readMessage(org.bitcoin.paymentchannel.Protos.HTLCData.PARSER, extensionRegistry));
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -24258,6 +23553,9 @@ public final class Protos {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000100) == 0x00000100)) {
+          data_ = java.util.Collections.unmodifiableList(data_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -24326,6 +23624,10 @@ public final class Protos {
        * <code>RESUME_SETUP = 8;</code>
        */
       RESUME_SETUP(7, 8),
+      /**
+       * <code>DATA = 9;</code>
+       */
+      DATA(8, 9),
       ;
 
       /**
@@ -24360,6 +23662,10 @@ public final class Protos {
        * <code>RESUME_SETUP = 8;</code>
        */
       public static final int RESUME_SETUP_VALUE = 8;
+      /**
+       * <code>DATA = 9;</code>
+       */
+      public static final int DATA_VALUE = 9;
 
 
       public final int getNumber() { return value; }
@@ -24374,6 +23680,7 @@ public final class Protos {
           case 6: return SELECT;
           case 7: return PAYMENT_INFO;
           case 8: return RESUME_SETUP;
+          case 9: return DATA;
           default: return null;
         }
       }
@@ -24617,6 +23924,42 @@ public final class Protos {
       return resumeSetup_;
     }
 
+    // repeated .paymentchannels.HTLCData data = 9;
+    public static final int DATA_FIELD_NUMBER = 9;
+    private java.util.List<org.bitcoin.paymentchannel.Protos.HTLCData> data_;
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    public java.util.List<org.bitcoin.paymentchannel.Protos.HTLCData> getDataList() {
+      return data_;
+    }
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    public java.util.List<? extends org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder> 
+        getDataOrBuilderList() {
+      return data_;
+    }
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    public int getDataCount() {
+      return data_.size();
+    }
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    public org.bitcoin.paymentchannel.Protos.HTLCData getData(int index) {
+      return data_.get(index);
+    }
+    /**
+     * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+     */
+    public org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder getDataOrBuilder(
+        int index) {
+      return data_.get(index);
+    }
+
     private void initFields() {
       type_ = org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType.NODE_STATS;
       id_ = "";
@@ -24626,6 +23969,7 @@ public final class Protos {
       selectData_ = org.bitcoin.paymentchannel.Protos.HTLCSelectData.getDefaultInstance();
       paymentInfo_ = org.bitcoin.paymentchannel.Protos.HTLCPaymentInfo.getDefaultInstance();
       resumeSetup_ = org.bitcoin.paymentchannel.Protos.HTLCResumeSetup.getDefaultInstance();
+      data_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -24638,6 +23982,12 @@ public final class Protos {
       }
       if (hasSelectData()) {
         if (!getSelectData().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      for (int i = 0; i < getDataCount(); i++) {
+        if (!getData(i).isInitialized()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -24672,6 +24022,9 @@ public final class Protos {
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         output.writeMessage(8, resumeSetup_);
+      }
+      for (int i = 0; i < data_.size(); i++) {
+        output.writeMessage(9, data_.get(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -24713,6 +24066,10 @@ public final class Protos {
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(8, resumeSetup_);
+      }
+      for (int i = 0; i < data_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(9, data_.get(i));
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -24828,6 +24185,7 @@ public final class Protos {
           getSelectDataFieldBuilder();
           getPaymentInfoFieldBuilder();
           getResumeSetupFieldBuilder();
+          getDataFieldBuilder();
         }
       }
       private static Builder create() {
@@ -24876,6 +24234,12 @@ public final class Protos {
           resumeSetupBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000080);
+        if (dataBuilder_ == null) {
+          data_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000100);
+        } else {
+          dataBuilder_.clear();
+        }
         return this;
       }
 
@@ -24960,6 +24324,15 @@ public final class Protos {
         } else {
           result.resumeSetup_ = resumeSetupBuilder_.build();
         }
+        if (dataBuilder_ == null) {
+          if (((bitField0_ & 0x00000100) == 0x00000100)) {
+            data_ = java.util.Collections.unmodifiableList(data_);
+            bitField0_ = (bitField0_ & ~0x00000100);
+          }
+          result.data_ = data_;
+        } else {
+          result.data_ = dataBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -25002,6 +24375,32 @@ public final class Protos {
         if (other.hasResumeSetup()) {
           mergeResumeSetup(other.getResumeSetup());
         }
+        if (dataBuilder_ == null) {
+          if (!other.data_.isEmpty()) {
+            if (data_.isEmpty()) {
+              data_ = other.data_;
+              bitField0_ = (bitField0_ & ~0x00000100);
+            } else {
+              ensureDataIsMutable();
+              data_.addAll(other.data_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.data_.isEmpty()) {
+            if (dataBuilder_.isEmpty()) {
+              dataBuilder_.dispose();
+              dataBuilder_ = null;
+              data_ = other.data_;
+              bitField0_ = (bitField0_ & ~0x00000100);
+              dataBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getDataFieldBuilder() : null;
+            } else {
+              dataBuilder_.addAllMessages(other.data_);
+            }
+          }
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -25013,6 +24412,12 @@ public final class Protos {
         }
         if (hasSelectData()) {
           if (!getSelectData().isInitialized()) {
+            
+            return false;
+          }
+        }
+        for (int i = 0; i < getDataCount(); i++) {
+          if (!getData(i).isInitialized()) {
             
             return false;
           }
@@ -25851,6 +25256,246 @@ public final class Protos {
         return resumeSetupBuilder_;
       }
 
+      // repeated .paymentchannels.HTLCData data = 9;
+      private java.util.List<org.bitcoin.paymentchannel.Protos.HTLCData> data_ =
+        java.util.Collections.emptyList();
+      private void ensureDataIsMutable() {
+        if (!((bitField0_ & 0x00000100) == 0x00000100)) {
+          data_ = new java.util.ArrayList<org.bitcoin.paymentchannel.Protos.HTLCData>(data_);
+          bitField0_ |= 0x00000100;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          org.bitcoin.paymentchannel.Protos.HTLCData, org.bitcoin.paymentchannel.Protos.HTLCData.Builder, org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder> dataBuilder_;
+
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public java.util.List<org.bitcoin.paymentchannel.Protos.HTLCData> getDataList() {
+        if (dataBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(data_);
+        } else {
+          return dataBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public int getDataCount() {
+        if (dataBuilder_ == null) {
+          return data_.size();
+        } else {
+          return dataBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCData getData(int index) {
+        if (dataBuilder_ == null) {
+          return data_.get(index);
+        } else {
+          return dataBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder setData(
+          int index, org.bitcoin.paymentchannel.Protos.HTLCData value) {
+        if (dataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureDataIsMutable();
+          data_.set(index, value);
+          onChanged();
+        } else {
+          dataBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder setData(
+          int index, org.bitcoin.paymentchannel.Protos.HTLCData.Builder builderForValue) {
+        if (dataBuilder_ == null) {
+          ensureDataIsMutable();
+          data_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          dataBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder addData(org.bitcoin.paymentchannel.Protos.HTLCData value) {
+        if (dataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureDataIsMutable();
+          data_.add(value);
+          onChanged();
+        } else {
+          dataBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder addData(
+          int index, org.bitcoin.paymentchannel.Protos.HTLCData value) {
+        if (dataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureDataIsMutable();
+          data_.add(index, value);
+          onChanged();
+        } else {
+          dataBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder addData(
+          org.bitcoin.paymentchannel.Protos.HTLCData.Builder builderForValue) {
+        if (dataBuilder_ == null) {
+          ensureDataIsMutable();
+          data_.add(builderForValue.build());
+          onChanged();
+        } else {
+          dataBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder addData(
+          int index, org.bitcoin.paymentchannel.Protos.HTLCData.Builder builderForValue) {
+        if (dataBuilder_ == null) {
+          ensureDataIsMutable();
+          data_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          dataBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder addAllData(
+          java.lang.Iterable<? extends org.bitcoin.paymentchannel.Protos.HTLCData> values) {
+        if (dataBuilder_ == null) {
+          ensureDataIsMutable();
+          super.addAll(values, data_);
+          onChanged();
+        } else {
+          dataBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder clearData() {
+        if (dataBuilder_ == null) {
+          data_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000100);
+          onChanged();
+        } else {
+          dataBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public Builder removeData(int index) {
+        if (dataBuilder_ == null) {
+          ensureDataIsMutable();
+          data_.remove(index);
+          onChanged();
+        } else {
+          dataBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCData.Builder getDataBuilder(
+          int index) {
+        return getDataFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder getDataOrBuilder(
+          int index) {
+        if (dataBuilder_ == null) {
+          return data_.get(index);  } else {
+          return dataBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public java.util.List<? extends org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder> 
+           getDataOrBuilderList() {
+        if (dataBuilder_ != null) {
+          return dataBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(data_);
+        }
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCData.Builder addDataBuilder() {
+        return getDataFieldBuilder().addBuilder(
+            org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public org.bitcoin.paymentchannel.Protos.HTLCData.Builder addDataBuilder(
+          int index) {
+        return getDataFieldBuilder().addBuilder(
+            index, org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .paymentchannels.HTLCData data = 9;</code>
+       */
+      public java.util.List<org.bitcoin.paymentchannel.Protos.HTLCData.Builder> 
+           getDataBuilderList() {
+        return getDataFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          org.bitcoin.paymentchannel.Protos.HTLCData, org.bitcoin.paymentchannel.Protos.HTLCData.Builder, org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder> 
+          getDataFieldBuilder() {
+        if (dataBuilder_ == null) {
+          dataBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              org.bitcoin.paymentchannel.Protos.HTLCData, org.bitcoin.paymentchannel.Protos.HTLCData.Builder, org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder>(
+                  data_,
+                  ((bitField0_ & 0x00000100) == 0x00000100),
+                  getParentForChildren(),
+                  isClean());
+          data_ = null;
+        }
+        return dataBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:paymentchannels.HTLCFlow)
     }
 
@@ -25860,6 +25505,730 @@ public final class Protos {
     }
 
     // @@protoc_insertion_point(class_scope:paymentchannels.HTLCFlow)
+  }
+
+  public interface HTLCDataOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // required string id = 1;
+    /**
+     * <code>required string id = 1;</code>
+     *
+     * <pre>
+     * Sent by the server to the client to transfer the actual data
+     * that the client paid for in a successful transaction
+     * </pre>
+     */
+    boolean hasId();
+    /**
+     * <code>required string id = 1;</code>
+     *
+     * <pre>
+     * Sent by the server to the client to transfer the actual data
+     * that the client paid for in a successful transaction
+     * </pre>
+     */
+    java.lang.String getId();
+    /**
+     * <code>required string id = 1;</code>
+     *
+     * <pre>
+     * Sent by the server to the client to transfer the actual data
+     * that the client paid for in a successful transaction
+     * </pre>
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    // repeated string data = 2;
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    java.util.List<java.lang.String>
+    getDataList();
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    int getDataCount();
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    java.lang.String getData(int index);
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getDataBytes(int index);
+  }
+  /**
+   * Protobuf type {@code paymentchannels.HTLCData}
+   */
+  public static final class HTLCData extends
+      com.google.protobuf.GeneratedMessage
+      implements HTLCDataOrBuilder {
+    // Use HTLCData.newBuilder() to construct.
+    private HTLCData(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private HTLCData(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final HTLCData defaultInstance;
+    public static HTLCData getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public HTLCData getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private HTLCData(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              bitField0_ |= 0x00000001;
+              id_ = input.readBytes();
+              break;
+            }
+            case 18: {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+                data_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000002;
+              }
+              data_.add(input.readBytes());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
+          data_ = new com.google.protobuf.UnmodifiableLazyStringList(data_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCData_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCData_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.bitcoin.paymentchannel.Protos.HTLCData.class, org.bitcoin.paymentchannel.Protos.HTLCData.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<HTLCData> PARSER =
+        new com.google.protobuf.AbstractParser<HTLCData>() {
+      public HTLCData parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new HTLCData(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<HTLCData> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // required string id = 1;
+    public static final int ID_FIELD_NUMBER = 1;
+    private java.lang.Object id_;
+    /**
+     * <code>required string id = 1;</code>
+     *
+     * <pre>
+     * Sent by the server to the client to transfer the actual data
+     * that the client paid for in a successful transaction
+     * </pre>
+     */
+    public boolean hasId() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required string id = 1;</code>
+     *
+     * <pre>
+     * Sent by the server to the client to transfer the actual data
+     * that the client paid for in a successful transaction
+     * </pre>
+     */
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          id_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>required string id = 1;</code>
+     *
+     * <pre>
+     * Sent by the server to the client to transfer the actual data
+     * that the client paid for in a successful transaction
+     * </pre>
+     */
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // repeated string data = 2;
+    public static final int DATA_FIELD_NUMBER = 2;
+    private com.google.protobuf.LazyStringList data_;
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    public java.util.List<java.lang.String>
+        getDataList() {
+      return data_;
+    }
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    public int getDataCount() {
+      return data_.size();
+    }
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    public java.lang.String getData(int index) {
+      return data_.get(index);
+    }
+    /**
+     * <code>repeated string data = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDataBytes(int index) {
+      return data_.getByteString(index);
+    }
+
+    private void initFields() {
+      id_ = "";
+      data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      if (!hasId()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getIdBytes());
+      }
+      for (int i = 0; i < data_.size(); i++) {
+        output.writeBytes(2, data_.getByteString(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getIdBytes());
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < data_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(data_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getDataList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.bitcoin.paymentchannel.Protos.HTLCData parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.bitcoin.paymentchannel.Protos.HTLCData prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code paymentchannels.HTLCData}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.bitcoin.paymentchannel.Protos.HTLCDataOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCData_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCData_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.bitcoin.paymentchannel.Protos.HTLCData.class, org.bitcoin.paymentchannel.Protos.HTLCData.Builder.class);
+      }
+
+      // Construct using org.bitcoin.paymentchannel.Protos.HTLCData.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        id_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.bitcoin.paymentchannel.Protos.internal_static_paymentchannels_HTLCData_descriptor;
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCData getDefaultInstanceForType() {
+        return org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance();
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCData build() {
+        org.bitcoin.paymentchannel.Protos.HTLCData result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.bitcoin.paymentchannel.Protos.HTLCData buildPartial() {
+        org.bitcoin.paymentchannel.Protos.HTLCData result = new org.bitcoin.paymentchannel.Protos.HTLCData(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.id_ = id_;
+        if (((bitField0_ & 0x00000002) == 0x00000002)) {
+          data_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              data_);
+          bitField0_ = (bitField0_ & ~0x00000002);
+        }
+        result.data_ = data_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.bitcoin.paymentchannel.Protos.HTLCData) {
+          return mergeFrom((org.bitcoin.paymentchannel.Protos.HTLCData)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.bitcoin.paymentchannel.Protos.HTLCData other) {
+        if (other == org.bitcoin.paymentchannel.Protos.HTLCData.getDefaultInstance()) return this;
+        if (other.hasId()) {
+          bitField0_ |= 0x00000001;
+          id_ = other.id_;
+          onChanged();
+        }
+        if (!other.data_.isEmpty()) {
+          if (data_.isEmpty()) {
+            data_ = other.data_;
+            bitField0_ = (bitField0_ & ~0x00000002);
+          } else {
+            ensureDataIsMutable();
+            data_.addAll(other.data_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        if (!hasId()) {
+          
+          return false;
+        }
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.bitcoin.paymentchannel.Protos.HTLCData parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.bitcoin.paymentchannel.Protos.HTLCData) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // required string id = 1;
+      private java.lang.Object id_ = "";
+      /**
+       * <code>required string id = 1;</code>
+       *
+       * <pre>
+       * Sent by the server to the client to transfer the actual data
+       * that the client paid for in a successful transaction
+       * </pre>
+       */
+      public boolean hasId() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required string id = 1;</code>
+       *
+       * <pre>
+       * Sent by the server to the client to transfer the actual data
+       * that the client paid for in a successful transaction
+       * </pre>
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>required string id = 1;</code>
+       *
+       * <pre>
+       * Sent by the server to the client to transfer the actual data
+       * that the client paid for in a successful transaction
+       * </pre>
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>required string id = 1;</code>
+       *
+       * <pre>
+       * Sent by the server to the client to transfer the actual data
+       * that the client paid for in a successful transaction
+       * </pre>
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string id = 1;</code>
+       *
+       * <pre>
+       * Sent by the server to the client to transfer the actual data
+       * that the client paid for in a successful transaction
+       * </pre>
+       */
+      public Builder clearId() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        id_ = getDefaultInstance().getId();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required string id = 1;</code>
+       *
+       * <pre>
+       * Sent by the server to the client to transfer the actual data
+       * that the client paid for in a successful transaction
+       * </pre>
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        id_ = value;
+        onChanged();
+        return this;
+      }
+
+      // repeated string data = 2;
+      private com.google.protobuf.LazyStringList data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureDataIsMutable() {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
+          data_ = new com.google.protobuf.LazyStringArrayList(data_);
+          bitField0_ |= 0x00000002;
+         }
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public java.util.List<java.lang.String>
+          getDataList() {
+        return java.util.Collections.unmodifiableList(data_);
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public int getDataCount() {
+        return data_.size();
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public java.lang.String getData(int index) {
+        return data_.get(index);
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDataBytes(int index) {
+        return data_.getByteString(index);
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public Builder setData(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureDataIsMutable();
+        data_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public Builder addData(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureDataIsMutable();
+        data_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public Builder addAllData(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureDataIsMutable();
+        super.addAll(values, data_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public Builder clearData() {
+        data_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string data = 2;</code>
+       */
+      public Builder addDataBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureDataIsMutable();
+        data_.add(value);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:paymentchannels.HTLCData)
+    }
+
+    static {
+      defaultInstance = new HTLCData(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:paymentchannels.HTLCData)
   }
 
   public interface HTLCRegisterSensorsOrBuilder
@@ -30823,15 +31192,15 @@ public final class Protos {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_paymentchannels_HTLCServerUpdate_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
-    internal_static_paymentchannels_HTLCPaymentAck_descriptor;
-  private static
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_paymentchannels_HTLCPaymentAck_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_paymentchannels_HTLCFlow_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_paymentchannels_HTLCFlow_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_paymentchannels_HTLCData_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_paymentchannels_HTLCData_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
     internal_static_paymentchannels_HTLCRegisterSensors_descriptor;
   private static
@@ -30877,7 +31246,7 @@ public final class Protos {
   static {
     java.lang.String[] descriptorData = {
       "\n\024paymentchannel.proto\022\017paymentchannels\"" +
-      "\235\017\n\024TwoWayChannelMessage\022?\n\004type\030\001 \002(\01621" +
+      "\220\017\n\024TwoWayChannelMessage\022?\n\004type\030\001 \002(\01621" +
       ".paymentchannels.TwoWayChannelMessage.Me" +
       "ssageType\0226\n\016client_version\030\002 \001(\0132\036.paym" +
       "entchannels.ClientVersion\0226\n\016server_vers" +
@@ -30904,106 +31273,107 @@ public final class Protos {
       "CSignedSettleAndForfeit\022?\n\023htlc_setup_co" +
       "mplete\030\022 \001(\0132\".paymentchannels.HTLCSetup" +
       "Complete\022=\n\022htlc_server_update\030\023 \001(\0132!.p" +
-      "aymentchannels.HTLCServerUpdate\0229\n\020htlc_" +
-      "payment_ack\030\025 \001(\0132\037.paymentchannels.HTLC",
-      "PaymentAck\0227\n\017htlc_round_init\030\026 \001(\0132\036.pa" +
-      "ymentchannels.HTLCRoundInit\0225\n\016htlc_roun" +
-      "d_ack\030\027 \001(\0132\035.paymentchannels.HTLCRoundA" +
-      "ck\0227\n\017htlc_round_done\030\030 \001(\0132\036.paymentcha" +
-      "nnels.HTLCRoundDone\022,\n\thtlc_flow\030\031 \001(\0132\031" +
-      ".paymentchannels.HTLCFlow\022%\n\005error\030\n \001(\013" +
-      "2\026.paymentchannels.Error\"\214\004\n\013MessageType" +
-      "\022\022\n\016CLIENT_VERSION\020\001\022\022\n\016SERVER_VERSION\020\002" +
-      "\022\014\n\010INITIATE\020\003\022\022\n\016PROVIDE_REFUND\020\004\022\021\n\rRE" +
-      "TURN_REFUND\020\005\022\024\n\020PROVIDE_CONTRACT\020\006\022\020\n\014C",
-      "HANNEL_OPEN\020\007\022\022\n\016UPDATE_PAYMENT\020\010\022\017\n\013PAY" +
-      "MENT_ACK\020\013\022\t\n\005CLOSE\020\t\022\031\n\025HTLC_PROVIDE_CO" +
-      "NTRACT\020\014\022\r\n\tHTLC_INIT\020\r\022\023\n\017HTLC_INIT_REP" +
-      "LY\020\016\022\030\n\024HTLC_SIGNED_TEARDOWN\020\017\022\026\n\022HTLC_S" +
-      "IGNED_REFUND\020\020\022\036\n\032HTLC_SIGNED_SETTLE_FOR" +
-      "FEIT\020\021\022\027\n\023HTLC_SETUP_COMPLETE\020\022\022\026\n\022HTLC_" +
-      "SERVER_UPDATE\020\023\022\030\n\024HTLC_UPDATE_TEARDOWN\020" +
-      "\024\022\024\n\020HTLC_PAYMENT_ACK\020\025\022\023\n\017HTLC_ROUND_IN" +
-      "IT\020\026\022\022\n\016HTLC_ROUND_ACK\020\027\022\023\n\017HTLC_ROUND_D" +
-      "ONE\020\030\022\r\n\tHTLC_FLOW\020\031\022\t\n\005ERROR\020\n\"y\n\rClien",
-      "tVersion\022\r\n\005major\030\001 \002(\005\022\020\n\005minor\030\002 \001(\005:\001" +
-      "0\022&\n\036previous_channel_contract_hash\030\003 \001(" +
-      "\014\022\037\n\020time_window_secs\030\004 \001(\004:\00586340\"0\n\rSe" +
-      "rverVersion\022\r\n\005major\030\001 \002(\005\022\020\n\005minor\030\002 \001(" +
-      "\005:\0010\"r\n\010Initiate\022\024\n\014multisig_key\030\001 \002(\014\022!" +
-      "\n\031min_accepted_channel_size\030\002 \002(\004\022\030\n\020exp" +
-      "ire_time_secs\030\003 \002(\004\022\023\n\013min_payment\030\004 \002(\004" +
-      "\"1\n\rProvideRefund\022\024\n\014multisig_key\030\001 \002(\014\022" +
-      "\n\n\002tx\030\002 \002(\014\"!\n\014ReturnRefund\022\021\n\tsignature" +
-      "\030\001 \002(\014\"V\n\017ProvideContract\022\n\n\002tx\030\001 \002(\014\0227\n",
-      "\017initial_payment\030\002 \002(\0132\036.paymentchannels" +
-      ".UpdatePayment\"M\n\rUpdatePayment\022\033\n\023clien" +
-      "t_change_value\030\001 \002(\004\022\021\n\tsignature\030\002 \002(\014\022" +
-      "\014\n\004info\030\003 \001(\014\"\032\n\nPaymentAck\022\014\n\004info\030\001 \001(" +
-      "\014\"\030\n\nSettlement\022\n\n\002tx\030\001 \002(\014\"j\n\023HTLCProvi" +
-      "deContract\022\n\n\002tx\030\001 \002(\014\022G\n\027signed_initial" +
-      "_teardown\030\002 \002(\0132&.paymentchannels.HTLCSi" +
-      "gnedTransaction\"\035\n\rHTLCRoundInit\022\014\n\004info" +
-      "\030\001 \001(\014\"\034\n\014HTLCRoundAck\022\014\n\004info\030\001 \001(\014\"\035\n\r" +
-      "HTLCRoundDone\022\014\n\004info\030\001 \001(\014\"X\n\013HTLCPayme",
-      "nt\022\022\n\nrequest_id\030\001 \002(\t\022\021\n\tdevice_id\030\002 \002(" +
-      "\t\022\023\n\013sensor_type\030\003 \002(\t\022\r\n\005value\030\004 \002(\004\">\n" +
-      "\010HTLCInit\0222\n\014new_payments\030\001 \003(\0132\034.paymen" +
-      "tchannels.HTLCPayment\"9\n\020HTLCPaymentRepl" +
-      "y\022\n\n\002id\030\001 \002(\t\022\031\n\021client_request_id\030\002 \002(\t" +
-      "\"N\n\rHTLCInitReply\022=\n\022new_payments_reply\030" +
-      "\001 \003(\0132!.paymentchannels.HTLCPaymentReply" +
-      "\"G\n\025HTLCSignedTransaction\022\n\n\002tx\030\001 \002(\014\022\017\n" +
-      "\007tx_hash\030\002 \001(\014\022\021\n\tsignature\030\003 \002(\014\"v\n\031HTL" +
-      "CProvideSignedTeardown\022\013\n\003ids\030\001 \003(\t\022\013\n\003i",
-      "dx\030\002 \003(\005\022?\n\017signed_teardown\030\003 \002(\0132&.paym" +
-      "entchannels.HTLCSignedTransaction\"f\n\030HTL" +
-      "CSignedRefundWithHash\022\013\n\003ids\030\001 \003(\t\022=\n\rsi" +
-      "gned_refund\030\002 \003(\0132&.paymentchannels.HTLC" +
-      "SignedTransaction\"\306\001\n\032HTLCSignedSettleAn" +
-      "dForfeit\022\013\n\003ids\030\001 \003(\t\022>\n\016signed_forfeit\030" +
-      "\002 \003(\0132&.paymentchannels.HTLCSignedTransa" +
-      "ction\022=\n\rsigned_settle\030\003 \003(\0132&.paymentch" +
-      "annels.HTLCSignedTransaction\022\034\n\024client_s" +
-      "econdary_key\030\004 \002(\014\" \n\021HTLCSetupComplete\022",
-      "\013\n\003ids\030\001 \003(\t\".\n\020HTLCRevealSecret\022\n\n\002id\030\001" +
-      " \002(\t\022\016\n\006secret\030\002 \002(\t\"Y\n\013HTLCBackOff\022\n\n\002i" +
-      "d\030\001 \002(\t\022>\n\016signed_forfeit\030\002 \002(\0132&.paymen" +
-      "tchannels.HTLCSignedTransaction\"~\n\020HTLCS" +
-      "erverUpdate\0229\n\016reveal_secrets\030\001 \003(\0132!.pa" +
-      "ymentchannels.HTLCRevealSecret\022/\n\tback_o" +
-      "ffs\030\002 \003(\0132\034.paymentchannels.HTLCBackOff\"" +
-      "*\n\016HTLCPaymentAck\022\n\n\002id\030\001 \003(\t\022\014\n\004data\030\002 " +
-      "\003(\t\"\275\004\n\010HTLCFlow\0220\n\004type\030\001 \002(\0162\".payment" +
-      "channels.HTLCFlow.FlowType\022\n\n\002id\030\002 \001(\t\022>",
-      "\n\020register_sensors\030\003 \001(\0132$.paymentchanne" +
-      "ls.HTLCRegisterSensors\0222\n\nnode_stats\030\004 \001" +
-      "(\0132\036.paymentchannels.HTLCNodeStats\0226\n\014se" +
-      "nsor_stats\030\005 \001(\0132 .paymentchannels.HTLCS" +
-      "ensorStats\0224\n\013select_data\030\006 \001(\0132\037.paymen" +
-      "tchannels.HTLCSelectData\0226\n\014payment_info" +
-      "\030\007 \001(\0132 .paymentchannels.HTLCPaymentInfo" +
-      "\0226\n\014resume_setup\030\010 \001(\0132 .paymentchannels" +
-      ".HTLCResumeSetup\"\240\001\n\010FlowType\022\016\n\nNODE_ST" +
-      "ATS\020\001\022\024\n\020NODE_STATS_REPLY\020\002\022\020\n\014SENSOR_ST",
-      "ATS\020\003\022\026\n\022SENSOR_STATS_REPLY\020\004\022\024\n\020REGISTE" +
-      "R_SENSORS\020\005\022\n\n\006SELECT\020\006\022\020\n\014PAYMENT_INFO\020" +
-      "\007\022\020\n\014RESUME_SETUP\020\010\"6\n\023HTLCRegisterSenso" +
-      "rs\022\017\n\007sensors\030\001 \003(\t\022\016\n\006prices\030\002 \003(\004\" \n\rH" +
-      "TLCNodeStats\022\017\n\007devices\030\001 \003(\t\"\"\n\017HTLCSen" +
-      "sorStats\022\017\n\007sensors\030\001 \003(\t\"%\n\016HTLCSelectD" +
-      "ata\022\023\n\013sensor_type\030\001 \002(\t\"I\n\017HTLCPaymentI" +
-      "nfo\022\021\n\tdeviceIds\030\001 \003(\t\022\023\n\013sensorTypes\030\002 " +
-      "\003(\t\022\016\n\006prices\030\003 \003(\004\"\"\n\017HTLCResumeSetup\022\017" +
-      "\n\007htlc_id\030\001 \003(\t\"\251\002\n\005Error\0225\n\004code\030\001 \001(\0162",
-      " .paymentchannels.Error.ErrorCode:\005OTHER" +
-      "\022\023\n\013explanation\030\002 \001(\t\022\026\n\016expected_value\030" +
-      "\003 \001(\004\"\273\001\n\tErrorCode\022\013\n\007TIMEOUT\020\001\022\020\n\014SYNT" +
-      "AX_ERROR\020\002\022\031\n\025NO_ACCEPTABLE_VERSION\020\003\022\023\n" +
-      "\017BAD_TRANSACTION\020\004\022\034\n\030TIME_WINDOW_UNACCE" +
-      "PTABLE\020\005\022\033\n\027CHANNEL_VALUE_TOO_LARGE\020\006\022\031\n" +
-      "\025MIN_PAYMENT_TOO_LARGE\020\007\022\t\n\005OTHER\020\010B$\n\032o" +
-      "rg.bitcoin.paymentchannelB\006Protos"
+      "aymentchannels.HTLCServerUpdate\022,\n\thtlc_" +
+      "data\030\025 \001(\0132\031.paymentchannels.HTLCData\0227\n",
+      "\017htlc_round_init\030\026 \001(\0132\036.paymentchannels" +
+      ".HTLCRoundInit\0225\n\016htlc_round_ack\030\027 \001(\0132\035" +
+      ".paymentchannels.HTLCRoundAck\0227\n\017htlc_ro" +
+      "und_done\030\030 \001(\0132\036.paymentchannels.HTLCRou" +
+      "ndDone\022,\n\thtlc_flow\030\031 \001(\0132\031.paymentchann" +
+      "els.HTLCFlow\022%\n\005error\030\n \001(\0132\026.paymentcha" +
+      "nnels.Error\"\214\004\n\013MessageType\022\022\n\016CLIENT_VE" +
+      "RSION\020\001\022\022\n\016SERVER_VERSION\020\002\022\014\n\010INITIATE\020" +
+      "\003\022\022\n\016PROVIDE_REFUND\020\004\022\021\n\rRETURN_REFUND\020\005" +
+      "\022\024\n\020PROVIDE_CONTRACT\020\006\022\020\n\014CHANNEL_OPEN\020\007",
+      "\022\022\n\016UPDATE_PAYMENT\020\010\022\017\n\013PAYMENT_ACK\020\013\022\t\n" +
+      "\005CLOSE\020\t\022\031\n\025HTLC_PROVIDE_CONTRACT\020\014\022\r\n\tH" +
+      "TLC_INIT\020\r\022\023\n\017HTLC_INIT_REPLY\020\016\022\030\n\024HTLC_" +
+      "SIGNED_TEARDOWN\020\017\022\026\n\022HTLC_SIGNED_REFUND\020" +
+      "\020\022\036\n\032HTLC_SIGNED_SETTLE_FORFEIT\020\021\022\027\n\023HTL" +
+      "C_SETUP_COMPLETE\020\022\022\026\n\022HTLC_SERVER_UPDATE" +
+      "\020\023\022\030\n\024HTLC_UPDATE_TEARDOWN\020\024\022\024\n\020HTLC_PAY" +
+      "MENT_ACK\020\025\022\023\n\017HTLC_ROUND_INIT\020\026\022\022\n\016HTLC_" +
+      "ROUND_ACK\020\027\022\023\n\017HTLC_ROUND_DONE\020\030\022\r\n\tHTLC" +
+      "_FLOW\020\031\022\t\n\005ERROR\020\n\"y\n\rClientVersion\022\r\n\005m",
+      "ajor\030\001 \002(\005\022\020\n\005minor\030\002 \001(\005:\0010\022&\n\036previous" +
+      "_channel_contract_hash\030\003 \001(\014\022\037\n\020time_win" +
+      "dow_secs\030\004 \001(\004:\00586340\"0\n\rServerVersion\022\r" +
+      "\n\005major\030\001 \002(\005\022\020\n\005minor\030\002 \001(\005:\0010\"r\n\010Initi" +
+      "ate\022\024\n\014multisig_key\030\001 \002(\014\022!\n\031min_accepte" +
+      "d_channel_size\030\002 \002(\004\022\030\n\020expire_time_secs" +
+      "\030\003 \002(\004\022\023\n\013min_payment\030\004 \002(\004\"1\n\rProvideRe" +
+      "fund\022\024\n\014multisig_key\030\001 \002(\014\022\n\n\002tx\030\002 \002(\014\"!" +
+      "\n\014ReturnRefund\022\021\n\tsignature\030\001 \002(\014\"V\n\017Pro" +
+      "videContract\022\n\n\002tx\030\001 \002(\014\0227\n\017initial_paym",
+      "ent\030\002 \002(\0132\036.paymentchannels.UpdatePaymen" +
+      "t\"M\n\rUpdatePayment\022\033\n\023client_change_valu" +
+      "e\030\001 \002(\004\022\021\n\tsignature\030\002 \002(\014\022\014\n\004info\030\003 \001(\014" +
+      "\"\032\n\nPaymentAck\022\014\n\004info\030\001 \001(\014\"\030\n\nSettleme" +
+      "nt\022\n\n\002tx\030\001 \002(\014\"j\n\023HTLCProvideContract\022\n\n" +
+      "\002tx\030\001 \002(\014\022G\n\027signed_initial_teardown\030\002 \002" +
+      "(\0132&.paymentchannels.HTLCSignedTransacti" +
+      "on\"\035\n\rHTLCRoundInit\022\014\n\004info\030\001 \001(\014\"\034\n\014HTL" +
+      "CRoundAck\022\014\n\004info\030\001 \001(\014\"\035\n\rHTLCRoundDone" +
+      "\022\014\n\004info\030\001 \001(\014\"X\n\013HTLCPayment\022\022\n\nrequest",
+      "_id\030\001 \002(\t\022\021\n\tdevice_id\030\002 \002(\t\022\023\n\013sensor_t" +
+      "ype\030\003 \002(\t\022\r\n\005value\030\004 \002(\004\">\n\010HTLCInit\0222\n\014" +
+      "new_payments\030\001 \003(\0132\034.paymentchannels.HTL" +
+      "CPayment\"9\n\020HTLCPaymentReply\022\n\n\002id\030\001 \002(\t" +
+      "\022\031\n\021client_request_id\030\002 \002(\t\"N\n\rHTLCInitR" +
+      "eply\022=\n\022new_payments_reply\030\001 \003(\0132!.payme" +
+      "ntchannels.HTLCPaymentReply\"G\n\025HTLCSigne" +
+      "dTransaction\022\n\n\002tx\030\001 \002(\014\022\017\n\007tx_hash\030\002 \001(" +
+      "\014\022\021\n\tsignature\030\003 \002(\014\"v\n\031HTLCProvideSigne" +
+      "dTeardown\022\013\n\003ids\030\001 \003(\t\022\013\n\003idx\030\002 \003(\005\022?\n\017s",
+      "igned_teardown\030\003 \002(\0132&.paymentchannels.H" +
+      "TLCSignedTransaction\"f\n\030HTLCSignedRefund" +
+      "WithHash\022\013\n\003ids\030\001 \003(\t\022=\n\rsigned_refund\030\002" +
+      " \003(\0132&.paymentchannels.HTLCSignedTransac" +
+      "tion\"\306\001\n\032HTLCSignedSettleAndForfeit\022\013\n\003i" +
+      "ds\030\001 \003(\t\022>\n\016signed_forfeit\030\002 \003(\0132&.payme" +
+      "ntchannels.HTLCSignedTransaction\022=\n\rsign" +
+      "ed_settle\030\003 \003(\0132&.paymentchannels.HTLCSi" +
+      "gnedTransaction\022\034\n\024client_secondary_key\030" +
+      "\004 \002(\014\" \n\021HTLCSetupComplete\022\013\n\003ids\030\001 \003(\t\"",
+      ".\n\020HTLCRevealSecret\022\n\n\002id\030\001 \002(\t\022\016\n\006secre" +
+      "t\030\002 \002(\t\"Y\n\013HTLCBackOff\022\n\n\002id\030\001 \002(\t\022>\n\016si" +
+      "gned_forfeit\030\002 \002(\0132&.paymentchannels.HTL" +
+      "CSignedTransaction\"~\n\020HTLCServerUpdate\0229" +
+      "\n\016reveal_secrets\030\001 \003(\0132!.paymentchannels" +
+      ".HTLCRevealSecret\022/\n\tback_offs\030\002 \003(\0132\034.p" +
+      "aymentchannels.HTLCBackOff\"\360\004\n\010HTLCFlow\022" +
+      "0\n\004type\030\001 \002(\0162\".paymentchannels.HTLCFlow" +
+      ".FlowType\022\n\n\002id\030\002 \001(\t\022>\n\020register_sensor" +
+      "s\030\003 \001(\0132$.paymentchannels.HTLCRegisterSe",
+      "nsors\0222\n\nnode_stats\030\004 \001(\0132\036.paymentchann" +
+      "els.HTLCNodeStats\0226\n\014sensor_stats\030\005 \001(\0132" +
+      " .paymentchannels.HTLCSensorStats\0224\n\013sel" +
+      "ect_data\030\006 \001(\0132\037.paymentchannels.HTLCSel" +
+      "ectData\0226\n\014payment_info\030\007 \001(\0132 .paymentc" +
+      "hannels.HTLCPaymentInfo\0226\n\014resume_setup\030" +
+      "\010 \001(\0132 .paymentchannels.HTLCResumeSetup\022" +
+      "\'\n\004data\030\t \003(\0132\031.paymentchannels.HTLCData" +
+      "\"\252\001\n\010FlowType\022\016\n\nNODE_STATS\020\001\022\024\n\020NODE_ST" +
+      "ATS_REPLY\020\002\022\020\n\014SENSOR_STATS\020\003\022\026\n\022SENSOR_",
+      "STATS_REPLY\020\004\022\024\n\020REGISTER_SENSORS\020\005\022\n\n\006S" +
+      "ELECT\020\006\022\020\n\014PAYMENT_INFO\020\007\022\020\n\014RESUME_SETU" +
+      "P\020\010\022\010\n\004DATA\020\t\"$\n\010HTLCData\022\n\n\002id\030\001 \002(\t\022\014\n" +
+      "\004data\030\002 \003(\t\"6\n\023HTLCRegisterSensors\022\017\n\007se" +
+      "nsors\030\001 \003(\t\022\016\n\006prices\030\002 \003(\004\" \n\rHTLCNodeS" +
+      "tats\022\017\n\007devices\030\001 \003(\t\"\"\n\017HTLCSensorStats" +
+      "\022\017\n\007sensors\030\001 \003(\t\"%\n\016HTLCSelectData\022\023\n\013s" +
+      "ensor_type\030\001 \002(\t\"I\n\017HTLCPaymentInfo\022\021\n\td" +
+      "eviceIds\030\001 \003(\t\022\023\n\013sensorTypes\030\002 \003(\t\022\016\n\006p" +
+      "rices\030\003 \003(\004\"\"\n\017HTLCResumeSetup\022\017\n\007htlc_i",
+      "d\030\001 \003(\t\"\251\002\n\005Error\0225\n\004code\030\001 \001(\0162 .paymen" +
+      "tchannels.Error.ErrorCode:\005OTHER\022\023\n\013expl" +
+      "anation\030\002 \001(\t\022\026\n\016expected_value\030\003 \001(\004\"\273\001" +
+      "\n\tErrorCode\022\013\n\007TIMEOUT\020\001\022\020\n\014SYNTAX_ERROR" +
+      "\020\002\022\031\n\025NO_ACCEPTABLE_VERSION\020\003\022\023\n\017BAD_TRA" +
+      "NSACTION\020\004\022\034\n\030TIME_WINDOW_UNACCEPTABLE\020\005" +
+      "\022\033\n\027CHANNEL_VALUE_TOO_LARGE\020\006\022\031\n\025MIN_PAY" +
+      "MENT_TOO_LARGE\020\007\022\t\n\005OTHER\020\010B$\n\032org.bitco" +
+      "in.paymentchannelB\006Protos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -31015,7 +31385,7 @@ public final class Protos {
           internal_static_paymentchannels_TwoWayChannelMessage_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_TwoWayChannelMessage_descriptor,
-              new java.lang.String[] { "Type", "ClientVersion", "ServerVersion", "Initiate", "ProvideRefund", "ReturnRefund", "ProvideContract", "UpdatePayment", "PaymentAck", "Settlement", "HtlcProvideContract", "HtlcInit", "HtlcInitReply", "HtlcSignedTeardown", "HtlcSignedRefundWithHash", "HtlcSignedSettleAndForfeit", "HtlcSetupComplete", "HtlcServerUpdate", "HtlcPaymentAck", "HtlcRoundInit", "HtlcRoundAck", "HtlcRoundDone", "HtlcFlow", "Error", });
+              new java.lang.String[] { "Type", "ClientVersion", "ServerVersion", "Initiate", "ProvideRefund", "ReturnRefund", "ProvideContract", "UpdatePayment", "PaymentAck", "Settlement", "HtlcProvideContract", "HtlcInit", "HtlcInitReply", "HtlcSignedTeardown", "HtlcSignedRefundWithHash", "HtlcSignedSettleAndForfeit", "HtlcSetupComplete", "HtlcServerUpdate", "HtlcData", "HtlcRoundInit", "HtlcRoundAck", "HtlcRoundDone", "HtlcFlow", "Error", });
           internal_static_paymentchannels_ClientVersion_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_paymentchannels_ClientVersion_fieldAccessorTable = new
@@ -31166,18 +31536,18 @@ public final class Protos {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCServerUpdate_descriptor,
               new java.lang.String[] { "RevealSecrets", "BackOffs", });
-          internal_static_paymentchannels_HTLCPaymentAck_descriptor =
-            getDescriptor().getMessageTypes().get(26);
-          internal_static_paymentchannels_HTLCPaymentAck_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_paymentchannels_HTLCPaymentAck_descriptor,
-              new java.lang.String[] { "Id", "Data", });
           internal_static_paymentchannels_HTLCFlow_descriptor =
-            getDescriptor().getMessageTypes().get(27);
+            getDescriptor().getMessageTypes().get(26);
           internal_static_paymentchannels_HTLCFlow_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_HTLCFlow_descriptor,
-              new java.lang.String[] { "Type", "Id", "RegisterSensors", "NodeStats", "SensorStats", "SelectData", "PaymentInfo", "ResumeSetup", });
+              new java.lang.String[] { "Type", "Id", "RegisterSensors", "NodeStats", "SensorStats", "SelectData", "PaymentInfo", "ResumeSetup", "Data", });
+          internal_static_paymentchannels_HTLCData_descriptor =
+            getDescriptor().getMessageTypes().get(27);
+          internal_static_paymentchannels_HTLCData_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_paymentchannels_HTLCData_descriptor,
+              new java.lang.String[] { "Id", "Data", });
           internal_static_paymentchannels_HTLCRegisterSensors_descriptor =
             getDescriptor().getMessageTypes().get(28);
           internal_static_paymentchannels_HTLCRegisterSensors_fieldAccessorTable = new

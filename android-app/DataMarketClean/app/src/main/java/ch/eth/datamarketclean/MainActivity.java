@@ -23,18 +23,18 @@ import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.ScrollView;
 import android.widget.Switch;
 
-import org.bitcoinj.utils.Threading;
+import com.google.common.collect.EvictingQueue;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import ch.eth.datamarketclean.services.HTLCService;
@@ -44,22 +44,21 @@ import static android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class MainActivity extends Activity {
 
-    private static final String SIGNAL_STRENGTH = "SignalStrength";
     private static final String SIGNAL_STRENGTH_LABEL = "Signal Strength GSM";
-    private static final String GPS_SIGNAL = "GPS";
     private static final String GPS_SIGNAL_LABEL = "GPS Location";
-
     private static final String PREFERENCES = "DataMarketPreferences";
+    private static final Integer MAX_DATA_ENTRIES = 10;
 
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
     private GPSLocationListener mLocationListener;
 
-    private List<Sensor> mSensorList;
     private SwitchChangeListener mSwitchChangeListener;
     private SensorListener mSensorListener;
 
-    private Map<Object, List<String>> sensorToDataMap;
+    private DataContainer<EvictingQueue<String>> dataContainer;
+    private Map<String, Sensor> mSensorMap;
+    private Set<String> mEnabledSensors;
 
     private HTLCServiceApi api;
 
@@ -67,9 +66,14 @@ public class MainActivity extends Activity {
 
     private HTLCServiceListener.Stub htlcListener = new HTLCServiceListener.Stub() {
         @Override
-        List<String> getDataFromSensor(String sensorType) throws RemoteException {
+        public List<String> getDataFromSensor(String sensorType) throws RemoteException {
             Log.i("Frabu", "Retrieving data from sensor: " + sensorType);
-            return sensorToDataMap.get(sensorType);
+            EvictingQueue<String> sensorData = dataContainer.get(sensorType);
+            if (sensorData == null) {
+                return new ArrayList<>();
+            } else {
+                return new ArrayList<>(dataContainer.get(sensorType));
+            }
         }
 
         @Override
@@ -81,14 +85,17 @@ public class MainActivity extends Activity {
         public void channelEstablished() throws  RemoteException {
             Log.i("Frabu", "Micropayment channel was established. " +
                     "We should now send the available sensors");
+                    "We should now send the available sensors");
             lock.lock();
             try {
-                // Take all sensor names and send them to the Hub
-                List<String> currentSensors = new ArrayList<String>();
-                for (Sensor sensor: mSensorList) {
-                    currentSensors.add(sensor.getName());
+                // Take all enabled sensor names and send them to the Hub
+                List<String> currentSensors = new ArrayList<>();
+                for (String sensor: mEnabledSensors) {
+                    currentSensors.add(sensor);
                 }
-                api.updateSensors(currentSensors);
+                if (!mEnabledSensors.isEmpty()) {
+                    api.updateSensors(new ArrayList<>(mEnabledSensors));
+                }
             } finally {
                 lock.unlock();
             }
@@ -138,11 +145,18 @@ public class MainActivity extends Activity {
         if (savedInstanceState == null) {
             mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
             mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-            mSensorList = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+
+            List<Sensor> sensorList = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+            mEnabledSensors = new HashSet<>();
+            mSensorMap = new HashMap<>();
+            for (Sensor sensor: sensorList) {
+                mSensorMap.put(sensor.getName(), sensor);
+            }
+
             mSwitchChangeListener = new SwitchChangeListener();
             mSensorListener = new SensorListener();
-            renderSwitchButtons();
-            sensorToDataMap = new HashMap<>();
+            renderSwitchButtons(sensorList);
+            dataContainer = new DataContainer<>();
         }
 
         File dir = getApplicationContext().getFilesDir();
@@ -179,43 +193,44 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void renderSwitchButtons() {
+    private void renderSwitchButtons(List<Sensor> sensorList) {
 
         // Add Toggle buttons for the sensors
-        for (int i = 0; i < mSensorList.size(); i++) {
-            addSwitchButton(mSensorList.get(i).getName(), mSensorList.get(i).getType());
+        for (int i = 0; i < sensorList.size(); i++) {
+            addSwitchButton(sensorList.get(i).getName());
         }
 
         // Add for Signal Strength
-        addSwitchButton(SIGNAL_STRENGTH_LABEL, SIGNAL_STRENGTH);
-        addSwitchButton(GPS_SIGNAL_LABEL, GPS_SIGNAL);
+        addSwitchButton(SIGNAL_STRENGTH_LABEL);
+        addSwitchButton(GPS_SIGNAL_LABEL);
     }
 
     class GPSLocationListener implements LocationListener {
         public void onLocationChanged(Location location) {
             lock.lock();
             try {
-                List<String> currentList = sensorToDataMap.get(GPS_SIGNAL);
-                if (currentList == null) {
-                    currentList = new ArrayList<>();
+                EvictingQueue<String> currentQueue = dataContainer.get(GPS_SIGNAL_LABEL);
+                if (currentQueue == null) {
+                    currentQueue = EvictingQueue.create(MAX_DATA_ENTRIES);
                 }
-                currentList.add(
-                        location.getTime() + ": " +
-                                location.getAccuracy() + " " +
-                                location.getAltitude() + " " +
-                                location.getLatitude() + " " +
-                                location.getLongitude()
+                currentQueue.add(
+                    location.getTime() + ": " +
+                        location.getAccuracy() + " " +
+                        location.getAltitude() + " " +
+                        location.getLatitude() + " " +
+                        location.getLongitude()
                 );
+                dataContainer.put(GPS_SIGNAL_LABEL, currentQueue);
             } finally {
                 lock.unlock();
             }
             Log.i("Frabu",
-                    location.getTime() + ": " +
-                            location.getAccuracy() + " " +
-                            location.getAltitude() + " " +
-                            location.getBearing() + " " +
-                            location.getLatitude() + " " +
-                            location.getLongitude()
+                location.getTime() + ": " +
+                    location.getAccuracy() + " " +
+                    location.getAltitude() + " " +
+                    location.getBearing() + " " +
+                    location.getLatitude() + " " +
+                    location.getLongitude()
             );
         }
 
@@ -233,21 +248,22 @@ public class MainActivity extends Activity {
         public void onSensorChanged(SensorEvent event) {
             lock.lock();
             try {
+                Log.i(
+                    "Frabu: ",
+                    event.timestamp + ": " +
+                    event.accuracy + " " +
+                    Arrays.toString(event.values)
+                );
                 String newEntry = event.timestamp + Arrays.toString(event.values);
-                List<String> currentList = sensorToDataMap.get(event.sensor.getType());
-                if (currentList == null) {
-                    currentList = new ArrayList<>();
+                EvictingQueue<String> currentQueue = dataContainer.get(event.sensor.getName());
+                if (currentQueue == null) {
+                    currentQueue = EvictingQueue.create(MAX_DATA_ENTRIES);
                 }
-                currentList.add(newEntry);
-                sensorToDataMap.put(event.sensor.getType(), currentList);
+                currentQueue.add(newEntry);
+                dataContainer.put(event.sensor.getName(), currentQueue);
             } finally {
                 lock.unlock();
             }
-            Log.i("Frabu: ",
-                event.timestamp + ": " +
-                event.accuracy + " " +
-                Arrays.toString(event.values)
-            );
         }
 
         @Override
@@ -262,21 +278,20 @@ public class MainActivity extends Activity {
             Log.i("Frabu", "Callback");
             lock.lock();
             try {
-                Object tag = buttonView.getTag();
+                String sensorName = buttonView.getText().toString();
                 if (isChecked) { // Register listener
-                    if (tag instanceof Integer) { // Dealing with a sensor
-                        Log.i("Frabu: ", "Registering " +
-                                mSensorList.get((Integer) buttonView.getTag())
-                        );
+                    mEnabledSensors.add(sensorName);
+                    if (mSensorMap.containsKey(sensorName)) { // Dealing with a sensor
+                        Log.i("Frabu: ", "Registering " + sensorName);
                         mSensorManager.registerListener(
-                                mSensorListener,
-                                mSensorList.get((Integer) buttonView.getTag()),
-                                SensorManager.SENSOR_DELAY_NORMAL
+                            mSensorListener,
+                            mSensorMap.get(sensorName),
+                            SensorManager.SENSOR_DELAY_NORMAL
                         );
                     } else {
-                        if (tag.equals(SIGNAL_STRENGTH)) {
+                        if (sensorName.equals(SIGNAL_STRENGTH_LABEL)) {
 
-                        } else if (tag.equals(GPS_SIGNAL)) {
+                        } else if (sensorName.equals(GPS_SIGNAL_LABEL)) {
                             mLocationManager.requestLocationUpdates(
                                 LocationManager.GPS_PROVIDER,
                                 0,
@@ -287,18 +302,25 @@ public class MainActivity extends Activity {
                     }
                 } else { // Unregister listener
                     Log.i("Frabu: ", "Unregistering " + buttonView.getTag());
-                    if (buttonView.getTag() instanceof Integer) {
+                    mEnabledSensors.remove(sensorName);
+                    if (mSensorMap.containsKey(sensorName)) {
                         mSensorManager.unregisterListener(
-                                mSensorListener,
-                                mSensorList.get((Integer) buttonView.getTag())
+                            mSensorListener,
+                            mSensorMap.get(sensorName)
                         );
                     } else {
-                        if (tag.equals(SIGNAL_STRENGTH)) {
+                        if (sensorName.equals(SIGNAL_STRENGTH_LABEL)) {
 
-                        } else if (tag.equals(GPS_SIGNAL)) {
+                        } else if (sensorName.equals(GPS_SIGNAL_LABEL)) {
                             mLocationManager.removeUpdates(mLocationListener);
                         }
                     }
+                }
+                // Update the enabled sensors to the Hub
+                try {
+                    api.updateSensors(new ArrayList<String>(mEnabledSensors));
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
             } finally {
                 lock.unlock();
@@ -306,7 +328,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void addSwitchButton(String text, Object tag) {
+    private void addSwitchButton(String text) {
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getSize(size);
         int screenWidth = size.x;
@@ -317,10 +339,8 @@ public class MainActivity extends Activity {
         LayoutParams params = new LayoutParams(screenWidth, 100);
         sb.setLayoutParams(params);
         sb.setTextSize(10);
-        sb.setTag(tag);
         sb.setOnCheckedChangeListener(mSwitchChangeListener);
         sb.setChecked(false);
         ll.addView(sb);
     }
-
 }

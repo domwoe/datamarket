@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.10.13)  19 AUG 2015 18:51
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.10.13)  1 SEP 2015 11:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -616,14 +616,14 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-<figures/eth_logo_black.pdf, id=55, 191.71625pt x 57.21375pt>
+<figures/eth_logo_black.pdf, id=63, 191.71625pt x 57.21375pt>
 File: figures/eth_logo_black.pdf Graphic file (type pdf)
 
 <use figures/eth_logo_black.pdf>
 Package pdftex.def Info: figures/eth_logo_black.pdf used on input line 36.
 (pdftex.def)             Requested size: 177.66374pt x 47.17624pt.
 
-<figures/disco-logo-col.pdf, id=56, 132.1854pt x 46.78677pt>
+<figures/disco-logo-col.pdf, id=64, 132.1854pt x 46.78677pt>
 File: figures/disco-logo-col.pdf Graphic file (type pdf)
 
 <use figures/disco-logo-col.pdf>
@@ -665,64 +665,71 @@ Chapter 1.
 [1
 
 
-]
+] [2] [3] [4] [5]
+Overfull \hbox (242.80875pt too wide) in paragraph at lines 259--267
+[]\OT1/cmr/m/n/10.95 On the Con-tracts page of Bit-coin, Mike Hearn (https://en
+.bitcoin.it/wiki/Contract#Example[]2:[]Escrow[]and[]dispute[]mediation)
+ []
+
+[6] [7]
 Chapter 2.
-[2
+[8
 
 ]
 Chapter 3.
-[3
+[9
 
 ]
 Chapter 4.
-[4
+[10
 
 ]
 Chapter 5.
-[5
+[11
 
 ]
 Chapter 6.
-(./Thesis.bbl [6
-
-]) [7
+(./Thesis.bbl [12
 
 ]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 105.
+
+LaTeX Warning: Empty `thebibliography' environment on input line 3.
+
+) [13
+
+]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 331.
  [1
 
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 105.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 331.
  (./Thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 105.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 105.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 331.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 331.
 Package rerunfilecheck Info: File `Thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 2E8A72617B5366B2CD31DAAFAC33A0D8;594.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 105.
+(rerunfilecheck)             Checksum: FFD1F176BC71B7CDB9A308E1963C9073;753.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 331.
  ) 
 Here is how much of TeX's memory you used:
- 14949 strings out of 495028
- 262410 string characters out of 6181496
- 328443 words of memory out of 5000000
- 17839 multiletter control sequences out of 15000+600000
- 11695 words of font info for 44 fonts, out of 8000000 for 9000
+ 14958 strings out of 495028
+ 262479 string characters out of 6181496
+ 332367 words of memory out of 5000000
+ 17842 multiletter control sequences out of 15000+600000
+ 12349 words of font info for 46 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  69i,5n,59p,613b,371s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
 r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/tex
-live/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/font
-s/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmtt10.pfb>
-Output written on Thesis.pdf (12 pages, 343812 bytes).
+live/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/te
+xmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/font
+s/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on Thesis.pdf (18 pages, 343199 bytes).
 PDF statistics:
- 193 PDF objects out of 1000 (max. 8388607)
- 161 compressed objects within 2 object streams
- 30 named destinations out of 1000 (max. 500000)
- 119 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 212 PDF objects out of 1000 (max. 8388607)
+ 177 compressed objects within 2 object streams
+ 35 named destinations out of 1000 (max. 500000)
+ 135 words of extra memory for PDF output out of 10000 (max. 10000000)
 

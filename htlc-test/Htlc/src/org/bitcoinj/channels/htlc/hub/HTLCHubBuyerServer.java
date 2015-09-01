@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoin.paymentchannel.Protos.HTLCData;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType;
 import org.bitcoin.paymentchannel.Protos.HTLCBackOff;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow;
@@ -94,6 +95,8 @@ public class HTLCHubBuyerServer {
 	@GuardedBy("lock")
 	private final Map<String, HTLCPayment> htlcPaymentMap;
 	 
+    @GuardedBy("lock")
+    private final List<String> closingHTLCIds;
     
     /**
      * Implements the connection between this server and the client, providing 
@@ -216,6 +219,7 @@ public class HTLCHubBuyerServer {
     	this.conn = conn;
     	this.blockingQueue = new HTLCBlockingQueue<Object>(MAX_MESSAGES);
     	this.htlcPaymentMap = new HashMap<String, HTLCPayment>();
+    	this.closingHTLCIds = new ArrayList<String>();
     }
         
     /**
@@ -514,9 +518,15 @@ public class HTLCHubBuyerServer {
     	List<Protos.HTLCBackOff> allBackoffs = 
 			new ArrayList<Protos.HTLCBackOff>();
     	
+    	// Store the HTLC ids that are being closed
+    	closingHTLCIds.clear();
+    	
     	for (Object update: allUpdates) {
     		if (update instanceof Protos.HTLCRevealSecret) {
-    			allSecrets.add((Protos.HTLCRevealSecret) update);
+    			Protos.HTLCRevealSecret revealMsg = 
+					(Protos.HTLCRevealSecret) update;
+    			allSecrets.add(revealMsg);
+    			closingHTLCIds.add(revealMsg.getId());
     		} else if (update instanceof Protos.HTLCBackOff) {
     			allBackoffs.add((Protos.HTLCBackOff) update);
     		}
@@ -774,6 +784,38 @@ public class HTLCHubBuyerServer {
     	if (htlcRound == HTLCRound.CONFIRMED) { 
     		// It's the server's round, send a round done msg instead of setup
     		// complete
+    		// The data msgs are sent async. They will not break the transaction
+    		// signature process so it is safe to do it;
+    		List<HTLCData> allData = new ArrayList<>();
+    		for (String htlcId: closingHTLCIds) {
+    			// Remove from the HTLCMap
+    			state.removeHTLC(htlcId);
+    			List<String> sensorData = state.getDataForHTLC(htlcId);
+    			if (sensorData == null) {
+    				log.error(
+						"Retrieving data but failed with NULL for htlcID {}. " +
+						"This should not happen.", htlcId
+					);
+    			} else {
+    				log.info("Retrieving data for HTLCId {}", htlcId);
+    				log.info("Data is: {}", sensorData);
+	    			HTLCData.Builder dataMsg = HTLCData.newBuilder()
+	    				.setId(htlcId)
+						.addAllData(state.getDataForHTLC(htlcId));
+	    			allData.add(dataMsg.build());
+    			}
+    		}
+    		// Send the data msgs to the Buyer
+    		Protos.HTLCFlow.Builder flowMsg = Protos.HTLCFlow.newBuilder()
+				.addAllData(allData)
+				.setType(FlowType.DATA);
+    		Protos.TwoWayChannelMessage dataMsg = 
+				Protos.TwoWayChannelMessage.newBuilder()
+					.setHtlcFlow(flowMsg)
+					.setType(MessageType.HTLC_FLOW)
+					.build();
+    		conn.sendToBuyer(dataMsg);    		
+    		
         	Protos.HTLCRoundDone.Builder roundDone = 
     			Protos.HTLCRoundDone.newBuilder();
         	final Protos.TwoWayChannelMessage.Builder roundDoneMsg = 
@@ -911,6 +953,8 @@ public class HTLCHubBuyerServer {
     		case SELECT:
     			receiveSelectMsg(flowMsg.getId(), flowMsg.getSelectData());
     			return;
+    		case DATA:
+    			receiveDataMsg(flowMsg.getDataList());
     		default:
     			return;
     	}
@@ -936,6 +980,33 @@ public class HTLCHubBuyerServer {
     @GuardedBy("lock")
     private void receiveSelectMsg(String id, Protos.HTLCSelectData selectData) {
     	conn.select(id, selectData.getSensorType(), this);
+    }
+    
+    @GuardedBy("lock")
+    private void receiveDataMsg(List<HTLCData> dataList) {
+    	List<HTLCData> dataToRelease = new ArrayList<HTLCData>();
+    	for (HTLCData data: dataList) {
+        	log.info("Received DATA FLOW MSG. Processing it");
+    		String htlcId = data.getId();
+    		List<String> sensorData = data.getDataList();
+    		if (state.isHTLCActive(htlcId)) { 
+    			// This means the transaction that pays for this data has 
+    			// not been closed yet; Store the data
+        		state.setDataForHTLC(htlcId, sensorData);
+    		} else {
+    			// Transaction has been closed; We can release the data
+    			dataToRelease.add(data);
+    		}
+    	}
+    	Protos.HTLCFlow.Builder flowMsg = Protos.HTLCFlow.newBuilder()
+			.setType(FlowType.DATA)
+			.addAllData(dataToRelease);
+    	final Protos.TwoWayChannelMessage channelMsg = 
+			Protos.TwoWayChannelMessage.newBuilder()
+				.setType(MessageType.HTLC_FLOW)
+				.setHtlcFlow(flowMsg)
+				.build();
+    	conn.sendToBuyer(channelMsg);
     }
     
     @GuardedBy("lock")

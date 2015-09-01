@@ -1,5 +1,7 @@
 package org.bitcoinj.channels.htlc;
 
+import java.util.List;
+
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
@@ -44,6 +46,7 @@ public class HTLCServerState extends HTLCState {
 	private TransactionSignature clientForfeitTxSig;
 	
 	private String secret;
+	private List<String> data;
 	
 	/**
 	 * Use this constructor on the hub because we don't have the secret yet
@@ -68,6 +71,14 @@ public class HTLCServerState extends HTLCState {
 		super(secretHash, value, settlementExpiryTime, refundExpiryTime);
 		this.secret = secret;
 		this.state = State.NEW;
+	}
+	
+	public void setData(List<String> data) {
+		this.data = data;
+	}
+	
+	public List<String> getData() {
+		return data;
 	}
 	
 	public SignedTransactionWithHash getSignedRefund(

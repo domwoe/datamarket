@@ -12,6 +12,7 @@ import com.google.common.util.concurrent.Futures;
 
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.channels.htlc.android.HTLCAndroidClientConnection;
+import org.bitcoinj.channels.htlc.android.HTLCAndroidClientConnection.AppConnection;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
@@ -40,7 +41,7 @@ public class HTLCService extends Service {
     private WalletAppKit appKit;
     private HTLCAndroidClientConnection htlcClient;
 
-    private List<HTLCServiceListener> listeners = new ArrayList<>();
+    private HTLCServiceListener serviceListener;
 
     private HTLCServiceApi.Stub apiEndpoint = new HTLCServiceApi.Stub() {
 
@@ -57,18 +58,14 @@ public class HTLCService extends Service {
 
         @Override
         public void addListener(HTLCServiceListener listener) throws RemoteException {
-            synchronized (listeners) {
-                Log.i("Frabu", "Added new listener to remote service");
-                listeners.add(listener);
-            }
+            serviceListener = listener;
+            Log.i("Frabu", "Added new listener to remote service");
         }
 
         @Override
         public void removeListener(HTLCServiceListener listener) throws RemoteException {
-            synchronized (listeners) {
-                Log.i("Frabu", "Removed listener from service");
-                listeners.remove(listener);
-            }
+            serviceListener = null;
+            Log.i("Frabu", "Removed listener from service");
         }
     };
 
@@ -121,15 +118,25 @@ public class HTLCService extends Service {
 
 
         htlcClient = new HTLCAndroidClientConnection(
-            server,
-            NETWORK_TIMEOUT,
-            appKit.wallet(),
-            new TransactionBroadcastScheduler(appKit.peerGroup()),
-            key,
-            minPayment
+                server,
+                NETWORK_TIMEOUT,
+                appKit.wallet(),
+                new TransactionBroadcastScheduler(appKit.peerGroup()),
+                key,
+                minPayment,
+                new AppConnection() {
+                    @Override
+                    public List<String> getDataFromSensor(String sensorType) {
+                        try {
+                            return serviceListener.getDataFromSensor(sensorType);
+                        } catch (RemoteException e) {
+                            e.printStackTrace();
+                        }
+                        return new ArrayList<>();
+                    }
+                }
         );
         htlcClient.start();
-
 
         Futures.addCallback(
             htlcClient.getChannelOpenFuture(),
@@ -140,11 +147,7 @@ public class HTLCService extends Service {
                 ) {
                     Log.i("Frabu", "Channel open! We can now register the device");
                     try {
-                        synchronized(listeners) {
-                            for (HTLCServiceListener listener : listeners) {
-                                listener.channelEstablished();
-                            }
-                        }
+                        serviceListener.channelEstablished();
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }

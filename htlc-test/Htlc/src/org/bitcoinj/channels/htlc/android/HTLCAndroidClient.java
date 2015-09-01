@@ -4,12 +4,14 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import net.jcip.annotations.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoin.paymentchannel.Protos.HTLCData;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow;
 import org.bitcoin.paymentchannel.Protos.HTLCRegisterSensors;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
@@ -93,6 +95,9 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 	
     // The time this channel expires (ie the refund transaction's locktime)
     @GuardedBy("lock") private long expireTime;
+    
+    // The list of HTLC ids that are being closed in this update round
+    @GuardedBy("lock") private List<String> closingHTLCIds;
 	
 	HTLCAndroidClient(
 		Wallet wallet,
@@ -371,9 +376,14 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 			new ArrayList<Protos.HTLCRevealSecret>();
     	List<Protos.HTLCBackOff> allBackoffs = 
 			new ArrayList<Protos.HTLCBackOff>();
+    	// Store the HTLC ids that are being closed this round
+    	closingHTLCIds.clear();
     	
     	for (Object update: allUpdates) {
     		if (update instanceof Protos.HTLCRevealSecret) {
+    			Protos.HTLCRevealSecret secretMsg = (Protos.HTLCRevealSecret) update;
+    			allSecrets.add(secretMsg);
+    			closingHTLCIds.add(secretMsg.getId());
     			allSecrets.add((Protos.HTLCRevealSecret) update);
     		} else if (update instanceof Protos.HTLCBackOff) {
     			allBackoffs.add((Protos.HTLCBackOff) update);
@@ -436,6 +446,11 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 					.setClientRequestId(payment.getRequestId())
 					.build();
     		paymentsReply.add(paymentReply);
+    		// Store the data and when we confirm this HTLC we can 
+    		// schedule a new async msg that gives the data to the buyer
+    		newHTLCState.setData(
+				conn.getDataFromSensor(payment.getSensorType())
+			);
     	}
     	Protos.HTLCInitReply.Builder initReply = 
 			Protos.HTLCInitReply.newBuilder()
@@ -573,14 +588,46 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     	if (htlcRound == HTLCRound.CONFIRMED) { 
     		// It's the server's round, send a round done msg instead of setup
     		// complete
-        	Protos.HTLCRoundDone.Builder roundDone = 
+    		
+    		// The data msgs are sent async. They will not break the transaction
+    		// signature process so it is safe to do it;
+    		List<HTLCData> allData = new ArrayList<>();
+    		for (String htlcId: closingHTLCIds) {
+    			// Remove from the HTLCMap
+    			state.removeHTLC(htlcId);
+    			List<String> sensorData = state.getDataForHTLC(htlcId);
+    			if (sensorData == null) {
+    				log.error(
+						"Retrieving data but failed with NULL for htlcID {}. " +
+						"This should not happen.", htlcId
+					);
+    			} else {
+    				log.info("Retrieving data for HTLCId {}", htlcId);
+    				log.info("Data is: {}", sensorData);
+	    			HTLCData.Builder dataMsg = HTLCData.newBuilder()
+	    				.setId(htlcId)
+						.addAllData(state.getDataForHTLC(htlcId));
+	    			allData.add(dataMsg.build());
+    			}
+    		}
+    		// Send the data msgs to the Hub so it can forward them correctly
+    		Protos.HTLCFlow.Builder flowMsg = Protos.HTLCFlow.newBuilder()
+				.addAllData(allData)
+				.setType(FlowType.DATA);
+    		Protos.TwoWayChannelMessage dataMsg = 
+				Protos.TwoWayChannelMessage.newBuilder()
+					.setHtlcFlow(flowMsg)
+					.setType(MessageType.HTLC_FLOW)
+					.build();
+    		conn.sendToHub(dataMsg);
+    		
+        	Protos.HTLCRoundDone.Builder roundDone =
     			Protos.HTLCRoundDone.newBuilder();
         	final Protos.TwoWayChannelMessage.Builder roundDoneMsg = 
     			Protos.TwoWayChannelMessage.newBuilder()
     				.setHtlcRoundDone(roundDone)
     				.setType(MessageType.HTLC_ROUND_DONE);
-        	conn.sendToHub(roundDoneMsg.build());
-    		
+        	conn.sendToHub(roundDoneMsg.build());        	
     	} else {
 	    	// Let's ACK the successful setup
 	    	Protos.HTLCSetupComplete.Builder setupMsg = 
@@ -590,7 +637,8 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 				Protos.TwoWayChannelMessage.newBuilder()
 					.setHtlcSetupComplete(setupMsg)
 					.setType(
-						Protos.TwoWayChannelMessage.MessageType.HTLC_SETUP_COMPLETE
+						Protos.TwoWayChannelMessage.
+							MessageType.HTLC_SETUP_COMPLETE
 					);
 	    	conn.sendToHub(htlcSetupMsg.build());
     	}
@@ -609,7 +657,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     		blockingQueue.put(revealMsg);
     	}
     }
-	
+
 	@GuardedBy("lock")
 	public void updateSensors(List<String> sensors, List<Long> prices) {
 		HTLCRegisterSensors.Builder registerMsg = 

@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -104,6 +103,14 @@ public class HTLCChannelServerState {
 		this.broadcaster = broadcaster;
 		this.random = new SecureRandom();
 		this.htlcMap = new HashMap<String, HTLCServerState>();
+	}
+	
+	public boolean isHTLCActive(String htlcId) {
+		return htlcMap.containsKey(htlcId);
+	}
+	
+	public void removeHTLC(String htlcId) {
+		htlcMap.remove(htlcId);
 	}
 	
 	/**
@@ -431,9 +438,16 @@ public class HTLCChannelServerState {
 		return htlcState.getFullForfeitTx(teardownTx, serverKey);
 	}
 	
-	public synchronized String getSecretForHTLC(String htlcId) {
-		HTLCServerState htlcState = htlcMap.get(htlcId);
-		return htlcState.getSecret();
+	public String getSecretForHTLC(String htlcId) {
+		return  htlcMap.get(htlcId).getSecret();
+	}
+	
+	public List<String> getDataForHTLC(String htlcId) {
+		return htlcMap.get(htlcId).getData();
+	}
+	
+	public void setDataForHTLC(String htlcId, List<String> data) {
+		htlcMap.get(htlcId).setData(data);
 	}
 	
 	/**

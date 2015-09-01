@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoin.paymentchannel.Protos.HTLCBackOff;
+import org.bitcoin.paymentchannel.Protos.HTLCData;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow;
 import org.bitcoin.paymentchannel.Protos.HTLCInit;
 import org.bitcoin.paymentchannel.Protos.HTLCInitReply;
@@ -62,11 +63,50 @@ public class HTLCHubMessageFilter {
 				);
 				break;
 			case HTLC_FLOW:
-				
+				HTLCFlow flowMsg = msg.getHtlcFlow();
+				switch (flowMsg.getType()) {
+					case DATA:
+						filterDataMsgForBuyer(flowMsg.getDataList());
+						break;
+					default:
+						log.info("Received invalid message type: {}", msg);
+						break;
+				}
 				break;
 			default:
 				log.info("Received invalid message type: {}", msg);
 				break;
+		}
+	}
+	
+	private void filterDataMsgForBuyer(List<HTLCData> dataMsgList) {
+		log.info("Filtering data msg for buyer");
+		Map<HTLCHubBuyerServer, List<HTLCData>> filteredDataMap =
+			new HashMap<HTLCHubBuyerServer, List<HTLCData>>();
+		
+		for (HTLCData dataMsg: dataMsgList) {
+			String htlcId = dataMsg.getId();
+			HTLCHubBuyerServer buyerServer = htlcIdToBuyerMap.get(htlcId);
+			List<HTLCData> dataForBuyer = filteredDataMap.get(buyerServer);
+			if (dataForBuyer == null) {
+				dataForBuyer = new ArrayList<HTLCData>();
+			}
+			dataForBuyer.add(dataMsg);
+			filteredDataMap.put(buyerServer, dataForBuyer);
+		}
+		
+		for (Map.Entry<HTLCHubBuyerServer, List<HTLCData>> entry:
+				filteredDataMap.entrySet()
+		) {
+			HTLCFlow.Builder flowMsg = HTLCFlow.newBuilder()
+				.setType(FlowType.DATA)
+				.addAllData(entry.getValue());
+			final Protos.TwoWayChannelMessage msgForBuyer =
+				Protos.TwoWayChannelMessage.newBuilder()
+					.setType(MessageType.HTLC_FLOW)
+					.setHtlcFlow(flowMsg)
+					.build();
+			entry.getKey().receiveMessage(msgForBuyer);
 		}
 	}
 	

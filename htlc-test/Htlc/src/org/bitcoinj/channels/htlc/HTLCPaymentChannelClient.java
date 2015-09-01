@@ -227,9 +227,6 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 	    		case HTLC_SERVER_UPDATE:
 	    			receiveHTLCServerUpdate(msg);
 	    			return;
-	    		case HTLC_PAYMENT_ACK:
-					receiveHTLCPaymentAck(msg);
-	    			return;
 	    		case CLOSE:
 	    			receiveClose(msg);
 	    			return;
@@ -682,23 +679,7 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
 				.setHtlcSignedTeardown(teardownMsg);
     	conn.sendToServer(channelMsg.build());
     }
-   
-    @GuardedBy("lock")
-    private void receiveHTLCPaymentAck(Protos.TwoWayChannelMessage msg) {
-    	checkState(step == InitStep.CHANNEL_OPEN);
-    	log.info("Received HTLC payment ACK message");
-    	Protos.HTLCPaymentAck ack = msg.getHtlcPaymentAck();
-    	ByteString htlcId = ack.getId();
-    	String id = new String(htlcId.toByteArray());
-    	Coin value = paymentValueMap.remove(id);
-    	// This will cancel the broadcast of the HTLC refund Tx
-    	state.cancelHTLCRefundTxBroadcast(id);
-    	// Let's set the future - we are done with this HTLC
-    	SettableFuture<PaymentIncrementAck> future = 
-			paymentAckFutureMap.get(id);
-    	future.set(new PaymentIncrementAck(value, htlcId));
-    }
-    
+       
     @GuardedBy("lock")
     private void receiveClose(Protos.TwoWayChannelMessage msg)
     		throws VerificationException {

@@ -2,6 +2,7 @@ package org.bitcoinj.channels.htlc.buyer;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
@@ -151,15 +152,13 @@ public class HTLCBuyerDriver {
 			new FutureCallback<HTLCPaymentReceipt>() {
 				@Override
 				public void onSuccess(HTLCPaymentReceipt receiptWithData) {
-					System.out.println(
-						"Successfully paid " + receiptWithData.getValue() + 
-						" for " + receiptWithData.getData()
-					);
+					log.info("Received data {}",  Arrays.toString(receiptWithData.getData().toArray()));
+					log.info("For which I paid {}", receiptWithData.getValue());
 				}
 				
 				@Override
 				public void onFailure(Throwable throwable) {
-					
+					log.error("An exception has occured during the payment");
 				}
 			}
 		);

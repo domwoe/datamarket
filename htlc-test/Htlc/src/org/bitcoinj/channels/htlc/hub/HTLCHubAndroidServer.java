@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
@@ -33,12 +32,8 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.protocols.channels.PaymentIncrementAck;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
-import org.bitcoinj.utils.Threading;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.params.KeyParameter;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
 
@@ -210,7 +205,7 @@ public class HTLCHubAndroidServer {
 	    			receiveHTLCRoundAck();
 	    			return;
 	    		case HTLC_ROUND_DONE:
-	    			receiveHTLCRoundDone();
+	    			receiveHTLCRoundDone(msg);
 	    			return;
 	    		case HTLC_INIT:
 	    			// This must come from the buyer hub server
@@ -228,11 +223,8 @@ public class HTLCHubAndroidServer {
 	    		case HTLC_SERVER_UPDATE:
 	    			receiveHTLCServerUpdate(msg);
 	    			return;
-	    		case HTLC_PAYMENT_ACK:
-					receiveHTLCPaymentAck(msg);
-	    			return;
 	    		case HTLC_FLOW:
-	    			receiveHTLCFlow(msg.getHtlcFlow());
+	    			receiveHTLCFlow(msg);
 	    			return;
 	    		case CLOSE:
 	    			receiveClose(msg);
@@ -469,7 +461,7 @@ public class HTLCHubAndroidServer {
     }
     
     @GuardedBy("lock")
-    private void receiveHTLCRoundDone() {
+    private void receiveHTLCRoundDone(Protos.TwoWayChannelMessage msg) {
     	log.info("Server finished its round of updates");
     	htlcRound = HTLCRound.OFF;
     	if (!blockingQueue.isEmpty()) {
@@ -521,59 +513,6 @@ public class HTLCHubAndroidServer {
     	
     	conn.forwardToBuyerServers(this, msg);
     }
-    
-    /*
-    @GuardedBy("lock")
-    private void receiveHTLCInitReply(Protos.TwoWayChannelMessage msg) 
-    		throws ValueOutOfRangeException {
-    	
-    	checkState(step == InitStep.CHANNEL_OPEN);
-    	log.info("Received htlc INIT REPLY.");
-    	
-    	Protos.HTLCInitReply htlcInitReply = msg.getHtlcInitReply();
-    	
-    	List<String> ids = new ArrayList<String>();
-    	List<Integer> idxs = new ArrayList<Integer>();
-    	List<Protos.HTLCPaymentReply> paymentsReply = 
-			htlcInitReply.getNewPaymentsReplyList();
-    	
-    	for (Protos.HTLCPaymentReply paymentReply: paymentsReply) {
-    		    		
-    		String requestIdString = paymentReply.getClientRequestId();
-    		String id = paymentReply.getId();
-    		
-    		// Update the key in the map to only use one id from now on
-        	Coin storedValue = paymentValueMap.get(requestIdString);
-        	paymentValueMap.remove(requestIdString);
-        	paymentValueMap.put(id, storedValue);
-        
-    		int htlcIdx = state.updateTeardownTxWithHTLC(id, storedValue);
-    		ids.add(id);
-    		idxs.add(htlcIdx);
-    	}
-    	
-    	log.info("Done processing HTLC init reply");
-    	
-    	log.info("Sending back Signed teardown with updated ids");
-    	
-    	SignedTransaction signedTx = state.getSignedTeardownTx();
-    	Protos.HTLCSignedTransaction.Builder signedTeardown =
-			Protos.HTLCSignedTransaction.newBuilder()
-				.setTx(ByteString.copyFrom(signedTx.getTx().bitcoinSerialize()))
-				.setSignature(ByteString.copyFrom(
-					signedTx.getSig().encodeToBitcoin()
-				));
-    	Protos.HTLCProvideSignedTeardown.Builder teardownMsg = 
-			Protos.HTLCProvideSignedTeardown.newBuilder()
-				.addAllIds(ids)
-				.addAllIdx(idxs)
-				.setSignedTeardown(signedTeardown);
-    	final Protos.TwoWayChannelMessage.Builder channelMsg =
-			Protos.TwoWayChannelMessage.newBuilder()
-				.setType(MessageType.HTLC_SIGNED_TEARDOWN)
-				.setHtlcSignedTeardown(teardownMsg);
-    	conn.sendToDevice(channelMsg.build());
-    } */
     
     private static ByteString txToBS(Transaction tx) {
     	return ByteString.copyFrom(tx.bitcoinSerialize());
@@ -755,31 +694,23 @@ public class HTLCHubAndroidServer {
     	log.info("Processed HTLC Server update and forwarding correct secrets to buyer servers");
     	conn.forwardToBuyerServers(this, forwardMsg);
     }
-   
-    @GuardedBy("lock")
-    private void receiveHTLCPaymentAck(Protos.TwoWayChannelMessage msg) {
-    	checkState(step == InitStep.CHANNEL_OPEN);
-    	log.info("Received HTLC payment ACK message");
-    	Protos.HTLCPaymentAck ack = msg.getHtlcPaymentAck();
-    	// TODO: add processing of PaymentAck with Data
-    //	String htlcId = ack.getId();
-    //	Coin value = paymentValueMap.remove(htlcId);
-    	// This will cancel the broadcast of the HTLC refund Tx
-    //	state.cancelHTLCRefundTxBroadcast(htlcId);
-    }
     
     @GuardedBy("lock")
-    private void receiveHTLCFlow(Protos.HTLCFlow msg) 
+    private void receiveHTLCFlow(Protos.TwoWayChannelMessage msg) 
     		throws ValueOutOfRangeException {
-    	switch(msg.getType()) {
+    	Protos.HTLCFlow flowMsg = msg.getHtlcFlow();
+    	switch(flowMsg.getType()) {
     		case REGISTER_SENSORS:
     			conn.registerSensors(
-					msg.getRegisterSensors().getSensorsList(), 
-					msg.getRegisterSensors().getPricesList()
+					flowMsg.getRegisterSensors().getSensorsList(), 
+					flowMsg.getRegisterSensors().getPricesList()
 				);
     			break;
     		case RESUME_SETUP:
-    			receiveResumeSetup(msg.getResumeSetup());
+    			receiveResumeSetup(flowMsg.getResumeSetup());
+    			break;
+    		case DATA:
+    			conn.forwardToBuyerServers(this, msg);
     			break;
     		default:
     			break;

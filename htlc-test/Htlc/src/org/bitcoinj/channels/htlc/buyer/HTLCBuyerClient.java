@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import net.jcip.annotations.GuardedBy;
 
 import org.bitcoin.paymentchannel.Protos;
+import org.bitcoin.paymentchannel.Protos.HTLCData;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
@@ -245,9 +246,6 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	    			return;
 	    		case HTLC_SERVER_UPDATE:
 	    			receiveHTLCServerUpdate(msg);
-	    			return;
-	    		case HTLC_PAYMENT_ACK:
-					receiveHTLCPaymentAck(msg);
 	    			return;
 	    		case HTLC_FLOW:
 	    			receiveHTLCFlowMsg(msg);
@@ -704,23 +702,6 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     }
    
     @GuardedBy("lock")
-    private void receiveHTLCPaymentAck(Protos.TwoWayChannelMessage msg) {
-    	checkState(step == InitStep.CHANNEL_OPEN);
-    	log.info("Received HTLC payment ACK message");
-    	Protos.HTLCPaymentAck ack = msg.getHtlcPaymentAck();
-    	ByteString htlcId = ack.getId();
-    	String id = new String(htlcId.toByteArray());
-    	Coin value = paymentValueMap.remove(id);
-    	// This will cancel the broadcast of the HTLC refund Tx
-    	state.cancelHTLCRefundTxBroadcast(id);
-    	// Let's set the future - we are done with this HTLC
-    	SettableFuture<HTLCPaymentReceipt> future = 
-			paymentAckFutureMap.get(id);
-    	// TODO: REad actual data, atm just NULL
-    	future.set(new HTLCPaymentReceipt(value, null));
-    }
-    
-    @GuardedBy("lock")
     private void receiveClose(Protos.TwoWayChannelMessage msg)
     		throws VerificationException {
     	checkState(lock.isHeldByCurrentThread());
@@ -817,9 +798,24 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 				return;
 			case PAYMENT_INFO:
 				receivePaymentInfo(id, flowMsg.getPaymentInfo());
+			case DATA:
+				receiveData(msg.getHtlcFlow().getDataList());
 			default:
 				return;
 		}
+	}
+	
+	private void receiveData(List<HTLCData> dataList) {
+    	for (Protos.HTLCData data: dataList) {
+    		String htlcId = data.getId();
+    		List<String> sensorData = data.getDataList();
+    		state.cancelHTLCRefundTxBroadcast(htlcId);
+    		SettableFuture<HTLCPaymentReceipt> future = 
+    			paymentAckFutureMap.get(htlcId);
+        	future.set(new HTLCPaymentReceipt(value, sensorData));
+        	paymentAckFutureMap.remove(htlcId);
+        	paymentValueMap.remove(htlcId);
+    	}
 	}
 	
 	private void receiveNodeStatsReply(

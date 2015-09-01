@@ -78,7 +78,7 @@ message TwoWayChannelMessage {
         HTLC_SETUP_COMPLETE = 18;
         HTLC_SERVER_UPDATE = 19;
         HTLC_UPDATE_TEARDOWN = 20;
-        HTLC_PAYMENT_ACK = 21;
+        HTLC_DATA = 21;
         
         HTLC_ROUND_INIT = 22;
         HTLC_ROUND_ACK = 23;
@@ -121,7 +121,7 @@ message TwoWayChannelMessage {
     optional HTLCSignedSettleAndForfeit htlc_signed_settle_and_forfeit = 17;
     optional HTLCSetupComplete htlc_setup_complete = 18;
     optional HTLCServerUpdate htlc_server_update = 19;
-    optional HTLCPaymentAck htlc_payment_ack = 21;
+    optional HTLCData htlc_data = 21;
     optional HTLCRoundInit htlc_round_init = 22;
     optional HTLCRoundAck htlc_round_ack = 23;
     optional HTLCRoundDone htlc_round_done = 24;
@@ -368,13 +368,7 @@ message HTLCServerUpdate {
 	// This is sent by the server to the client to update (either reveal secrets
 	// or back-off from certain opened HTLC outputs)
 	repeated HTLCRevealSecret reveal_secrets = 1;
-	repeated HTLCBackOff back_offs = 2; 
-}
-
-message HTLCPaymentAck {
-	// Sent by the server to the client to ack that the HTLC is confirmed
-	repeated string id = 1;
-	repeated string data = 2;
+	repeated HTLCBackOff back_offs = 2;
 }
 
 message HTLCFlow {
@@ -387,6 +381,7 @@ message HTLCFlow {
 		SELECT = 6;
 		PAYMENT_INFO = 7;
 		RESUME_SETUP = 8;
+		DATA = 9;
 	};
 	
 	required FlowType type = 1;
@@ -397,6 +392,14 @@ message HTLCFlow {
 	optional HTLCSelectData select_data = 6;
 	optional HTLCPaymentInfo payment_info = 7;
 	optional HTLCResumeSetup resume_setup = 8;
+	repeated HTLCData data = 9;
+}
+
+message HTLCData {
+	// Sent by the server to the client to transfer the actual data
+	// that the client paid for in a successful transaction
+	required string id = 1;
+	repeated string data = 2;
 }
 
 message HTLCRegisterSensors {

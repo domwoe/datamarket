@@ -1,5 +1,7 @@
 package org.bitcoinj.channels.htlc.android;
 
+import java.util.List;
+
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.Sha256Hash;
@@ -14,5 +16,6 @@ public interface IPaymentAndroidChannelClient {
 		void sendToHub(Protos.TwoWayChannelMessage msg);
 		void paymentIncrease(Coin from, Coin to);
 		void destroyConnection(PaymentChannelCloseException.CloseReason reason);
+		public List<String> getDataFromSensor(String sensorType);
 	}
 }

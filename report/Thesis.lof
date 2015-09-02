@@ -1,9 +1,10 @@
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {1.1}{\ignorespaces A simplified representation of the Bitcoin blockchain.\relax }}{2}{figure.caption.5}
-\contentsline {figure}{\numberline {1.2}{\ignorespaces Micropayment channel protocol: setting up the shared account (bond transaction), creating the refund transaction, and updating the incremental payment transaction.\relax }}{4}{figure.caption.6}
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Micropayment channel protocol: setting up the shared account (bond transaction), creating the refund transaction, and updating the incremental payment transaction.\relax }}{5}{figure.caption.6}
 \contentsline {subfigure}{\numberline {(a)}{\ignorespaces {HTLC pubScript.}}}{6}{subfigure.3.1}
 \contentsline {subfigure}{\numberline {(b)}{\ignorespaces {HTLC Transaction structure.}}}{6}{subfigure.3.2}
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces System overview: buyers, central hub, and sensor nodes.\relax }}{13}{figure.caption.8}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

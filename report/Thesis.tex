@@ -104,7 +104,11 @@ entities, the protocol relies on contracts that pass the payment obligation down
 and then to the sensor node. In addition to the theoretical model, a proof-of-concept is built based on the Android built-in
 sensors.
 
-\section{Bitcoin}
+\section{Background}
+
+In the following sub-sections, the background on the used concepts and sub-protocols is presented.
+
+\subsection{Bitcoin}
 
 \hspace*{12pt} Since its invention in 2008 [Satoshi paper], Bitcoin has grown into a global electronic payment system.
 It uses peer-to-peer technology to transfer funds, with no need for a central authority such as a financial institution
@@ -148,7 +152,7 @@ before being added to the blockchain. This PoW takes advantage of the random nat
 impossible to modify the data to obtain predictable hashes. The computation, called mining, is incentivized through fees
 that are earned by the nodes performing it.
 
-\section {Micropayment channels}
+\subsection {Micropayment channels}
 
 \hspace*{12pt} Unlike traditional payment methods, Bitcoin transactions are very cheap in terms
 of fees, but still have a considerable cost given the mining and storing they require. The context
@@ -204,7 +208,7 @@ tempted to broadcast an older transaction that gives less money to the sensor no
 for the provided data, but it is missing the sensor's signature. Thus, the construct of micropayment
 channels prevents misbehavior from both parties.
 
-\section{Hashed Time-Lock Contracts (HTLCs)}
+\subsection{Hashed Time-Lock Contracts (HTLCs)}
 
 \hspace*{12pt} Since the project proposes a three-component system in which payments need to be forwarded
 from the buyer all the way to the data sensor nodes, a blockchain enforced contract needs to be set in place
@@ -232,7 +236,6 @@ step by step by all nodes on path all the way back to {\it A}, which completes t
     \subfloat[HTLC Transaction structure.]{\includegraphics[width=0.5\textwidth]{figures/HTLCTxs}
     \label{fig:htlctxstructure}}
 \end{figure}
-
 
 To prevent the intermediaries from delaying the funds, stealing or keeping them hostage, 
 HTLC refund, settlement and sometimes forfeiture transactions are created, all three types
@@ -362,6 +365,96 @@ with Cryptotronix, TilePay wants to enable cryptocurrency payments to IoT device
 in December 2014, no work or detailed information on how they would achieve that has been published.
 
 \chapter{Design}
+
+\section{Requirements}
+
+\hspace*{12pt} For the presented use case, a scheme that enables sensor nodes in an Internet-of-Things network to shared sensed data and 
+get paid in exchange must meet the following requirements:
+\begin{itemize}
+ \item Provide an entity that the node can register sensor type availability to.
+ \item Provide an entity that buyers can query for available data and that can provide sensor node contact
+ information
+ \item Scalability: avoid broadcasting all micro-transactions to the blockchain
+ \item Efficiency (and speed): fast communication between components, payments and data should be confirmed and received instantly
+ \item Secure: end-to-end security of the payments
+ \item Anonymous: linking of buyers and sellers and identification across sessions should not be possible.
+\end{itemize}
+
+\subsection{Achieving Scalability and Efficiency}
+
+\hspace*{12pt} In order to achieve scalability and efficiency, there are two important factors that need to be taken
+into account: the inherent scalability issue of Bitcoin and the number of peer pairs that need
+to interact to successfully get payments from buyers to the sensors.
+
+Since sensor nodes are exchanging small sets of sensed data in exchange for bitcoins, individual payments
+made by the buyer tend to be of very small amounts. Therefore, creating new transactions for each
+such payment would have a very high overhead in terms of fees, which reduces the incentive for
+both the buyers and the sensor nodes to participate in the protocol. A high volume of transactions
+would also delay the transactions being confirmed on the Bitcoin network. To address these
+issues, the proposed system will rely on the previously introduced micropayment channels. 
+This mechanism will allow, after a preliminary setup between the parts that wish to transact,
+to instantly send small amounts of bitcoins off the blockchain, bundling and publishing them to the
+network only at the end of a specified time window. Thus, both scalability of Bitcoin and efficiency
+of payments are achieved.
+
+One issue that comes with using micropayment channels in the proposed context 
+is that its set-up phase takes a considerable time (approximately 10 minutes, until the bond transaction
+is confirmed by the network). Thus, setting up a channel between all buyers and nodes becomes 
+very inefficient time-wise and causes a lot of overhead on the network since all connections need
+to be maintained for the lifetime of the channel.
+On the other hand, if the buyers and the sensors
+have previously established a channel with a central entity as in the hub-and-spoke model (cite), 
+each will have a single set-up to wait for and a single channel 
+connection to maintain. To better illustrate the performance improvement, suppose the system runs
+{\it X = 100} buyers and {\it Y = 100} data providers. By using the initial idea, {\it X*Y = 10.000} 
+channels  need to be established and maintained. With the hub-and-spoke model, however, 
+{\it X + Y = 200} channels will suffice (factor of {\it 50}).
+
+Last, adding a single central entity may affect the scalability of the system when the number of 
+data providers and buyers increases, becoming a performance bottleneck. 
+However, the concept of a central hub should be rather
+treated as a central cloud, which can contain several machines maintaining the connections,
+channels, available sensor data, and load balancers that distributed the work across the available
+machines.
+
+\subsection{Achieving Security}
+
+Talk about micropayment channels + HTLCs. Sequence diagram for full protocol.
+
+\subsection{Achieving Anonymity}
+
+By design, the role of the central hub is to connect data buyers and sellers, and given that
+the lifetime of the established micropayment channels are rather long, the hub can easily analyze
+the data a buyer is interested in, build a profile and ultimately, identifying it. To address
+the privacy issue, buyers could make use of a distributed 'onion' network, such as Tor,
+open several, shorter-lived sessions, over several vantage points, 
+and spread payments and data exchanges on these session when buying different sets of data. 
+An additional precaution is to never reuse addresses across sessions. 
+This way, profiling becomes more difficult,
+and the hub can not link anymore buyers and data they have purchased through the system.
+
+\section{System Overview}
+
+The design of the payment system achieving the requirements above comprises three major components:
+one component consists of several sensor data providers (IoT sensor nodes, Android phones
+running specialized app, etc.), one central hub that plays an essential role in sensor node discovery
+and payment and data relaying, and a third component, consisting of data buyers. The communication
+between the buyers and the hub, and between the hub and the sensor nodes is done through TCP links.
+
+\begin{figure}[!ht]
+  \includegraphics[width=\textwidth]{figures/SystemOverview}
+  \caption{System overview: buyers, central hub, and sensor nodes.}
+\end{figure}
+
+\section{System components}
+
+\subsection{Buyers}
+
+\subsection{Central Hub}
+
+\subsection{Sensor nodes}
+
+
 
 \chapter{Implementation}
 

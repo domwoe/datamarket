@@ -4,8 +4,16 @@
 \contentsline {subfigure}{\numberline {(a)}{\ignorespaces {HTLC pubScript.}}}{6}{subfigure.3.1}
 \contentsline {subfigure}{\numberline {(b)}{\ignorespaces {HTLC Transaction structure.}}}{6}{subfigure.3.2}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces System overview: buyers, central hub, and sensor nodes.\relax }}{13}{figure.caption.8}
+\contentsline {figure}{\numberline {2.1}{\ignorespaces System overview: buyers, central hub, and sensor nodes.\relax }}{12}{figure.caption.8}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Micropayment channels with HTLCs for end-to-end security on payment paths\relax }}{15}{figure.caption.10}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Securing payment paths between buyer, hub, and sensor nodes with micropayment channels and HTLCs\relax }}{16}{figure.caption.12}
 \addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Five-layered application architecture\relax }}{19}{figure.caption.13}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces UML class diagram of the Client component\relax }}{21}{figure.caption.14}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces UML class diagram of the Server component\relax }}{23}{figure.caption.15}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Micropayment channel sequence diagram.\relax }}{30}{figure.caption.16}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Micropayment channel state machine diagram.\relax }}{31}{figure.caption.17}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces HTLC update round negotiation\relax }}{32}{figure.caption.19}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

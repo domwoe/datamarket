@@ -4,6 +4,7 @@
 \usepackage[latin1]{inputenc}
 \usepackage[font={small}]{caption}
 \usepackage{subfig}
+\usepackage{listings}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,9 +128,9 @@ public and private key pairs that are stored in a file called a wallet. In order
 an address is derived from the public key and is disclosed together with it to the participants.
 In this cash system, transactions consist of one or more inputs (references to previous transaction outputs)
 assigning the value of all inputs to one or more outputs. An output consists of a tuple of a specified
-bitcoin amount, and an output script, called pubscript. This special script describes conditions
-that need to be satisfied in order for the amount to be claimed by an entity. In most cases,
-the script only requires a signature matching the address, which proves the possession of the 
+bitcoin amount, and an output script, called scriptPub. When trying to claim the funds, an entity must
+create a signature script (scripSig), which has to satisfy the conditions in the previous output's pubkey scripts.
+In most cases, the script only requires a signature matching the address, which proves the possession of the 
 corresponding private key. The difference between the total input amount and the total
 output amount in a transaction represents the transaction fee.
 A peer holding a private key can sign a transaction spending some of its wallet's amount to some other address, and 
@@ -380,6 +381,63 @@ get paid in exchange must meet the following requirements:
  \item Anonymous: linking of buyers and sellers and identification across sessions should not be possible.
 \end{itemize}
 
+\section{System Overview}
+
+The design of the payment system achieving the requirements above comprises three major components:
+one component consists of several sensor data providers (IoT sensor nodes, Android phones
+running specialized app, etc.), one central hub that plays an essential role in sensor node discovery
+and payment and data relaying, and a third component, consisting of data buyers. The communication
+between the buyers and the hub, and between the hub and the sensor nodes is done through TCP links.
+
+\begin{figure}[!ht]
+  \includegraphics[width=\textwidth]{figures/SystemOverview}
+  \caption{System overview: buyers, central hub, and sensor nodes.}
+\end{figure}
+
+\section{System components}
+
+In this section, each of the three system components is presented in more detail.
+
+\subsection{Sensor nodes}
+
+\hspace*{12pt} In order to participate in the system, the sensor nodes need Internet connectivity to establish 
+TCP connections to the central hub. The node then initiates the establishment of a long-term micropayment channel. 
+Once the setup is complete, the availability of the sensors is signaled to the hub, which registers them
+accordingly for future buyer queries.
+
+\subsection{Buyers}
+
+\hspace*{12pt} This component consists of a simple interface connecting to the hub through a TCP connection. First,
+a micropayment channel is established with the central hub. After this initial step, the buyer
+can run queries such as:
+\begin{itemize}
+ \item Node statistics: offer information on the number of connected sensor nodes. 
+ \item Sensor statistics: offer information on the types of sensors that are available for purchasing.
+ \item Select queries: allow buyers to query for a certain type of sensor data and inform them
+ on nodes this data is available on, together with pricing information.
+ \item Buy queries: allow buyers to purchase a set of data for a certain sensor type from a selected node.
+ This query will return the asked data set.
+\end{itemize}
+
+\subsection{Central Hub}
+
+\hspace*{12pt} At the heart of the system lays the central hub. According to the requirements, the hub acts as a coordinator
+, payment forwarding medium and meeting point between the buyers and the data providers. It establishes micropayment
+channels with all sensor nodes sharing their data and all buyers. On the other hand, each of the other two components
+only need to keep one micropayment channel open, with the central hub.
+
+When a new data provider connects to the central entity, it establishes a TCP connection and sets up a new 
+micropayment channel between two. That is, the hub has to lock in a certain amount for a longer time interval 
+({\it 30} days, for example). Assuming numerous data providers, the hub is required to have a high amount of bitcoins
+to pre-allocate in each established channel to run the entire system.
+
+To support the two types of connection, the hub is running two servers, 
+providing specialized handlers that communicate with each sensor node and buyer connecting to it. 
+A driver component coordinates the two subcomponents, book-keeping connected nodes and buyers, forwards messages
+between the buyers and nodes, and vice-versa.
+
+\section {Achieving the requirements}
+
 \subsection{Achieving Scalability and Efficiency}
 
 \hspace*{12pt} In order to achieve scalability and efficiency, there are two important factors that need to be taken
@@ -419,51 +477,370 @@ machines.
 
 \subsection{Achieving Security}
 
-Talk about micropayment channels + HTLCs. Sequence diagram for full protocol.
+\hspace*{12pt} To achieve efficient end-to-end security on the path between the buyers and the data providers, 
+pre-established micropayment channels are combined with HTLCs. This ensures that
+all nodes on the payment path receive their funds and if funds are delayed or taken hostage,
+a maximum penalty will incur for the defecting node. The method is first presented for
+neighboring nodes, then extended for full paths.
+
+\subsubsection{Between neighboring nodes}
+
+\vspace*{5pt}
+\begin{figure}[!ht]
+  \includegraphics[width=\textwidth]{figures/MicroHTLC}
+  \caption{Micropayment channels with HTLCs for end-to-end security on payment paths}
+\end{figure}
+
+\hspace*{12pt} First, the two neighboring nodes have to set up a shared account 
+(multi-signature transaction) between the two of them. Once the bond
+transaction is broadcast to the network, the funds are locked in and the micropayment channel is 
+opened. Initially, an HTLC setup transaction spending the shared output is created, allocating 
+the full channel amount to the sender, and $0$ to the recipient. When a new payment is created,
+instead of directly increasing the amount which the recipient, an HTLC output with the
+payment amount is added to the HTLC setup transaction, which requires a secret $R$, 
+known only by the recipient, to be revealed in order to claim the payment. 
+As previously explained, the HTLC output is spent by three
+transactions: the HTLC refund, settlement and forfeiture transactions. 
+
+In order to be able to claim the HTLC output, the receiving party has to broadcast the HTLC
+setup transaction before the channel refund transactions becomes valid at $ T = \delta $.
+If the sender still tries to broadcast the channel refund, the transaction would be rejected
+since it double-spends the multi-signature output of the bond transaction. Once the HTLC setup
+transaction is confirmed by the network, the HTLC output becomes available. 
+If the recipient has the secret, it has time until $ T = \delta + 1$ to commit the settlement
+transaction. On the other hand, if it does not, it can simply agree with the sender to remove the
+HTLC output (voiding the payment), and hand it over a forfeiture transaction that guarantees it will
+not use an older HTLC setup transaction version, should it receive the secret at a later time.
+Thus, the HTLC settlement transaction needs a time lock $ T = \delta + 1$, higher than the latest time the setup transaction
+can be committed, such that the forfeiture transaction can be safely broadcast within the time
+window the HTLC output is committed and it being spent by the settlement transaction. Last,
+if the settlement transaction is not used by time $T = \delta + 2$, the sender will get its funds
+back using the HTLC refund transaction.
+
+The main use of the presented protocol is to keep as many transactions as possible off the blockchain.
+In order for this to work, the recipient, instead of broadcasting the settlement transaction to reveal the 
+secret and claim the money, it can simply reveal it directly to the sender. This way, both parties
+can agree on removing the HTLC output from the setup transaction, updating the output allocated to the
+recipient with the amount of the HTLC. If the recipient chooses to void the HTLC instead, it can
+sign a forfeiture transaction and hand it over to the sender, guaranteeing the sender that
+it will not use an older setup transaction. By doing this, the HTLC output is again
+removed, and its value is added back to the output of the sender.
+
+\subsubsection{On full path}
+
+\hspace*{12pt} To achieve end-to-end security on the full path between the buyers, central hub, 
+and sensor nodes, the protocol above is extended. First, the buyer and the sensor node 
+have to establish micropayment channels with the central hub. In order to make a payment, 
+the buyer has to first make a request to the final recipient, the sensor node, through the hub, 
+which generates a secret $R$, hashes it to obtain $H$, and sends $H$ back to the buyer. 
+Using the received hash, the buyer opens a new HTLC flow with the central hub, by adding an 
+HTLC output to the setup transaction spending from the shared account between the two. 
+Once the process is complete, the hub then uses $H$ to open a corresponding HTLC flow with 
+the sensor node. After this step, the sensor can release the secret to the hub to claim its money,
+which can then use it to claim the funds from the buyer, closing the two HTLCs. This process
+provides end-to-end security on the payment path.
+
+\vspace*{5pt}
+\begin{figure}[!ht]
+  \includegraphics[width=\textwidth]{figures/FullMicroHTLC}
+  \caption{Securing payment paths between buyer, hub, and sensor nodes with micropayment channels and 
+  HTLCs}
+  \label{fig:fullmicrohtlc}
+\end{figure}
+
+In order for the protocol to be fully secure in this two-hop payment scenario, the time locks of 
+the HTLC refund and settlement transactions from the recipient up to the buyer need to be higher
+than the ones from the previous hop (see \ref{fig:fullmicrohtlc}), such that no participant
+can reveal the secret so late the upstream is not given the opportunity to claim its coins in time.
 
 \subsection{Achieving Anonymity}
 
-By design, the role of the central hub is to connect data buyers and sellers, and given that
-the lifetime of the established micropayment channels are rather long, it can easily analyze
+\hspace*{12pt} By design, the role of the central hub is to connect data buyers and sellers, and given that
+the lifetime of the established micropayment channels are rather long, the hub can easily analyze
 the data a buyer is interested in, build a profile and ultimately, identifying it. To address
 the privacy issue, buyers could make use of a distributed 'onion' network, such as Tor,
 open several, shorter-lived sessions, over several vantage points, 
 and spread payments and data exchanges on these session when buying different sets of data. 
 An additional precaution is to never reuse addresses across sessions. 
 This way, profiling becomes more difficult,
-and the hub can not link anymore buyers and the data they have purchased through the system.
-The same approaches can be followed by the data providers: 
-
-n the future I think it is not unreasonable to expect something like 
-Tor for routed payments to e created in which the origin of a payment 
-is masqueraded by routing it through a number of redundant hops.
-
-\section{System Overview}
-
-The design of the payment system achieving the requirements above comprises three major components:
-one component consists of several sensor data providers (IoT sensor nodes, Android phones
-running specialized app, etc.), one central hub that plays an essential role in sensor node discovery
-and payment and data relaying, and a third component, consisting of data buyers. The communication
-between the buyers and the hub, and between the hub and the sensor nodes is done through TCP links.
-
-\begin{figure}[!ht]
-  \includegraphics[width=\textwidth]{figures/SystemOverview}
-  \caption{System overview: buyers, central hub, and sensor nodes.}
-\end{figure}
-
-\section{System components}
-
-\subsection{Buyers}
-
-\subsection{Central Hub}
-
-\subsection{Sensor nodes}
-
-
+and the hub can not link anymore buyers and data they have purchased through the system.
 
 \chapter{Implementation}
 
+\hspace*{12pt} The focus of this work is to propose a centralized, low-trust, and secure scheme that enables
+IoT sensor nodes to share their data in exchange for bitcoins. The design chapter presented a solution 
+that meets the system requirements. Following the introduced design, the Java implementation of a 
+proof-of-concept based on the Android built-in sensor is presented in this chapter.
+
+\section {API design}
+
+\hspace*{12pt} The implementation of the system is based on {\it bitcoinj}, a Java library that allows users
+to work with the Bitcoin protocol. Its features include maintaining a Bitcoin wallet, creating, sending and
+receiving transactions, but also more advance constructs such as contracts and micropayment channels. 
+
+From a high-level point of view, the system is designed according to the client-server architecture, 
+in which each component is either a client or a server. The buyer component and the sensor subcomponent of the hub 
+that are spending funds in exchange for a service are considered clients. On the other hand, the buyer subcomponent 
+of the hub and the sensor node component providing data in exchange for bitcoins are considered servers. 
+
+\vspace*{5pt}
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=7cm, height=10cm]{figures/LayeredAPI}
+  \caption{Five-layered application architecture}
+  \label{fig:layeredapi}
+\end{figure}
+
+From a logical point of view, each application relies on a layered design, which improves maintainability 
+(easy to modify, test, debug, reuse layers), and performance. Layers exchange information through strict interaction.
+This approach offers a rigorous separation of concerns and ensures that each layer only interacts 
+with the one directly below. Each application is layered according to Figure \ref{fig:layeredapi}:
+\begin{itemize}
+  \item \textbf{Driver application layer.} This is the topmost layer representing an interface the users can directly
+  make use of to access the functionality provided by the lower layers. Following the design patterns from 
+  the {\it bitcoinj} library, the ListenableFuture class from the Google Guava library is used to register callbacks 
+  in the Driver layer, so the application gets notified once a computation is complete.
+  \item \textbf{Channel Connection layer.} This layer is responsible for reading and writing objects to the network.
+  The functionality is provided by the {\it niowrapper} package of the {\it bitcoinj} library, which relies on 
+  Java NIO: nonblocking, socket I/O. It also provides multiplexing, a technique used to monitor
+  multiple I/O operations executing concurrently from a single thread, obtaining high performance and low latency.
+  \item \textbf{PaymentChannel layer.} The middle layer is responsible for processing the messages that are received
+  through the wire from the layer above, dispatching tasks to lower layer accordingly, receiving results from them,
+  and finally constructing message replies and dispatching them to the connection layer. Micropayment channels are
+  fully supported by the {\it bitcoinj} library; however, for this project, the package was rewritten to support
+  HTLCs and simplified by removing the layer responsible for resuming channels in case of connection failure.
+  \item \textbf{ChannelStateMachine layer.} This layer provides a state machine independent of any network protocol.
+  It is the Bitcoin-aware layer: it constructs transactions, signs them, schedules refunds for future broadcasts
+  to initiate, use, and safely close a micropayment channel.
+  \item \textbf{HTLCStateMachines layer.} This layer provides one or more state machines that are responsible 
+  for keeping track of the HTLC flow. By allowing several instances to run at the same time, concurrent payments
+  are possible.
+\end{itemize}
+
+Both clients and servers adhere to the architecture above, with differences in functionality.
+In the next subsection, the two component types are introduced in more detail. Their interaction
+to run the proposed payment protocol is then described.
+
+\subsection {Client}
+
+\hspace*{12pt} Figure \ref{fig:clientuml} the structure of the developed client component, containing its classes and their
+relations, attributes, and operations. The classes and their responsibilities are described in a top-down
+manner.
+
+\begin{figure}
+  \centerline{\includegraphics[width=1.2\textwidth]{figures/ClientUML}}
+  \caption{UML class diagram of the Client component}
+  \label{fig:clientuml}
+\end{figure}
+
+The ClientDriver class represents the highest layer in the client application. It instantiates the 
+{\it WalletAppKit} object that is part of the {\it bitcoinj} library, which connects to the Bitcoin network and
+synchronizes the local blockchain. The driver also loads the wallet of the client, and if the wallet does 
+not contain two keys necessary in the protocol participation, it generates them. Once this is completed,
+it instantiates the ClientChannelConnection object and calls the method responsible for establishing a micropayment
+channel with the server component. As this method triggers a rather long setup process, it is called 
+asynchronously, and a callback is registered so the user gets notified once it is completed and payments
+can be made through the established channel.
+
+The ClientChannelConnection class is responsible for the communication across the network. Given the address and the port
+of the server component, it instantiates the {\it NioClient} object from the {\it bitcoinj} library and connects to it.
+The ClientChannelConnection object also creates handlers to events for incoming messages, 
+passing them to the lower layer in ClientPaymentChannel for further processing, 
+and provides callbacks for events that upper layers can hook up to.
+
+Once messages are passed down to the ClientPaymentChannel class, they are processed by type. When the TCP connection
+to the server is established, the micropayment channel setup process is initiated and after an exchange of messages with the
+server, payments to it can be made. This class is responsible for analyzing all incoming communication, triggering specific
+processes and transitions in lower layers, and ultimately constructing appropriate replies that are sent back to the server.
+It implements the IPaymentChannelClient interface that is used by the layer above to pass received messages,
+to signal that the connection to the server opened and the micropayment channel setup can be initiated, that a new
+payment needs to be made to the server, and that the channel or the connection are closing. Bottom-up communication
+between layers is done through the IClientConnection implemented in ClientChannelConnection, 
+which enables message sending to the server and callbacks for events such as opening channels and connection abortion.
+
+To provide a safe protocol, it is important to store the progress of establishing a micropayment 
+channel so it is always in a secure state. This task is performed by the ClientChannelStateMachine class,
+which keeps track of the state the channel is in. It stores the value of the channel, the bond, refund and
+HTLC setup transactions, and provides functionality for updating them at appropriate times. 
+The TransactionBroadcastScheduler instance field is responsible for scheduling and broadcasting transactions at
+the right times, using TimerTasks. Once the channel reaches the {\it ready} state, HTLC payments 
+can be made concurrently, which are kept track of using HTLCClientStateMachines. These HTLC state machines provide
+methods adding new HTLC outputs to the HTLC setup transaction, attaching refund, settlement, and, if needed,
+forfeiture transactions, and lastly, verifying secrets against HTLC hashes. 
+
+\subsection {Server}
+
+\hspace*{12pt} Figure \ref{fig:serveruml} the structure of the developed server component, containing its classes and their
+relations, attributes, and operations. The classes and their responsibilities are described in a top-down
+manner.
+
+\begin{figure}
+  \centerline{\includegraphics[width=1.2\textwidth]{figures/ServerUML}}
+  \caption{UML class diagram of the Server component}
+  \label{fig:serveruml}
+\end{figure}
+
+Similar to the client side, the ServerDriver class instantiates the {\it WalletAppKit} object that connects to the Bitcoin
+network and loads the wallet. After syncing the blockchain, an PaymentChannelServerListener object is created, which 
+creates a {\it NioServer} listening on a specified port.
+
+The PaymentChannelServerListener object is responsible for creating ServerHandler instances for each connecting client.
+The handler then passes each incoming message to the lower layer for further processing and 
+provides callbacks for events such as successfully opening new payment channels or receiving new payments from the client
+through the IHandlerFactory interface, implemented in the driver layer. 
+
+Once messages are passed down to the ServerPaymentChannel, they are processed by type, and appropriate actions are taken
+in the lower layers. When processing is complete, replies are constructed and sent over to the client side through the 
+ServerHandler object, which maintains the TCP connection. Bottom-up calls are done through the IServerConnection 
+interface, implemented in the ServerHandler class and passed down to the channel object constructor to be used.
+
+Analogously to the client component, the ServerPaymentChannel stores the state of the channel using a 
+ServerChannelStateMachine instance. The state machine keeps track of the value the channel was funded with,
+transactions and their time lock expiry and broadcast times, and provides functions to create, sign, and update
+the bond, refund, and HTLC setup transactions. Payment state book-keeping is done using HTLCServerStateMachine objects
+stored in a hash map by id. These HTLC state machines provide methods to construct HTLC refund transactions,
+verify client signatures on settlement and forfeiture transactions and to sign them with the server key.
+
+\subsection {Cross-component communication}
+
+\hspace*{12pt} System components communicate through TCP connections, transmitting Protocol Buffers (protobuf), 
+an extensible, efficient, automated, serialization method introduced by Google in 2008. 
+After defining the structure of the data that needs to be serialized through an interface description language, 
+a compiler generates source code that allows to write and read the data to in a language independent manner.
+
+To support the proposed payment protocol, the needed data structures were defined using protocol buffer message types
+in {\it .proto} files. Each such message contains a series of name-value pairs, associating scalar data types 
+with field names. Additionally, each field has an integer field that uniquely identifies it. 
+The description language also allows specifying field rules:
+\begin{itemize}
+ \item {\it optional}: a message containing a field with this rule can contain this field zero zero or one time.
+ \item {\it required}: a message containing a field with this rule must contain this field exactly one time.
+ \item {\it repeated}: a message containing a field with this rule can contain the field multiple times (including zero).
+\end{itemize}
+
+Following the pattern endorsed in the {\it bitcoinj} library, {\it TwoWayChannelMessage}s are extended to support
+the communication in the proposed protocol. Below, all used messages are defined using the presented protobuf
+description language: all messages prefixed with {\it HTLC*} are introduced for the scope of this work, while the others
+already existed in the current version of the library.
+
+\lstinputlisting{protobuf.txt}
+
+The defined messages are received through the {\it receiveMessage()} callback defined in the {\it ProtobufParser} class
+in the {\it org.bitcoinj.net} package of {\it bitcoinj}. The ClientConnection object hooks up to this callback
+on the client side and ServerHandler on the server side, respectively. 
+
+The next subsections will detail out the use of each message in the micropayment channel setup and HTLC payments.
+
+\subsection {Establishing a micropayment channel} \label{establishmicro}
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=\textwidth]{figures/MicroSeq}}
+  \caption{Micropayment channel sequence diagram.}
+  \label{fig:microseq}
+\end{figure}
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=\textwidth]{figures/MicroStates}}
+  \caption{Micropayment channel state machine diagram.}
+  \label{fig:microstates}
+\end{figure}
+
+\hspace*{12pt} Once the TCP connection between the client and the server components is established, the client will initiate the 
+process to establish a micropayment channel between the two. The exchange of messages in this subprotocol is 
+fully asynchronous to increase throughput and response time.
+
+Figure \ref{fig:microseq} shows the steps and exchange of messages between the client and the server to successfully
+set up a payment channel. The logical states of the channel establishment are displayed in 
+Figure \ref{fig:microstates}. The transitions correspond to receiving specific messages from the other protocol 
+participant. First, the client sends over a ClientVersion message, containing the version of the 
+{\it bitcoinj} library it is using, and the time window in seconds the channel should be opened for. The server verifies
+if the client version matches its own version, and replies with a ServerVersion message. At this time, the server
+also sends the client an Initiate message containing its public key, the expire time of the channel, the minimum
+value that needs to be locked into a channel, and the amount of money that the server needs in the initial payment 
+for the channel to be opened. The last entry ensures that the client does not open a channel that can not be 
+settled because the server received an amount under the dust limit.
+
+When the client receives the Initiate message, it checks that its wallet contains enough funds to open the channel
+under the requirements imposed by the server, and instantiates a new ClientChannelStateMachine object, storing
+the state of the actual channel. The ClientChannelStateMachine then creates the contract (bond) and the refund
+transactions. A ProvideRefund message containing the refund transaction and the public key of the client
+is sent to the server. At this point, the server can also create the corresponding ServerChannelStateMachine instance,
+it then signs the received refund transaction and returns it to the client in ReturnRefund.
+
+Once it has received the signed refund transaction, the client checks the signature of the server. After
+validating it, it creates an initial signed HTLC setup transaction spending from the contract transaction 
+a minimum value required by the server, and sends both signed transactions to the server in a HTLCProvideContract
+message.
+
+At this point, the server checks the signatures of the client and that the HTLC setup transaction indeed correctly
+spends from the contract. After validation, the contract is broadcast to the Bitcoin network.
+Once the contract is accepted by the network, the funds of the client are locked in, and the server signals 
+the client that the channel is open for payments through a ChannelOpen message.
+
+\subsection {Making an HTLC payment} \label{establishhtlc}
+
+\hspace*{12pt} After a micropayment channel is successfully set up between the client and the server,
+the client can begin making small payments in exchange for data. 
+When it comes to payments, cross-component communication 
+is no longer done asynchronously, but synchronously, using batched update rounds. This solution has been chosen 
+to support concurrent payments and is needed so that the HTLC setup transaction is always in a secure and 
+consistent state on both the client and server side. Else, updates from both sides could be crossing each other 
+and invalidate the signatures of the HTLC refund, settlement, and forfeiture transactions attached to the 
+HTLC outputs of the setup transaction.
+
+\subsubsection{Batching and round negotiation}
+
+Figure \ref{fig:roundneg} shows how update rounds are negotiated between the client and server. 
+On the client side, updates are always new payments coming in. On the server side, updates can be of two types:
+the server is either claiming an HTLC output by revealing the corresponding secret, or wishes to void an HTLC output.
+
+When one of the components has a new update to push to its peer, it first sends an HTLCRoundInit message to the other
+participant. Then, the peer checks if no other update round has been already initialized. If this is the case,
+an HTLCRoundAck is sent to the initiator 
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=\textwidth]{figures/RoundNegotiation}}
+  \caption{HTLC update round negotiation}
+  \label{fig:roundneg}
+\end{figure}
+
+two stages: HTLC setup and HTLC claim/void
+
+\section {Application implementation}
+
+Following the design introduced in the previous chapter and the client-server architecture described in the 
+previous section, three different applications were developed, corresponding to each of the three components: 
+buyer, central hub, and sensor node represented by an Android application on a device with a wide range 
+of built-in sensors. In the next subsections, the application layer of each component is presented in detail.
+
+\subsection{Buyer application}
+
+\hspace*{12pt} The buyer application was developed as a Java console application. From an architectural point of view,
+it plays the role of a client in the payment protocol by connecting, initiating a micropayment channel with the hub and 
+making payments to the the hub.
+
+\subsubsection{Running queries}
+\hspace*{12pt} From the buyer driver console application, the following queries are available:
+\begin{itemize}
+ \item Node stats. {\it STATS NODES} will display the number of connected sensor nodes with 
+ list of sensor node ids. 
+ \item Sensor stats. {\it STATS SENSORS} will display the types of sensors that are available for purchasing.
+ \item Select queries. {\it SELECT SENSOR=\textless sensor\_type\textgreater } will display 
+ all available nodes with the selected sensor type, together with id of the node it is available on, 
+ and pricing information,
+ \item Buy queries: {\it BUY \textless sensor\_type\textgreater FROM node\_id price} will 
+ purchase the set of sensor data of the specified type from the node selected by id. 
+ This query will return the asked data set.
+\end{itemize}
+
+\subsection{Hub application}
+
+- talk about the supercomponent, and cross communication using the message filter and message forwarding
+
+\subsection{Android application}
+
 \chapter{Evaluation}
+
+Notes: - talk about data = rubbish - reputation system needed as in ebay, amazon, etc.
 
 \chapter{Conclusion}
 

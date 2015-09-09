@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.10.13)  2 SEP 2015 18:04
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.10.13)  9 SEP 2015 17:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -583,51 +583,75 @@ Package: subfig 2005/06/28 ver: 1.3 subfig package
 \c@lotdepth=\count144
 \sf@top=\skip56
 \sf@bottom=\skip57
-) (./Thesis.aux)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count145
+\lst@gtempboxa=\box37
+\lst@token=\toks39
+\lst@length=\count146
+\lst@currlwidth=\dimen171
+\lst@column=\count147
+\lst@pos=\count148
+\lst@lostspace=\dimen172
+\lst@width=\dimen173
+\lst@newlines=\count149
+\lst@lineno=\count150
+\lst@maxwidth=\dimen174
+
+(/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2013/08/26 1.5b (Carsten Heinz)
+\c@lstnumber=\count151
+\lst@skipnumbers=\count152
+\lst@framebox=\box38
+)
+(/usr/share/texlive/texmf-dist/tex/latex/listings/listings.cfg
+File: listings.cfg 2013/08/26 1.5b listings configuration
+))
+Package: listings 2013/08/26 1.5b (Carsten Heinz)
+ (./Thesis.aux)
 \openout1 = `Thesis.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 34.
-LaTeX Font Info:    ... okay on input line 34.
-
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 35.
+LaTeX Font Info:    ... okay on input line 35.
 (/usr/share/texlive/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count145
-\scratchdimen=\dimen171
-\scratchbox=\box37
-\nofMPsegments=\count146
-\nofMParguments=\count147
-\everyMPshowfont=\toks39
-\MPscratchCnt=\count148
-\MPscratchDim=\dimen172
-\MPnumerator=\count149
-\makeMPintoPDFobject=\count150
-\everyMPtoPDFconversion=\toks40
+\scratchcounter=\count153
+\scratchdimen=\dimen175
+\scratchbox=\box39
+\nofMPsegments=\count154
+\nofMParguments=\count155
+\everyMPshowfont=\toks40
+\MPscratchCnt=\count156
+\MPscratchDim=\dimen176
+\MPnumerator=\count157
+\makeMPintoPDFobject=\count158
+\everyMPtoPDFconversion=\toks41
 )
-\AtBeginShipoutBox=\box38
-Package hyperref Info: Link coloring ON on input line 34.
+\AtBeginShipoutBox=\box40
+Package hyperref Info: Link coloring ON on input line 35.
  (/usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2012/10/27 v2.43 Cross-referencing by name of section
 
 (/usr/share/texlive/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
-\c@section@level=\count151
+\c@section@level=\count159
 )
-LaTeX Info: Redefining \ref on input line 34.
-LaTeX Info: Redefining \pageref on input line 34.
-LaTeX Info: Redefining \nameref on input line 34.
+LaTeX Info: Redefining \ref on input line 35.
+LaTeX Info: Redefining \pageref on input line 35.
+LaTeX Info: Redefining \nameref on input line 35.
 
 (./Thesis.out) (./Thesis.out)
 \@outlinefile=\write4
@@ -651,20 +675,22 @@ e
 ))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: subfig package v1.3 is loaded.
+Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
+\c@lstlisting=\count160
 
-<figures/eth_logo_black.pdf, id=103, 191.71625pt x 57.21375pt>
+<figures/eth_logo_black.pdf, id=147, 191.71625pt x 57.21375pt>
 File: figures/eth_logo_black.pdf Graphic file (type pdf)
 
 <use figures/eth_logo_black.pdf>
-Package pdftex.def Info: figures/eth_logo_black.pdf used on input line 38.
+Package pdftex.def Info: figures/eth_logo_black.pdf used on input line 39.
 (pdftex.def)             Requested size: 177.66374pt x 47.17624pt.
 
-<figures/disco-logo-col.pdf, id=104, 132.1854pt x 46.78677pt>
+<figures/disco-logo-col.pdf, id=148, 132.1854pt x 46.78677pt>
 File: figures/disco-logo-col.pdf Graphic file (type pdf)
 
 <use figures/disco-logo-col.pdf>
-Package pdftex.def Info: figures/disco-logo-col.pdf used on input line 38.
+Package pdftex.def Info: figures/disco-logo-col.pdf used on input line 39.
 (pdftex.def)             Requested size: 130.17755pt x 46.78665pt.
  [1
 
@@ -675,7 +701,7 @@ df> <./figures/disco-logo-col.pdf>]pdfTeX warning (ext4): destination with the
 same identifier (name{page.i}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.46 \begin{abstract}
+l.47 \begin{abstract}
                       [1
 
 
@@ -709,119 +735,292 @@ Chapter 1.
 [1
 
 
-] <figures/Blockchain.pdf, id=190, 626.34pt x 238.8925pt>
+] <figures/Blockchain.pdf, id=263, 626.34pt x 238.8925pt>
 File: figures/Blockchain.pdf Graphic file (type pdf)
 
 <use figures/Blockchain.pdf>
-Package pdftex.def Info: figures/Blockchain.pdf used on input line 121.
+Package pdftex.def Info: figures/Blockchain.pdf used on input line 122.
 (pdftex.def)             Requested size: 381.4pt x 145.47269pt.
  [2 <./figures/Blockchain.pdf>] [3]
-<figures/MicropaymentSeq.pdf, id=202, 597.23125pt x 786.94pt>
+<figures/MicropaymentSeq.pdf, id=275, 597.23125pt x 786.94pt>
 File: figures/MicropaymentSeq.pdf Graphic file (type pdf)
 
 <use figures/MicropaymentSeq.pdf>
-Package pdftex.def Info: figures/MicropaymentSeq.pdf used on input line 172.
+Package pdftex.def Info: figures/MicropaymentSeq.pdf used on input line 173.
 (pdftex.def)             Requested size: 381.4pt x 502.55919pt.
  [4] [5 <./figures/MicropaymentSeq.pdf>]
-<figures/HTLCPubScript.pdf, id=215, 525.965pt x 279.0425pt>
+<figures/HTLCPubScript.pdf, id=288, 525.965pt x 279.0425pt>
 File: figures/HTLCPubScript.pdf Graphic file (type pdf)
 
 <use figures/HTLCPubScript.pdf>
-Package pdftex.def Info: figures/HTLCPubScript.pdf used on input line 235.
+Package pdftex.def Info: figures/HTLCPubScript.pdf used on input line 236.
 (pdftex.def)             Requested size: 190.7pt x 101.17479pt.
 
-<figures/HTLCTxs.pdf, id=216, 430.60875pt x 131.49126pt>
+<figures/HTLCTxs.pdf, id=289, 430.60875pt x 131.49126pt>
 File: figures/HTLCTxs.pdf Graphic file (type pdf)
 
 <use figures/HTLCTxs.pdf>
-Package pdftex.def Info: figures/HTLCTxs.pdf used on input line 237.
+Package pdftex.def Info: figures/HTLCTxs.pdf used on input line 238.
 (pdftex.def)             Requested size: 190.7pt x 58.23352pt.
 
-Overfull \hbox (7.29999pt too wide) in paragraph at lines 235--238
+Overfull \hbox (7.29999pt too wide) in paragraph at lines 236--239
  [][][][][][] 
  []
 
 [6 <./figures/HTLCPubScript.pdf> <./figures/HTLCTxs.pdf>] [7]
-Overfull \hbox (242.80875pt too wide) in paragraph at lines 313--321
+Overfull \hbox (242.80875pt too wide) in paragraph at lines 314--322
 []\OT1/cmr/m/n/10.95 On the Con-tracts page of Bit-coin, Mike Hearn (https://en
 .bitcoin.it/wiki/Contract#Example[]2:[]Escrow[]and[]dispute[]mediation)
  []
 
 [8] [9] [10]
 Chapter 2.
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 374.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 375.
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 374.
- [11
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 375.
 
-] [12]
-<figures/SystemOverview.pdf, id=258, 568.1225pt x 288.07625pt>
+<figures/SystemOverview.pdf, id=323, 568.1225pt x 288.07625pt>
 File: figures/SystemOverview.pdf Graphic file (type pdf)
 
 <use figures/SystemOverview.pdf>
-Package pdftex.def Info: figures/SystemOverview.pdf used on input line 445.
+Package pdftex.def Info: figures/SystemOverview.pdf used on input line 393.
 (pdftex.def)             Requested size: 381.4pt x 193.40129pt.
- [13 <./figures/SystemOverview.pdf>]
-Chapter 3.
-[14
+ [11
 
-]
+] [12 <./figures/SystemOverview.pdf>]
+[13] <figures/MicroHTLC.pdf, id=359, 640.3925pt x 239.89626pt>
+File: figures/MicroHTLC.pdf Graphic file (type pdf)
+
+<use figures/MicroHTLC.pdf>
+Package pdftex.def Info: figures/MicroHTLC.pdf used on input line 490.
+(pdftex.def)             Requested size: 381.4pt x 142.8773pt.
+ [14] [15 <./figures/MicroHTLC.pdf>]
+<figures/FullMicroHTLC.pdf, id=381, 1335.99126pt x 240.9pt>
+File: figures/FullMicroHTLC.pdf Graphic file (type pdf)
+
+<use figures/FullMicroHTLC.pdf>
+Package pdftex.def Info: figures/FullMicroHTLC.pdf used on input line 545.
+(pdftex.def)             Requested size: 381.4pt x 68.77115pt.
+ [16 <./figures/FullMicroHTLC.pdf>] [17]
+Chapter 3.
+<figures/LayeredAPI.pdf, id=411, 258.9675pt x 429.605pt>
+File: figures/LayeredAPI.pdf Graphic file (type pdf)
+
+<use figures/LayeredAPI.pdf>
+Package pdftex.def Info: figures/LayeredAPI.pdf used on input line 589.
+(pdftex.def)             Requested size: 199.17638pt x 284.53001pt.
+
+Overfull \hbox (6.1077pt too wide) in paragraph at lines 603--607
+\OT1/cmr/m/n/10.95 mon-i-tor mul-ti-ple I/O op-er-a-tions ex-e-cut-ing con-cur-
+rently from a sin-gle thread,
+ []
+
+[18
+
+] [19 <./figures/LayeredAPI.pdf>]
+<figures/ClientUML.pdf, id=467, 1116.57152pt x 1506.82945pt>
+File: figures/ClientUML.pdf Graphic file (type pdf)
+
+<use figures/ClientUML.pdf>
+Package pdftex.def Info: figures/ClientUML.pdf used on input line 631.
+(pdftex.def)             Requested size: 457.67882pt x 617.64314pt.
+
+
+LaTeX Warning: Float too large for page by 43.84288pt on input line 634.
+
+[20] [21 <./figures/ClientUML.pdf>]
+<figures/ServerUML.pdf, id=485, 1231.60126pt x 1508.63625pt>
+File: figures/ServerUML.pdf Graphic file (type pdf)
+
+<use figures/ServerUML.pdf>
+Package pdftex.def Info: figures/ServerUML.pdf used on input line 678.
+(pdftex.def)             Requested size: 457.67882pt x 560.62679pt.
+
+Overfull \hbox (3.08621pt too wide) in paragraph at lines 692--696
+\OT1/cmr/m/n/10.95 through the Server-Han-dler ob-ject, which main-tains the TC
+P con-nec-tion. Bottom-
+ []
+
+[22] [23 <./figures/ServerUML.pdf>]
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
+nput line 726.
+ (./protobuf.txt [24]
+Overfull \hbox (12.80411pt too wide) in paragraph at lines 43--44
+[][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (45.65445pt too wide) in paragraph at lines 46--47
+[][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (91.64493pt too wide) in paragraph at lines 47--48
+[][][][][][][][][][][][][] 
+ []
+
+[25]
+Overfull \hbox (71.93472pt too wide) in paragraph at lines 60--61
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (6.23404pt too wide) in paragraph at lines 65--66
+[][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (98.215pt too wide) in paragraph at lines 68--69
+[][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (6.23404pt too wide) in paragraph at lines 89--90
+[][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (71.93472pt too wide) in paragraph at lines 95--96
+[][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+[26]
+Overfull \hbox (85.07486pt too wide) in paragraph at lines 101--102
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (19.37418pt too wide) in paragraph at lines 102--103
+[][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (45.65445pt too wide) in paragraph at lines 117--118
+[][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (32.51431pt too wide) in paragraph at lines 124--125
+[][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (32.51431pt too wide) in paragraph at lines 129--130
+[][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (6.23404pt too wide) in paragraph at lines 134--135
+[][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+[27]
+Overfull \hbox (45.65445pt too wide) in paragraph at lines 163--164
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (58.79459pt too wide) in paragraph at lines 164--165
+[][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+[28]
+Overfull \hbox (45.65445pt too wide) in paragraph at lines 186--187
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (85.07486pt too wide) in paragraph at lines 187--188
+[][][][][][][][][][][][][][][][][][][][] 
+ []
+
+) [29] <figures/MicroSeq.pdf, id=753, 560.69473pt x 383.031pt>
+File: figures/MicroSeq.pdf Graphic file (type pdf)
+
+<use figures/MicroSeq.pdf>
+Package pdftex.def Info: figures/MicroSeq.pdf used on input line 737.
+(pdftex.def)             Requested size: 381.4pt x 260.5453pt.
+
+<figures/MicroStates.pdf, id=754, 914.81778pt x 448.07399pt>
+File: figures/MicroStates.pdf Graphic file (type pdf)
+
+<use figures/MicroStates.pdf>
+Package pdftex.def Info: figures/MicroStates.pdf used on input line 742.
+(pdftex.def)             Requested size: 381.4pt x 186.8087pt.
+ [30 <./figures/MicroSeq.pdf>] [31 <./figures/MicroStates.pdf>]
+<figures/RoundNegotiation.pdf, id=790, 463.13025pt x 319.79475pt>
+File: figures/RoundNegotiation.pdf Graphic file (type pdf)
+
+<use figures/RoundNegotiation.pdf>
+Package pdftex.def Info: figures/RoundNegotiation.pdf used on input line 798.
+(pdftex.def)             Requested size: 381.4pt x 263.36058pt.
+ [32 <./figures/RoundNegotiation.pdf>]
+LaTeX Font Info:    Try loading font information for OML+cmr on input line 830.
+
+
+(/usr/share/texlive/texmf-dist/tex/latex/base/omlcmr.fd
+File: omlcmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OML/cmr/m/it' in size <10.95> not available
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 830.
+ [33] [34]
 Chapter 4.
-[15
+[35
 
 ]
 Chapter 5.
-[16
+[36
 
 ]
 Chapter 6.
-(./Thesis.bbl [17
+(./Thesis.bbl [37
 
 ]
 
 LaTeX Warning: Empty `thebibliography' environment on input line 3.
 
-) [18
+) [38
 
 ]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 475.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 860.
  [1
 
 
 ]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 475.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 860.
  (./Thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 475.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 475.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 860.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 860.
 Package rerunfilecheck Info: File `Thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 0F667D43AECDFCF56451E007CBE47514;1500.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 475.
+(rerunfilecheck)             Checksum: 0117BB258E068D48E57C0F751E71669D;2345.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 860.
  ) 
 Here is how much of TeX's memory you used:
- 16216 strings out of 495028
- 285104 string characters out of 6181496
- 356084 words of memory out of 5000000
- 19054 multiletter control sequences out of 15000+600000
+ 18148 strings out of 495028
+ 311502 string characters out of 6181496
+ 400261 words of memory out of 5000000
+ 20690 multiletter control sequences out of 15000+600000
  12955 words of font info for 48 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 69i,10n,92p,613b,485s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 69i,10n,92p,613b,1726s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
 r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></usr/share/tex
-live/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dis
-t/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
-/amsfonts/cm/cmtt10.pfb>
-Output written on Thesis.pdf (25 pages, 660630 bytes).
+live/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/font
+s/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmtt10.pfb>
+Output written on Thesis.pdf (45 pages, 1777430 bytes).
 PDF statistics:
- 358 PDF objects out of 1000 (max. 8388607)
- 299 compressed objects within 3 object streams
- 59 named destinations out of 1000 (max. 500000)
- 240 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 945 PDF objects out of 1000 (max. 8388607)
+ 811 compressed objects within 9 object streams
+ 328 named destinations out of 1000 (max. 500000)
+ 368 words of extra memory for PDF output out of 10000 (max. 10000000)
 

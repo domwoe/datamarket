@@ -383,7 +383,7 @@ get paid in exchange must meet the following requirements:
 
 \section{System Overview}
 
-The design of the payment system achieving the requirements above comprises three major components:
+\hspace*{12pt} The design of the payment system achieving the requirements above comprises three major components:
 one component consists of several sensor data providers (IoT sensor nodes, Android phones
 running specialized app, etc.), one central hub that plays an essential role in sensor node discovery
 and payment and data relaying, and a third component, consisting of data buyers. The communication
@@ -396,7 +396,7 @@ between the buyers and the hub, and between the hub and the sensor nodes is done
 
 \section{System components}
 
-In this section, each of the three system components is presented in more detail.
+\hspace*{12pt} In this subsection, each of the three system components is presented in more detail.
 
 \subsection{Sensor nodes}
 
@@ -433,8 +433,8 @@ to pre-allocate in each established channel to run the entire system.
 
 To support the two types of connection, the hub is running two servers, 
 providing specialized handlers that communicate with each sensor node and buyer connecting to it. 
-A driver component coordinates the two subcomponents, book-keeping connected nodes and buyers, forwards messages
-between the buyers and nodes, and vice-versa.
+A driver component coordinates the two subcomponents, book-keeping connected nodes and buyers, and forwards messages
+between the buyers and nodes.
 
 \section {Achieving the requirements}
 
@@ -621,7 +621,7 @@ Both clients and servers adhere to the architecture above, with differences in f
 In the next subsection, the two component types are introduced in more detail. Their interaction
 to run the proposed payment protocol is then described.
 
-\subsection {Client}
+\subsection {Client}\label{client}
 
 \hspace*{12pt} Figure \ref{fig:clientuml} the structure of the developed client component, containing its classes and their
 relations, attributes, and operations. The classes and their responsibilities are described in a top-down
@@ -668,11 +668,11 @@ can be made concurrently, which are kept track of using HTLCClientStateMachines.
 methods adding new HTLC outputs to the HTLC setup transaction, attaching refund, settlement, and, if needed,
 forfeiture transactions, and lastly, verifying secrets against HTLC hashes. 
 
-\subsection {Server}
+\subsection {Server}\label{server}
 
-\hspace*{12pt} Figure \ref{fig:serveruml} the structure of the developed server component, containing its classes and their
-relations, attributes, and operations. The classes and their responsibilities are described in a top-down
-manner.
+\hspace*{12pt} Figure \ref{fig:serveruml} shows the structure of the developed server component, 
+containing its classes and their relations, attributes, and operations. The classes and their functions 
+are described in a top-down manner.
 
 \begin{figure}
   \centerline{\includegraphics[width=1.2\textwidth]{figures/ServerUML}}
@@ -733,6 +733,10 @@ The next subsections will detail out the use of each message in the micropayment
 
 \subsection {Establishing a micropayment channel} \label{establishmicro}
 
+\hspace*{12pt} Once the TCP connection between the client and the server components is established, 
+the client will initiate the process to establish a micropayment channel between the two. 
+The exchange of messages in this subprotocol is fully asynchronous to increase throughput and response time.
+
 \begin{figure}[ht!]
   \centerline{\includegraphics[width=\textwidth]{figures/MicroSeq}}
   \caption{Micropayment channel sequence diagram.}
@@ -743,10 +747,6 @@ The next subsections will detail out the use of each message in the micropayment
   \caption{Micropayment channel state machine diagram.}
   \label{fig:microstates}
 \end{figure}
-
-\hspace*{12pt} Once the TCP connection between the client and the server components is established, the client will initiate the 
-process to establish a micropayment channel between the two. The exchange of messages in this subprotocol is 
-fully asynchronous to increase throughput and response time.
 
 Figure \ref{fig:microseq} shows the steps and exchange of messages between the client and the server to successfully
 set up a payment channel. The logical states of the channel establishment are displayed in 
@@ -789,13 +789,10 @@ HTLC outputs of the setup transaction.
 
 \subsubsection{Batching and round negotiation}
 
-Figure \ref{fig:roundneg} shows how update rounds are negotiated between the client and server. 
+\hspace*{12pt} Figure \ref{fig:roundneg} shows how update rounds are negotiated between the client and server. 
 On the client side, updates are always new payments coming in. On the server side, updates can be of two types:
 the server is either claiming an HTLC output by revealing the corresponding secret, or wishes to void an HTLC output.
-
-When one of the components has a new update to push to its peer, it first sends an HTLCRoundInit message to the other
-participant. Then, the peer checks if no other update round has been already initialized. If this is the case,
-an HTLCRoundAck is sent to the initiator 
+Both protocol participants buffer update requests in a BlockingQueue while an update round is active.
 
 \begin{figure}[ht!]
   \centerline{\includegraphics[width=\textwidth]{figures/RoundNegotiation}}
@@ -803,27 +800,110 @@ an HTLCRoundAck is sent to the initiator
   \label{fig:roundneg}
 \end{figure}
 
-two stages: HTLC setup and HTLC claim/void
+When one of the components has a new update to push to its peer, it first sends an HTLCRoundInit message to the other
+participant. Then, the peer checks if no other update round has been already initialized. If this is the case,
+an HTLCRoundAck is sent to the initiator, which confirms the updates can be pushed. In case both participants are
+waiting for an HTLCRoundAck message, priority is given to the server. Once the initiator 
+finished pushing all updates to the other participant, it marks the end of the round with an HTLCRoundDone message.
+If the other participant has buffered updates at this point, it can now safely initiate its own update round.
+
+\subsubsection{Initiating a payment} \label{initpay}
+
+\hspace*{12pt} After the client has secured an update round through the negotiation mechanism presented above, 
+it can send new payments to the server. The full process is shown in Figure \ref{fig:htlcsetupseq}.
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=\textwidth]{figures/HTLCSetupSeq}}
+  \caption{HTLC Setup sequence diagram}
+  \label{fig:htlcsetupseq}
+\end{figure}
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=\textwidth]{figures/HTLCStates}}
+  \caption{HTLC State Machines for both client and server side}
+  \label{fig:htlcstates}
+\end{figure}
+
+The client first sends an HTLCInit message containing a list of payments that were buffered during a previous active round.
+Each payment message contains a client request id, the value of the payment and information about the type of data that
+is requested in exchange. The server creates new HTLCServerStateMachine instances for each payment. Each HTLC is given an id,
+which is basically the hash of the secret. An HTLCInitReply message is then replied, mirroring back the client request id,
+and sending the fresh HTLC id. From this stage on, each HTLC payment will be referenced by the server-generated id.
+
+At this stage, the client can also create HTLCClientStateMachine instances and update the HTLC setup transaction, adding
+it outputs for each initiated payment. The transaction is then signed and sent over to the server, together with the 
+payment ids and indexes of each payment output.
+
+Because of the Bitcoin malleability issue, this step in the protocol has a major caveat: it sends over the signed 
+HTLC setup transaction before having any signed HTLC refund transaction that protects the client in case the server
+decides to lock away the funds in the HTLC outputs indefinitely. It can not be avoided without the malleability fix,
+because the client can not create by itself an HTLC refund transaction that spends from the HTLC output:
+the HTLC setup transaction spends from the multisig output between the two parties, and it needs to be fully signed
+for the refund transaction to correctly reference it by its hash. Thus, in the current implementation, a minimal amount
+of trust is needed in the server component, that it will indeed sign, compute the hash of the HTLC setup transaction,
+and return signed HTLC refund transactions for each HTLC payment (HTLCSignedRefundWithHash). The amount of trust
+can be adjusted by limiting the number of payments that can be opened simultaneously.
+
+Once the client received the HTLC setup transaction hash and HTLC refund transactions for each payment, 
+the protocol is back to a secure state. The client can now recreate the HTLC forfeiture and settlement transactions
+for all active HTLC payments, sign and hand them over to the server. This step is necessary because removing outputs
+from the HTLC setup transaction invalidates the signatures of previously created HTLC refund, settlement and forfeiture
+transactions. After the server checks the signatures and stores the 
+received transactions, it will signal the client that the HTLC setup is complete.
+
+\subsubsection{Claiming a payment}\label{claim}
+
+\hspace*{12pt} After a successful setup, the server can initiate an update round to claim the payments from the HTLC outputs.
+To do so, it first sends an HTLCServerUpdate message to the client. It contains a list of HTLCRevealSecret 
+and a list of HTLCBackoff messages. Each reveal message indicates the id of the HTLC payment the server is claiming,
+together with the secret that hashes to its id. Back-off messages are sent by the server a fixed time before the 
+channel expiration time and before the HTLC setup transaction is broadcast, such that the number of HTLC refund transactions
+that are later broadcast by the client is minimized. Thus, the refund transactions are kept off the blockchain, and
+the server voluntarily opts to void the HTLC payments because it has not received the secret in time. 
+Together with the ids of the HTLC payments that are voided, the server sends over the fully signed HTLC 
+forfeiture transaction, which guarantees the client that an older HTLC setup transaction will not be broadcast, 
+should the secret be received at a later time. 
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=\textwidth]{figures/HTLCClaimSeq}}
+  \caption{HTLC Claim and Backoff sequence diagram}
+  \label{fig:htlcclaimseq}
+\end{figure}
+
+The client validates the reveal secrets and forfeiture transactions, and removes the HTLC outputs from the HTLC 
+setup transaction accordingly. Forfeiture transactions are stored and hashes of older
+HTLC setup transactions are followed on the blockchain. Should any of them make it to the blockchain,
+the client will automatically broadcast the corresponding forfeiture transactions to get the funds back.
+The updated HTLC setup transaction is then signed sent to the server using the HTLCProvideSignedTeardown message. 
+From here on, the process follows the same steps as in \ref{initpay}. 
+The message succession is shown in Figure \ref{fig:htlcclaimseq}. 
+
+\subsubsection{Data transmission}
+
+\hspace*{12pt} In order to securely transmit the data that the client is issuing payments for, the client and the server needs
+a private, authentic out-of-band channel. In the HTLC payment setup phase, the data, encrypted with the HTLC secret,
+would be transmitted to the client using this channel. Then, once the server has cleared the payment by revealing the secret,
+the client can decrypt the previously received data.
 
 \section {Application implementation}
 
-Following the design introduced in the previous chapter and the client-server architecture described in the 
+\hspace*{12pt} Following the design introduced in the previous chapter and the client-server architecture described in the 
 previous section, three different applications were developed, corresponding to each of the three components: 
 buyer, central hub, and sensor node represented by an Android application on a device with a wide range 
-of built-in sensors. In the next subsections, the application layer of each component is presented in detail.
+of built-in sensors. In the next subsections, each application is presented in detail.
 
 \subsection{Buyer application}
 
-\hspace*{12pt} The buyer application was developed as a Java console application. From an architectural point of view,
+\hspace*{12pt} The buyer component was developed as a Java console application. From an architectural point of view,
 it plays the role of a client in the payment protocol by connecting, initiating a micropayment channel with the hub and 
-making payments to the the hub.
+making payments to the hub in exchange for data.
 
 \subsubsection{Running queries}
 \hspace*{12pt} From the buyer driver console application, the following queries are available:
 \begin{itemize}
- \item Node stats. {\it STATS NODES} will display the number of connected sensor nodes with 
+ \item Node statistics. {\it STATS NODES} will display the number of connected sensor nodes with 
  list of sensor node ids. 
- \item Sensor stats. {\it STATS SENSORS} will display the types of sensors that are available for purchasing.
+ \item Sensor statistics. {\it STATS SENSORS} will display the types of sensors that are available for purchasing.
  \item Select queries. {\it SELECT SENSOR=\textless sensor\_type\textgreater } will display 
  all available nodes with the selected sensor type, together with id of the node it is available on, 
  and pricing information,
@@ -834,13 +914,149 @@ making payments to the the hub.
 
 \subsection{Hub application}
 
-- talk about the supercomponent, and cross communication using the message filter and message forwarding
+\hspace*{12pt} The hub application was developed as a Java application. It represents the discovery, coordination and payment
+forwarding point of the developed system, with both a receiving (server) component from the perspective of the 
+buyers, and a sending (client) component from the perspective of the sensor nodes.
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=1.25\textwidth]{figures/HubUML}}
+  \caption{Hub class diagram of the first three layers.}
+  \label{fig:hubuml}
+\end{figure}
+
+Figure \ref{fig:hubuml} shows the structure of the developed hub component, containing the classes and their
+relations, attributes, and functions from the DriverApplication, ChannelConnection, and PaymentChannel layers. 
+The ChannelStateMachine and HTLCStateMachines layers were integrated as originally designed.
+
+The HubDriver class instantiates the Bitcoin related objects, and launches the PaymentChannelHubListener, the class
+responsible for running two NioServers on two different ports: one for connecting buyers, and another one for sensor nodes.
+It also stores data such as mappings of sensor types to the devices that they are installed on, and pricing information,
+such that it can support node, sensor, and select queries. 
+
+The HubMessageFilter object associated to the listener class keeps track of all payment ids and of the buyers
+and sensor nodes these payments are initiated between. This way, the destination of messages that need to be 
+forwarded between the buyer and the Android components can be easily identified. If a message contains sub-messages
+for multiple destinations, the filter does deep-packet inspection, aggregates the sub-messages by destination, and finally
+forwards them.
+
+When a buyer connects to the hub, the buyer NioServer object instantiates a new BuyerServerHandler. This creates 
+a new BuyerServerPaymentChannel, which is basically a ServerPaymentChannel object as introduced in \ref{server}
+supporting statistical node and sensor queries, and forwarding to the Android payment channels through the 
+nested IServerConnection interface.
+
+When a new device connects to the hub, the Android NioServer instance creates an AndroidServerHandler. This component
+instantiates a new AndroidClientPaymentChannel, which is simply a ClientPaymentChannel object previously 
+introduced in \ref{client}, with additional support for forwarding messages to the Buyer payment channels. 
+To forward messages to buyers, the {\it forwardToBuyerServers()} method from
+the nested IServerConnection interface can be used, which calls all the way up to the listener class and dispatches
+the job to the HubMessageFilter.
+
+The functionality of the lower layers introduced in the client-server protocol design is fully preserved.
 
 \subsection{Android application}
+
+\hspace*{12pt} The sensor node component was developed as an Android application, allowing the user of the app
+to share sensor data in exchange for bitcoins. Since it represents the receiving party in the protocol,
+it follows the server component design.
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=.5\textwidth]{figures/app}}
+  \caption{Android application user interface.}
+  \label{fig:app}
+\end{figure}
+
+The user is given full choice regarding which data is shared to the interested buyers. The available device sensors
+are detected at application start-up. The interface (Figure \ref{fig:app})
+consists of a main view that allows the user to toggle between sharing or not sharing the data of each sensor.
+
+The Bitcoin wallet is created on the first start and locally stored on the device. At this time, the user
+can also set up prices for sensor sharing. At the top of the interface, the application displays 
+the amount of bitcoins earned so far.
+
+\subsubsection{ChannelConnection layer adaptation}
+
+\hspace*{12pt} In the original design, the ChannelConnection layer of the server is the one listening for new connections
+from connecting clients. However, in this case, the Android application should be the one initiating the connection 
+and registering to the central hub. In this regard, the ChannelConnection layer was adapted such that app is the one 
+initializing the connection (connection client), but the payment protocol message exchange stays the same: 
+the Android component is the receiving party, thus a payment server component.
+
+\subsubsection{Connectivity}
+
+\hspace*{12pt} To establish and maintain the TCP connection to the Hub, the code responsible for the Bitcoin operations was integrated
+into an Android remote service that starts at device boot-up. This ensures that the long-running operations do not block
+the application user interface and that the micropayment channel is kept alive even if the user closes the application.
+
+To ensure the communication between the Android activity classes and the remote service, AIDL (Android Interface Definition
+Language) was used. Using AIDL, two interfaces have been defined:
+
+\hspace*{1pt}
+\lstinputlisting{aidl.txt}
+
+Once the remote service is created, the main application can bind to it, which returns an object 
+implementing the HTLCServiceApi interface. Using it, the activity class can register an object implementing
+the HTLCServiceListener interface to the service through the {\it addListener()} method. Thus, the two-way binding
+is complete.
+
+When the service successfully establishes the TCP connection and sets up a micropayment channel with the hub,
+the application is signaled through the {\it channelEstablished()} method. Then, the application registers the shared
+sensors to the hub using {\it updateSensors()}. This is repeated every time the user changes its preferences 
+in terms of the sensors data that is shared.
+
+When the buyer requests some data from a specific sensor through the hub, the remote service can use
+{\it getDataFromSensor()} to retrieve the data from the sensor listeners running in the application. 
+Sensor listeners cache the data to allow instant data retrieval. A {\it DataContainer} class customizes the
+number of data entries that are cached. The current implementation uses a EvictingQueue of a fixed size {\it K},
+automatically maintaining the {\it K} most recent entries.
+
+\subsubsection{Permission requirements}
+
+\hspace*{12pt} The following Android permissions need to be granted in order for the device to successfully participate
+in the built system:
+\begin{itemize}
+ \item {\bf android.permission.INTERNET}. The application needs Internet connectivity at all times.
+ \item {\bf android.permission.WRITE\_EXTERNAL\_STORAGE}. The application needs permission to store and update the wallet
+ and blockchain files.
+ \item {\bf android.permission.RECEIVE\_BOOT\_COMPLETED}. The application needs to receive the BOOT\_COMPLETED signal
+ to initialize the micropayment channel to the hub.
+\end{itemize}
+
+\subsection{Running the full-system protocol}
+
+\begin{figure}[ht!]
+  \centerline{\includegraphics[width=1.5\textwidth]{figures/FullHTLCSetup}}
+  \caption{HTLC Full Setup sequence diagram}
+  \label{fig:htlcfullsetup}
+\end{figure}
+
+\hspace*{12pt} In the full, three-component system, micropayment channels between the participants are 
+established independently. Once at least one buyer and one Android device are connected and channels are in place, 
+the buyer can initiate payments and receive the requested data in return. All requests are made during batched
+update rounds.
+
+Figure \ref{fig:htlcfullsetup} shows the message succession needed for the HTLC payment setup. First, the buyer sends an HTLCInit
+message. Upon receiving it, the BuyerServer forwards the message to the AndroidServer through the HubServerListener object.
+The AndroidServer then sends the HTLCInit to the AndroidClient, which replies with an HTLCInitReply message. At this stage,
+the AndroidServer does not continue running the setup protocol, but forwards back the reply, finally making it to the 
+payment initiator. Now the buyer and the BuyerServer subcomponent of the hub can run the HTLC payment setup protocol
+presented in detail in \ref{initpay}. 
+
+After a successful setup, the BuyerServer signals the AndroidServer
+that it can resume the paused setup protocol with the AndroidClient through the HTLCResumeSetup message. It is important
+that the HTLC payment is first set up between the buyer and the BuyerServer to ensure the security of the protocol:
+should the AndroidServer and the AndroidClient first set up such a payment, nothing guarantees the AndroidServer
+that it can claim the money from the buyer after it has paid the AndroidClient.
+
+When the AndroidClient claims or voids some HTLC payments, it follows the exact pattern introduced in \ref{claim}.
+Only this time, after the AndroidServer receives and validates the HTLCServerUpdate message, it forwards it immediately
+to the BuyerServer, and then continues with its update round. This way, the BuyerServer can also run the update protocol
+simultaneously and the BuyerClient can use the secret to decrypt the received data that was included in the HTLCInitReply
+message.
 
 \chapter{Evaluation}
 
 Notes: - talk about data = rubbish - reputation system needed as in ebay, amazon, etc.
+- add bitcoin malleability issue to intro
 
 \chapter{Conclusion}
 

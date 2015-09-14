@@ -1,0 +1,11 @@
+interface HTLCServiceApi {
+   void updateSensors(in List<String> sensors);
+   void addListener(HTLCServiceListener listener);
+   void removeListener(HTLCServiceListener listener);
+}
+
+interface HTLCServiceListener {
+   List<String> getDataFromSensor(String sensorType);
+   void handleWalletUpdate(long value);
+   void channelEstablished();
+}

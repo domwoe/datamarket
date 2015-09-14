@@ -24,16 +24,23 @@
 \contentsline {subsection}{\numberline {3.1.1}Client}{20}{subsection.3.1.1}
 \contentsline {subsection}{\numberline {3.1.2}Server}{22}{subsection.3.1.2}
 \contentsline {subsection}{\numberline {3.1.3}Cross-component communication}{24}{subsection.3.1.3}
-\contentsline {subsection}{\numberline {3.1.4}Establishing a micropayment channel}{30}{subsection.3.1.4}
-\contentsline {subsection}{\numberline {3.1.5}Making an HTLC payment}{32}{subsection.3.1.5}
-\contentsline {subsubsection}{Batching and round negotiation}{32}{section*.18}
-\contentsline {section}{\numberline {3.2}Application implementation}{33}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Buyer application}{33}{subsection.3.2.1}
-\contentsline {subsubsection}{Running queries}{33}{section*.20}
-\contentsline {subsection}{\numberline {3.2.2}Hub application}{34}{subsection.3.2.2}
-\contentsline {subsection}{\numberline {3.2.3}Android application}{34}{subsection.3.2.3}
-\contentsline {chapter}{\numberline {4}Evaluation}{35}{chapter.4}
-\contentsline {chapter}{\numberline {5}Conclusion}{36}{chapter.5}
-\contentsline {chapter}{\numberline {6}References}{37}{chapter.6}
-\contentsline {chapter}{Bibliography}{38}{chapter*.21}
+\contentsline {subsection}{\numberline {3.1.4}Establishing a micropayment channel}{29}{subsection.3.1.4}
+\contentsline {subsection}{\numberline {3.1.5}Making an HTLC payment}{31}{subsection.3.1.5}
+\contentsline {subsubsection}{Batching and round negotiation}{31}{section*.18}
+\contentsline {subsubsection}{Initiating a payment}{32}{section*.20}
+\contentsline {subsubsection}{Claiming a payment}{34}{section*.23}
+\contentsline {subsubsection}{Data transmission}{34}{section*.25}
+\contentsline {section}{\numberline {3.2}Application implementation}{35}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}Buyer application}{35}{subsection.3.2.1}
+\contentsline {subsubsection}{Running queries}{35}{section*.26}
+\contentsline {subsection}{\numberline {3.2.2}Hub application}{36}{subsection.3.2.2}
+\contentsline {subsection}{\numberline {3.2.3}Android application}{38}{subsection.3.2.3}
+\contentsline {subsubsection}{ChannelConnection layer adaptation}{39}{section*.29}
+\contentsline {subsubsection}{Connectivity}{39}{section*.30}
+\contentsline {subsubsection}{Permission requirements}{40}{section*.31}
+\contentsline {subsection}{\numberline {3.2.4}Running the full-system protocol}{40}{subsection.3.2.4}
+\contentsline {chapter}{\numberline {4}Evaluation}{42}{chapter.4}
+\contentsline {chapter}{\numberline {5}Conclusion}{43}{chapter.5}
+\contentsline {chapter}{\numberline {6}References}{44}{chapter.6}
+\contentsline {chapter}{Bibliography}{45}{chapter*.33}
 \contentsline {chapter}{\numberline {A}Appendix Chapter}{A-1}{appendix.U}

@@ -10,7 +10,6 @@ message TwoWayChannelMessage {
         UPDATE_PAYMENT = 8;
         PAYMENT_ACK = 11;
 
-        // Use this for HTLCs micropayment channel setup
         HTLC_PROVIDE_CONTRACT = 12;
         HTLC_INIT = 13;
         HTLC_INIT_REPLY = 14;
@@ -56,8 +55,6 @@ message TwoWayChannelMessage {
     optional HTLCFlow htlc_flow = 25;
 }
 
-// Sent by primary to secondary on opening the connection. 
-// If anything is received before this is sent, the socket is closed.
 message ClientVersion {
     required int32 major = 1;
     optional int32 minor = 2 [default = 0];
@@ -65,13 +62,11 @@ message ClientVersion {
     optional uint64 time_window_secs = 4 [default = 86340];
 }
 
-// Send by secondary to primary upon receiving the ClientVersion message.
 message ServerVersion {
     required int32 major = 1;
     optional int32 minor = 2 [default = 0];
 }
 
-// Sent from server to client once version nego is done.
 message Initiate {
     required bytes multisig_key = 1;
     required uint64 min_accepted_channel_size = 2;
@@ -79,43 +74,31 @@ message Initiate {
     required uint64 min_payment = 4;
 }
 
-// Sent from primary to secondary after Initiate to begin 
-// the refund transaction signing.
 message ProvideRefund {
     required bytes multisig_key = 1;
     required bytes tx = 2;
 }
 
-// Sent from secondary to primary after it has done initial 
-// verification of the refund transaction. 
 message ReturnRefund {
     required bytes signature = 1;
 }
 
-// Sent from the primary to the secondary to complete initialization.
 message ProvideContract {
     required bytes tx = 1;
     required UpdatePayment initial_payment = 2;
 }
 
-// This message can only be used by the primary after it has received a 
-// CHANNEL_OPEN message. It creates a new payment transaction
 message UpdatePayment {
     required uint64 client_change_value = 1;
     required bytes signature = 2;
     optional bytes info =  3;
 }
 
-// This message is sent as an acknowledgement of 
-// an UpdatePayment message.
 message PaymentAck {
     optional bytes info = 1;
 }
 
 message Settlement {
-    // A copy of the fully signed final contract that 
-    // settles the channel. The client can verify the transaction 
-    // is correct and then commit it to its wallet.
     required bytes tx = 1;
 }
 
@@ -125,21 +108,14 @@ message HTLCProvideContract {
 }
 
 message HTLCRoundInit {
-    // This message is sent by the client to the server or 
-    // vice-versa to mark the beginning of an HTLC update round
     optional bytes info = 1;
 }
 
 message HTLCRoundAck {
-    // This message is sent as a reply to the message above 
-    // to acknowledge the round's start. 
-    // From here on, the peer can send updates
     optional bytes info = 1;
 }
 
 message HTLCRoundDone {
-    // This message is sent by either part to mark 
-    // the end of an update round
     optional bytes info = 1;
 }
 
@@ -160,9 +136,6 @@ message HTLCPaymentReply {
 }
 
 message HTLCInitReply {
-    // This is the reply of the server when the client requests a 
-    // new HTLC (payment increase). Server replies with secret hash 
-    // (used as id) and an HTLC payment UUID
     repeated HTLCPaymentReply new_payments_reply = 1;
 }
 
@@ -173,26 +146,17 @@ message HTLCSignedTransaction {
 }
 
 message HTLCProvideSignedTeardown {
-    // This is sent by the client to the server 
-    // providing the teardownTx with its signature. 
-    // Used both when client creates new HTLC outputs 
-    // and when the server closes some HTLCs
     repeated string ids = 1;
     repeated int32 idx = 2;
     required HTLCSignedTransaction signed_teardown = 3;
 }
 
 message HTLCSignedRefundWithHash {
-    // This is sent by the server to the client as a reply to the 
-    // HTLCProvideSignedTeardown message with the signed HTLC refundTx, 
-    // and the teardownTx hash
     repeated string ids = 1;
     repeated HTLCSignedTransaction signed_refund = 2;
 }
 
 message HTLCSignedSettleAndForfeit {
-    // This is sent by the client to the server after 
-    // receiving the refund tx and the teardown hash
     repeated string ids = 1;
     repeated HTLCSignedTransaction signed_forfeit = 2;
     repeated HTLCSignedTransaction signed_settle = 3;
@@ -200,8 +164,6 @@ message HTLCSignedSettleAndForfeit {
 }
 
 message HTLCSetupComplete {
-    // This is sent by the server to the client 
-    // to ACK the successful HTLC setup
     repeated string ids = 1;
 }
 
@@ -211,15 +173,11 @@ message HTLCRevealSecret {
 }
 
 message HTLCBackOff {
-    // back off, close and return money to client
     required string id = 1;
     required HTLCSignedTransaction signed_forfeit = 2; 
 }
 
 message HTLCServerUpdate {
-    // This is sent by the server to the client 
-    // to update (either reveal secrets or back-off 
-    // from certain opened HTLC outputs)
     repeated HTLCRevealSecret reveal_secrets = 1;
     repeated HTLCBackOff back_offs = 2;
 }

@@ -11,9 +11,15 @@
 \contentsline {figure}{\numberline {3.1}{\ignorespaces Five-layered application architecture\relax }}{19}{figure.caption.13}
 \contentsline {figure}{\numberline {3.2}{\ignorespaces UML class diagram of the Client component\relax }}{21}{figure.caption.14}
 \contentsline {figure}{\numberline {3.3}{\ignorespaces UML class diagram of the Server component\relax }}{23}{figure.caption.15}
-\contentsline {figure}{\numberline {3.4}{\ignorespaces Micropayment channel sequence diagram.\relax }}{30}{figure.caption.16}
-\contentsline {figure}{\numberline {3.5}{\ignorespaces Micropayment channel state machine diagram.\relax }}{31}{figure.caption.17}
-\contentsline {figure}{\numberline {3.6}{\ignorespaces HTLC update round negotiation\relax }}{32}{figure.caption.19}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Micropayment channel sequence diagram.\relax }}{29}{figure.caption.16}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Micropayment channel state machine diagram.\relax }}{30}{figure.caption.17}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces HTLC update round negotiation\relax }}{31}{figure.caption.19}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces HTLC Setup sequence diagram\relax }}{32}{figure.caption.21}
+\contentsline {figure}{\numberline {3.8}{\ignorespaces HTLC State Machines for both client and server side\relax }}{33}{figure.caption.22}
+\contentsline {figure}{\numberline {3.9}{\ignorespaces HTLC Claim and Backoff sequence diagram\relax }}{35}{figure.caption.24}
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Hub class diagram of the first three layers.\relax }}{37}{figure.caption.27}
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Android application user interface.\relax }}{38}{figure.caption.28}
+\contentsline {figure}{\numberline {3.12}{\ignorespaces HTLC Full Setup sequence diagram\relax }}{41}{figure.caption.32}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

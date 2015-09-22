@@ -1,46 +1,59 @@
-\contentsline {chapter}{Acknowledgements}{i}{chapter*.1}
-\contentsline {chapter}{Abstract}{ii}{chapter*.2}
+\contentsline {chapter}{Abstract}{i}{chapter*.1}
 \contentsline {chapter}{\numberline {1}Introduction}{1}{chapter.1}
 \contentsline {section}{\numberline {1.1}Background}{2}{section.1.1}
 \contentsline {subsection}{\numberline {1.1.1}Bitcoin}{2}{subsection.1.1.1}
 \contentsline {subsection}{\numberline {1.1.2}Micropayment channels}{3}{subsection.1.1.2}
-\contentsline {subsection}{\numberline {1.1.3}Hashed Time-Lock Contracts (HTLCs)}{6}{subsection.1.1.3}
+\contentsline {subsection}{\numberline {1.1.3}Hashed Time-Lock Contracts (HTLCs)}{5}{subsection.1.1.3}
 \contentsline {section}{\numberline {1.2}Related work}{7}{section.1.2}
-\contentsline {chapter}{\numberline {2}Design}{11}{chapter.2}
-\contentsline {section}{\numberline {2.1}Requirements}{11}{section.2.1}
-\contentsline {section}{\numberline {2.2}System Overview}{11}{section.2.2}
-\contentsline {section}{\numberline {2.3}System components}{12}{section.2.3}
-\contentsline {subsection}{\numberline {2.3.1}Sensor nodes}{12}{subsection.2.3.1}
-\contentsline {subsection}{\numberline {2.3.2}Buyers}{12}{subsection.2.3.2}
-\contentsline {subsection}{\numberline {2.3.3}Central Hub}{13}{subsection.2.3.3}
-\contentsline {section}{\numberline {2.4}Achieving the requirements}{13}{section.2.4}
-\contentsline {subsection}{\numberline {2.4.1}Achieving Scalability and Efficiency}{13}{subsection.2.4.1}
-\contentsline {subsection}{\numberline {2.4.2}Achieving Security}{14}{subsection.2.4.2}
-\contentsline {subsubsection}{Between neighboring nodes}{14}{section*.9}
-\contentsline {subsubsection}{On full path}{16}{section*.11}
-\contentsline {subsection}{\numberline {2.4.3}Achieving Anonymity}{16}{subsection.2.4.3}
-\contentsline {chapter}{\numberline {3}Implementation}{18}{chapter.3}
-\contentsline {section}{\numberline {3.1}API design}{18}{section.3.1}
-\contentsline {subsection}{\numberline {3.1.1}Client}{20}{subsection.3.1.1}
-\contentsline {subsection}{\numberline {3.1.2}Server}{22}{subsection.3.1.2}
-\contentsline {subsection}{\numberline {3.1.3}Cross-component communication}{24}{subsection.3.1.3}
-\contentsline {subsection}{\numberline {3.1.4}Establishing a micropayment channel}{29}{subsection.3.1.4}
-\contentsline {subsection}{\numberline {3.1.5}Making an HTLC payment}{31}{subsection.3.1.5}
-\contentsline {subsubsection}{Batching and round negotiation}{31}{section*.18}
-\contentsline {subsubsection}{Initiating a payment}{32}{section*.20}
-\contentsline {subsubsection}{Claiming a payment}{34}{section*.23}
-\contentsline {subsubsection}{Data transmission}{34}{section*.25}
-\contentsline {section}{\numberline {3.2}Application implementation}{35}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Buyer application}{35}{subsection.3.2.1}
-\contentsline {subsubsection}{Running queries}{35}{section*.26}
-\contentsline {subsection}{\numberline {3.2.2}Hub application}{36}{subsection.3.2.2}
-\contentsline {subsection}{\numberline {3.2.3}Android application}{38}{subsection.3.2.3}
-\contentsline {subsubsection}{ChannelConnection layer adaptation}{39}{section*.29}
-\contentsline {subsubsection}{Connectivity}{39}{section*.30}
-\contentsline {subsubsection}{Permission requirements}{40}{section*.31}
-\contentsline {subsection}{\numberline {3.2.4}Running the full-system protocol}{40}{subsection.3.2.4}
-\contentsline {chapter}{\numberline {4}Evaluation}{42}{chapter.4}
-\contentsline {chapter}{\numberline {5}Conclusion}{43}{chapter.5}
-\contentsline {chapter}{\numberline {6}References}{44}{chapter.6}
-\contentsline {chapter}{Bibliography}{45}{chapter*.33}
+\contentsline {chapter}{\numberline {2}Design}{10}{chapter.2}
+\contentsline {section}{\numberline {2.1}Requirements}{10}{section.2.1}
+\contentsline {section}{\numberline {2.2}System Overview}{10}{section.2.2}
+\contentsline {section}{\numberline {2.3}System components}{11}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}Sensor nodes}{11}{subsection.2.3.1}
+\contentsline {subsection}{\numberline {2.3.2}Buyers}{11}{subsection.2.3.2}
+\contentsline {subsection}{\numberline {2.3.3}Central Hub}{12}{subsection.2.3.3}
+\contentsline {section}{\numberline {2.4}Achieving the requirements}{12}{section.2.4}
+\contentsline {subsection}{\numberline {2.4.1}Achieving Scalability and Efficiency}{12}{subsection.2.4.1}
+\contentsline {subsection}{\numberline {2.4.2}Achieving Security}{13}{subsection.2.4.2}
+\contentsline {subsection}{\numberline {2.4.3}Achieving Anonymity}{15}{subsection.2.4.3}
+\contentsline {chapter}{\numberline {3}Implementation}{16}{chapter.3}
+\contentsline {section}{\numberline {3.1}API design}{16}{section.3.1}
+\contentsline {subsection}{\numberline {3.1.1}Client}{18}{subsection.3.1.1}
+\contentsline {subsection}{\numberline {3.1.2}Server}{18}{subsection.3.1.2}
+\contentsline {subsection}{\numberline {3.1.3}Cross-component communication}{19}{subsection.3.1.3}
+\contentsline {subsection}{\numberline {3.1.4}Establishing a micropayment channel}{19}{subsection.3.1.4}
+\contentsline {subsection}{\numberline {3.1.5}Making an HTLC payment}{21}{subsection.3.1.5}
+\contentsline {subsubsection}{Batching and round negotiation}{21}{section*.12}
+\contentsline {subsubsection}{Initiating a payment}{22}{section*.14}
+\contentsline {subsubsection}{Claiming a payment}{24}{section*.17}
+\contentsline {subsubsection}{Closing the channel}{25}{section*.19}
+\contentsline {subsubsection}{Data transmission}{26}{section*.20}
+\contentsline {section}{\numberline {3.2}Application implementation}{26}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}Buyer application}{26}{subsection.3.2.1}
+\contentsline {subsubsection}{Running queries}{26}{section*.21}
+\contentsline {subsection}{\numberline {3.2.2}Hub application}{27}{subsection.3.2.2}
+\contentsline {subsection}{\numberline {3.2.3}Android application}{27}{subsection.3.2.3}
+\contentsline {subsubsection}{ChannelConnection layer adaptation}{29}{section*.23}
+\contentsline {subsubsection}{Connectivity}{29}{section*.24}
+\contentsline {subsection}{\numberline {3.2.4}Running the full-system protocol}{29}{subsection.3.2.4}
+\contentsline {chapter}{\numberline {4}Evaluation}{32}{chapter.4}
+\contentsline {section}{\numberline {4.1}Performance}{32}{section.4.1}
+\contentsline {subsection}{\numberline {4.1.1}Setup}{32}{subsection.4.1.1}
+\contentsline {subsubsection}{Micropayment channels}{32}{section*.26}
+\contentsline {subsubsection}{Making queries}{33}{section*.27}
+\contentsline {subsection}{\numberline {4.1.2}Results}{33}{subsection.4.1.2}
+\contentsline {subsubsection}{Micropayment channels}{33}{section*.28}
+\contentsline {subsubsection}{Queries}{34}{section*.30}
+\contentsline {subsubsection}{Discussion}{34}{section*.33}
+\contentsline {section}{\numberline {4.2}Protocol vulnerabilities}{35}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}Flow messages}{35}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}Sensor data}{36}{subsection.4.2.2}
+\contentsline {subsubsection}{Data validity}{36}{section*.34}
+\contentsline {subsubsection}{Data confidentiality}{36}{section*.35}
+\contentsline {chapter}{\numberline {5}Conclusion}{37}{chapter.5}
+\contentsline {chapter}{Bibliography}{38}{chapter*.36}
 \contentsline {chapter}{\numberline {A}Appendix Chapter}{A-1}{appendix.U}
+\contentsline {section}{\numberline {A.1}Protobuf messages}{A-1}{section.U.1}
+\contentsline {section}{\numberline {A.2}Android application}{A-5}{section.U.2}
+\contentsline {subsection}{\numberline {A.2.1}Permission requirements}{A-5}{subsection.U.2.1}
+\contentsline {section}{\numberline {A.3}UML diagrams}{A-5}{section.U.3}

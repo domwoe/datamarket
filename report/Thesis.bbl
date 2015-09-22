@@ -1,3 +1,125 @@
-\begin{thebibliography}{}
+\begin{thebibliography}{10}
+
+\bibitem{forum}
+Bitcoin discussion forum.
+\newblock \url{https://bitcointalk.org/}.
+\newblock Accessed September 2015.
+
+\bibitem{draft}
+Alex Akselrod.
+\newblock Draft.
+\newblock \url{https://en.bitcoin.it/wiki/User:Aakselrod/Draft}, March 2014.
+\newblock Accessed September 2015.
+
+\bibitem{eschaton}
+Alex Akselrod.
+\newblock Eschaton.
+\newblock \url{https://gist.github.com/aakselrod/9964667}, April 2014.
+\newblock Accessed September 2015.
+
+\bibitem{iotsurvey}
+Luigi Atzori, Antonio Iera, and Giacomo Morabito.
+\newblock {The Internet of Things: A Survey}.
+\newblock {\em Comput. Netw.}, 54(15):2787--2805, oct 2010.
+
+\bibitem{hashcash}
+Adam Back.
+\newblock {Hashcash - A Denial of Service Counter-Measure}.
+\newblock Technical report, 2002.
+
+\bibitem{ripplebitcoin}
+C.J.Plooy.
+\newblock Combining bitcoin and the ripple to create a fast, scalable,
+  decentralized, anonymous, low-trust payment network.
+\newblock
+  \url{http://www.ultimatestunts.nl/bitcoin/ripple_bitcoin_draft_2.pdf},
+  January 2013.
+\newblock Accessed September 2015.
+
+\bibitem{malleability}
+Christian Decker and Roger Wattenhofer.
+\newblock Bitcoin transaction malleability and mtgox.
+\newblock {\em CoRR}, abs/1403.6676, 2014.
+
+\bibitem{hearnmicropay}
+Mike Hearn and Jeremy Spilman.
+\newblock Bitcoin contracts.
+\newblock \url{https://en.bitcoin.it/wiki/Contracts}.
+\newblock Accessed September 2015.
+
+\bibitem{microrevisited}
+Silvio Micali and Ronald~L. Rivest.
+\newblock Micropayments revisited.
+\newblock In {\em Topics in Cryptology - {CT-RSA} 2002, The Cryptographer's
+  Track at the {RSA} Conference, 2002, San Jose, CA, USA, February 18-22, 2002,
+  Proceedings}, pages 149--163, 2002.
+
+\bibitem{satoshibitcoin}
+Satoshi Nakamoto.
+\newblock Bitcoin: A peer-to-peer electronic cash system.
+\newblock \url{http://bitcoin.org/bitcoin.pdf}.
+\newblock Accessed September 2015.
+
+\bibitem{moneyfly}
+Kay Noyen, Dirk Volland, Dominic W{\"{o}}rner, and Elgar Fleisch.
+\newblock {When Money Learns to Fly: Towards Sensing as a Service Applications
+  Using Bitcoin}.
+\newblock {\em CoRR}, abs/1409.5841, 2014.
+
+\bibitem{micropay2}
+Rafael Pass and abhi shelat.
+\newblock Micropayments for decentralized currencies.
+
+\bibitem{Payeras-Capella:2003:EAS:1758260.1758276}
+Magdalena Payeras-Capell\`{a}, Josep~Llu\'{\i}s Ferrer-Gomila, and Ll.
+  Huguet-Rotger.
+\newblock {An Efficient Anonymous Scheme for Secure Micropayments}.
+\newblock In {\em {Proceedings of the 2003 International Conference on Web
+  Engineering}}, ICWE'03, pages 80--83, Berlin, Heidelberg, 2003.
+  Springer-Verlag.
+
+\bibitem{lightning}
+Joseph Poon and Thaddeus Dryja.
+\newblock {The Bitcoin Lightning Network: Scalable Off-Chain Instant Payments}.
+\newblock \url{https://lightning.network/lightning-network-paper.pdf}, July
+  2015.
+\newblock Accessed September 2015.
+
+\bibitem{Rivest:1996:PMT:647214.720369}
+Ronald~L. Rivest and Adi Shamir.
+\newblock Payword and micromint: Two simple micropayment schemes.
+\newblock In {\em Proceedings of the International Workshop on Security
+  Protocols}, pages 69--87, London, UK, UK, 1997. Springer-Verlag.
+
+\bibitem{sheng2013sensing}
+Xiang Sheng, Jian Tang, Xuejie Xiao, and Guoliang Xue.
+\newblock Sensing as a service: Challenges, solutions and future directions.
+\newblock {\em Sensors Journal, IEEE}, 13(10):3733--3741, 2013.
+
+\bibitem{hubandspoke}
+Peter Todd.
+\newblock Near-zero fee transactions with hub-and-spoke micropayments.
+\newblock \url{http://sourceforge.net/p/bitcoin/mailman/message/}, December
+  2014.
+\newblock Accessed September 2015.
+
+\bibitem{3279}
+Daniel Wilusz and Jarogniew Rykowski.
+\newblock {Requirements and general architecture of a payment system for the
+  Future Internet}.
+\newblock volume~2, pages 91--103, 2012.
+
+\bibitem{couponbased}
+Daniel Wilusz and Jarogniew Rykowski.
+\newblock {The Architecture of Coupon-Based, Semi-off-Line, Anonymous
+  Micropayment System for Internet of Things}.
+\newblock In {\em Technological Innovation for the Internet of Things}, volume
+  394 of {\em IFIP Advances in Information and Communication Technology}, pages
+  125--132. Springer Berlin Heidelberg, 2013.
+
+\bibitem{iotzhang}
+Yu~Zhang and Jiangtao Wen.
+\newblock {An IoT electric business model based on the protocol of bitcoin.}
+\newblock In {\em ICIN}, pages 184--191. IEEE, 2015.
 
 \end{thebibliography}

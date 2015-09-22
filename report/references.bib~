@@ -1,0 +1,66 @@
+@article{sheng2013sensing,
+	title={Sensing as a service: Challenges, solutions and future directions},
+	author={Sheng, Xiang and Tang, Jian and Xiao, Xuejie and Xue, Guoliang},
+	journal={Sensors Journal, IEEE},
+	volume={13},
+	number={10},
+	pages={3733--3741},
+	year={2013},
+	publisher={IEEE}
+}
+
+@article{iotsurvey,
+	author = {Atzori, Luigi and Iera, Antonio and Morabito, Giacomo},
+	title = {{The Internet of Things: A Survey}},
+	journal = {Comput. Netw.},
+	issue_date = {October, 2010},
+	volume = {54},
+	number = {15},
+	month = oct,
+	year = {2010},
+	issn = {1389-1286},
+	pages = {2787--2805},
+	numpages = {19},
+	url = {http://dx.doi.org/10.1016/j.comnet.2010.05.010},
+	doi = {10.1016/j.comnet.2010.05.010},
+	acmid = {1862541},
+	publisher = {Elsevier North-Holland, Inc.},
+	address = {New York, NY, USA},
+	keywords = {Internet of Things, Pervasive computing, RFID systems},
+}
+
+@MISC{satoshibitcoin,
+	author = {Satoshi Nakamoto},
+	title = {Bitcoin: A peer-to-peer electronic cash system, http://bitcoin.org/bitcoin.pdf [Online; accessed September 2015]},
+}
+
+@TECHREPORT{hashcash,
+    author = {Adam Back},
+    title = {{Hashcash - A Denial of Service Counter-Measure}},
+    year = {2002}
+}
+
+@article{hearnmicropay,
+	author = {Mike Hearn and Jeremy Spilman},
+	title = {Bitcoin contracts, https://en.bitcoin.it/wiki/Contracts [Online; accessed September 2015]}	
+}
+
+@inproceedings{iotzhang,
+  added-at = {2015-04-09T00:00:00.000+0200},
+  author = {Zhang, Yu and Wen, Jiangtao},
+  biburl = {http://www.bibsonomy.org/bibtex/2f20600ecfbf17c06cc49f97c6f4ebd12/dblp},
+  booktitle = {ICIN},
+  crossref = {conf/icin/2015},
+  ee = {http://dx.doi.org/10.1109/ICIN.2015.7073830},
+  interhash = {a40ea47b220e6510345ac679aa48a7ab},
+  intrahash = {f20600ecfbf17c06cc49f97c6f4ebd12},
+  isbn = {978-1-4799-1866-9},
+  keywords = {dblp},
+  pages = {184-191},
+  publisher = {IEEE},
+  timestamp = {2015-06-19T20:45:09.000+0200},
+  title = {An IoT electric business model based on the protocol of bitcoin.},
+  url = {http://dblp.uni-trier.de/db/conf/icin/icin2015.html#ZhangW15},
+  year = 2015
+}
+

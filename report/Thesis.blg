@@ -1,48 +1,62 @@
 This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
 Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: Thesis.aux
-The style file: splncs.bst
-I found no \citation commands---while reading file Thesis.aux
+The style file: plainurl.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=20001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: references.bib
-You've used 0 entries,
-            2087 wiz_defined-function locations,
-            489 strings with 3711 characters,
-and the built_in function-call counts, 20 in all, are:
-= -- 0
-> -- 0
-< -- 0
-+ -- 0
-- -- 0
-* -- 2
-:= -- 9
-add.period$ -- 0
-call.type$ -- 0
-change.case$ -- 0
+A bad cross reference---entry "iotzhang"
+refers to entry "conf/icin/2015", which doesn't exist
+A bad cross reference---entry "microrevisited"
+refers to entry "DBLP:conf/ctrsa/2002", which doesn't exist
+Warning--I didn't find a database entry for "conf/icin/2015"
+Warning--I didn't find a database entry for "DBLP:conf/ctrsa/2002"
+Warning--to sort, need author or key in forum
+Warning--empty institution in hashcash
+Warning--empty journal in micropay2
+Warning--empty year in micropay2
+Warning--empty booktitle in 3279
+You've used 20 entries,
+            2849 wiz_defined-function locations,
+            728 strings with 8199 characters,
+and the built_in function-call counts, 8311 in all, are:
+= -- 872
+> -- 267
+< -- 8
++ -- 96
+- -- 76
+* -- 353
+:= -- 1176
+add.period$ -- 70
+call.type$ -- 20
+change.case$ -- 99
 chr.to.int$ -- 0
-cite$ -- 0
-duplicate$ -- 0
-empty$ -- 1
-format.name$ -- 0
-if$ -- 1
+cite$ -- 25
+duplicate$ -- 249
+empty$ -- 815
+format.name$ -- 76
+if$ -- 2205
 int.to.chr$ -- 0
-int.to.str$ -- 0
-missing$ -- 0
-newline$ -- 3
-num.names$ -- 0
-pop$ -- 0
+int.to.str$ -- 20
+missing$ -- 11
+newline$ -- 109
+num.names$ -- 38
+pop$ -- 225
 preamble$ -- 1
-purify$ -- 0
+purify$ -- 78
 quote$ -- 0
-skip$ -- 1
+skip$ -- 630
 stack$ -- 0
-substring$ -- 0
-swap$ -- 0
-text.length$ -- 0
+substring$ -- 321
+swap$ -- 71
+text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 0
-warning$ -- 0
-while$ -- 0
-width$ -- 0
-write$ -- 2
-(There was 1 error message)
+type$ -- 80
+warning$ -- 5
+while$ -- 57
+width$ -- 22
+write$ -- 228
+(There were 2 error messages)

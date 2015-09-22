@@ -13,12 +13,12 @@ message TwoWayChannelMessage {
         HTLC_PROVIDE_CONTRACT = 12;
         HTLC_INIT = 13;
         HTLC_INIT_REPLY = 14;
-        HTLC_SIGNED_TEARDOWN = 15;
+        HTLC_SIGNED_SETUP = 15;
         HTLC_SIGNED_REFUND = 16;
         HTLC_SIGNED_SETTLE_FORFEIT = 17;
         HTLC_SETUP_COMPLETE = 18;
         HTLC_SERVER_UPDATE = 19;
-        HTLC_UPDATE_TEARDOWN = 20;
+        HTLC_UPDATE_SETUP = 20;
         HTLC_DATA = 21;
         
         HTLC_ROUND_INIT = 22;
@@ -42,7 +42,7 @@ message TwoWayChannelMessage {
     optional HTLCProvideContract htlc_provide_contract = 12;
     optional HTLCInit htlc_init = 13;
     optional HTLCInitReply htlc_init_reply = 14;
-    optional HTLCProvideSignedTeardown htlc_signed_teardown = 15;
+    optional HTLCProvideSignedSetup htlc_signed_setup = 15;
     optional HTLCSignedRefundWithHash htlc_signed_refund_with_hash = 16;
     optional HTLCSignedSettleAndForfeit 
                 htlc_signed_settle_and_forfeit = 17;
@@ -104,7 +104,7 @@ message Settlement {
 
 message HTLCProvideContract {
     required bytes tx = 1;
-    required HTLCSignedTransaction signed_initial_teardown = 2;
+    required HTLCSignedTransaction signed_initial_setup = 2;
 }
 
 message HTLCRoundInit {
@@ -145,10 +145,10 @@ message HTLCSignedTransaction {
     required bytes signature = 3;
 }
 
-message HTLCProvideSignedTeardown {
+message HTLCProvideSignedSetup {
     repeated string ids = 1;
     repeated int32 idx = 2;
-    required HTLCSignedTransaction signed_teardown = 3;
+    required HTLCSignedTransaction signed_setup = 3;
 }
 
 message HTLCSignedRefundWithHash {
@@ -167,17 +167,17 @@ message HTLCSetupComplete {
     repeated string ids = 1;
 }
 
-message HTLCRevealSecret {
+message HTLCSettlement {
     required string id = 1;
     required string secret = 2;
 }
 
-message HTLCBackOff {
+message HTLCForfeiture {
     required string id = 1;
     required HTLCSignedTransaction signed_forfeit = 2; 
 }
 
 message HTLCServerUpdate {
-    repeated HTLCRevealSecret reveal_secrets = 1;
-    repeated HTLCBackOff back_offs = 2;
+    repeated HTLCSettlement reveal_secrets = 1;
+    repeated HTLCForfeiture back_offs = 2;
 }

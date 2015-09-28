@@ -11,7 +11,7 @@ import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.net.NioClient;
-import org.bitcoinj.net.ProtobufParser;
+import org.bitcoinj.net.ProtobufConnection;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ public class HTLCAndroidClientConnection extends Thread {
 		LoggerFactory.getLogger(HTLCAndroidClientConnection.class);
 
 	private HTLCAndroidClient channelClient;
-	private ProtobufParser<Protos.TwoWayChannelMessage> wireParser;
+	private ProtobufConnection<Protos.TwoWayChannelMessage> wireParser;
 	
 	private final SettableFuture<HTLCAndroidClientConnection> channelOpenFuture = 
 		SettableFuture.create();
@@ -58,6 +58,8 @@ public class HTLCAndroidClientConnection extends Thread {
 	
 	public interface AppConnection {
 		List<String> getDataFromSensor(String sensorType);
+		void paymentIncrease(Coin by);
+		
 	}
 	
 	@Override 
@@ -109,9 +111,8 @@ public class HTLCAndroidClientConnection extends Thread {
 				}
 
 				@Override
-				public void paymentIncrease(Coin from, Coin to) {
-					log.info("Client {} increased payment by {}", to.toString());
-					
+				public void paymentIncrease(Coin by) {
+					appConn.paymentIncrease(by);
 				}
 			}
 		);
@@ -119,27 +120,26 @@ public class HTLCAndroidClientConnection extends Thread {
     	log.info("timeoutSeconds*1000: {}", timeoutSeconds*1000);
     	
     	 // And glue back in the opposite direction - network to the channelClient.
-        wireParser = new ProtobufParser<Protos.TwoWayChannelMessage>(
-    		new ProtobufParser.Listener<Protos.TwoWayChannelMessage>() {
+        wireParser = new ProtobufConnection<Protos.TwoWayChannelMessage>(
+    		new ProtobufConnection.Listener<Protos.TwoWayChannelMessage>() {
 	            @Override
 	            public void messageReceived(
-            		ProtobufParser<Protos.TwoWayChannelMessage> handler, 
+            		ProtobufConnection<Protos.TwoWayChannelMessage> handler, 
             		Protos.TwoWayChannelMessage msg
         		) {
-                	log.info("Message received from server");
                     channelClient.receiveMessage(msg);
 	            }
 
 	            @Override
 	            public void connectionOpen(
-            		ProtobufParser<Protos.TwoWayChannelMessage> handler
+            		ProtobufConnection<Protos.TwoWayChannelMessage> handler
         		) {
 	            	log.info("Connection opened");
 	            }
 
 	            @Override
 	            public void connectionClosed(
-            		ProtobufParser<Protos.TwoWayChannelMessage> handler
+	            	ProtobufConnection<Protos.TwoWayChannelMessage> handler
         		) {
 	                channelOpenFuture.setException(
                 		new PaymentChannelCloseException(
@@ -167,7 +167,7 @@ public class HTLCAndroidClientConnection extends Thread {
 		return channelOpenFuture;
 	}
 	
-	public void updateSensors(List<String> sensors, List<Long> prices) {
-		channelClient.updateSensors(sensors, prices);
+	public void updateSensors(List<String> sensors, long price) {
+		channelClient.updateSensors(sensors, price);
 	}
 }

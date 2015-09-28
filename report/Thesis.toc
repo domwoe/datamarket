@@ -27,13 +27,13 @@
 \contentsline {subsubsection}{Initiating a payment}{22}{section*.14}
 \contentsline {subsubsection}{Claiming a payment}{24}{section*.17}
 \contentsline {subsubsection}{Closing the channel}{25}{section*.19}
-\contentsline {subsubsection}{Data transmission}{26}{section*.20}
+\contentsline {subsubsection}{Data transmission}{25}{section*.20}
 \contentsline {section}{\numberline {3.2}Application implementation}{26}{section.3.2}
 \contentsline {subsection}{\numberline {3.2.1}Buyer application}{26}{subsection.3.2.1}
 \contentsline {subsubsection}{Running queries}{26}{section*.21}
-\contentsline {subsection}{\numberline {3.2.2}Hub application}{27}{subsection.3.2.2}
+\contentsline {subsection}{\numberline {3.2.2}Hub application}{26}{subsection.3.2.2}
 \contentsline {subsection}{\numberline {3.2.3}Android application}{27}{subsection.3.2.3}
-\contentsline {subsubsection}{ChannelConnection layer adaptation}{29}{section*.23}
+\contentsline {subsubsection}{ChannelConnection layer adaptation}{28}{section*.23}
 \contentsline {subsubsection}{Connectivity}{29}{section*.24}
 \contentsline {subsection}{\numberline {3.2.4}Running the full-system protocol}{29}{subsection.3.2.4}
 \contentsline {chapter}{\numberline {4}Evaluation}{32}{chapter.4}
@@ -44,16 +44,19 @@
 \contentsline {subsection}{\numberline {4.1.2}Results}{33}{subsection.4.1.2}
 \contentsline {subsubsection}{Micropayment channels}{33}{section*.28}
 \contentsline {subsubsection}{Queries}{34}{section*.30}
-\contentsline {subsubsection}{Discussion}{34}{section*.33}
-\contentsline {section}{\numberline {4.2}Protocol vulnerabilities}{35}{section.4.2}
-\contentsline {subsection}{\numberline {4.2.1}Flow messages}{35}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Sensor data}{36}{subsection.4.2.2}
-\contentsline {subsubsection}{Data validity}{36}{section*.34}
-\contentsline {subsubsection}{Data confidentiality}{36}{section*.35}
-\contentsline {chapter}{\numberline {5}Conclusion}{37}{chapter.5}
-\contentsline {chapter}{Bibliography}{38}{chapter*.36}
+\contentsline {subsubsection}{Full communication trace}{34}{section*.33}
+\contentsline {subsubsection}{Discussion}{35}{section*.35}
+\contentsline {section}{\numberline {4.2}Protocol vulnerabilities}{36}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}Payment security}{36}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}Flow messages}{37}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.3}Sensor data}{37}{subsection.4.2.3}
+\contentsline {subsubsection}{Data validity}{37}{section*.36}
+\contentsline {subsubsection}{Data confidentiality}{37}{section*.37}
+\contentsline {chapter}{\numberline {5}Conclusion}{39}{chapter.5}
+\contentsline {chapter}{Bibliography}{40}{chapter*.38}
 \contentsline {chapter}{\numberline {A}Appendix Chapter}{A-1}{appendix.U}
-\contentsline {section}{\numberline {A.1}Protobuf messages}{A-1}{section.U.1}
-\contentsline {section}{\numberline {A.2}Android application}{A-5}{section.U.2}
-\contentsline {subsection}{\numberline {A.2.1}Permission requirements}{A-5}{subsection.U.2.1}
-\contentsline {section}{\numberline {A.3}UML diagrams}{A-5}{section.U.3}
+\contentsline {section}{\numberline {A.1}HTLC Transactions}{A-1}{section.U.1}
+\contentsline {section}{\numberline {A.2}Protobuf messages}{A-1}{section.U.2}
+\contentsline {section}{\numberline {A.3}Android application}{A-6}{section.U.3}
+\contentsline {subsection}{\numberline {A.3.1}Permission requirements}{A-6}{subsection.U.3.1}
+\contentsline {section}{\numberline {A.4}UML diagrams}{A-6}{section.U.4}

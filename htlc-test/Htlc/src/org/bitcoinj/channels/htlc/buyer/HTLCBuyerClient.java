@@ -4,7 +4,7 @@ package org.bitcoinj.channels.htlc.buyer;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +18,7 @@ import net.jcip.annotations.GuardedBy;
 import org.bitcoin.paymentchannel.Protos;
 import org.bitcoin.paymentchannel.Protos.HTLCData;
 import org.bitcoin.paymentchannel.Protos.HTLCFlow.FlowType;
+import org.bitcoin.paymentchannel.Protos.HTLCPayment;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage.MessageType;
 import org.bitcoinj.channels.htlc.FlowResponse;
@@ -60,7 +61,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	private static final int CLIENT_MAJOR_VERSION = 1;
 	private final int CLIENT_MINOR_VERSION = 0;
 	private static final int SERVER_MAJOR_VERSION = 1;
-	private final int MAX_MESSAGES = 10;
+	private final int MAX_MESSAGES = 100;
 	 
 	private final ECKey clientPrimaryKey;
 	private final ECKey clientSecondaryKey;
@@ -89,6 +90,12 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	@GuardedBy("lock")
 	private Map<String, Coin> paymentValueMap;
 	
+	@GuardedBy("lock")
+	private Map<String, Long> buyTimeMap;
+	
+	@GuardedBy("lock")
+	private Map<String, Long> htlcInitTimeMap;
+	
 	private enum InitStep {
 		WAITING_FOR_CONNECTION_OPEN,
         WAITING_FOR_VERSION_NEGOTIATION,
@@ -96,10 +103,10 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
         WAITING_FOR_REFUND_RETURN,
         WAITING_FOR_CHANNEL_OPEN,
         CHANNEL_OPEN,
-        WAITING_FOR_HTLC_INIT_REPLY,
         WAITING_FOR_CHANNEL_CLOSE,
         CHANNEL_CLOSED,
 	}
+	
 	@GuardedBy("lock") 
 	private InitStep step = InitStep.WAITING_FOR_CONNECTION_OPEN;
 	
@@ -144,7 +151,9 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     	this.responseFutureMap = 
 			new HashMap<String, SettableFuture<FlowResponse>>();
     	this.paymentInfoFutureMap = 
-			new HashMap<String, SettableFuture<List<PriceInfo>>>(); 
+			new HashMap<String, SettableFuture<List<PriceInfo>>>();
+    	this.buyTimeMap = new HashMap<String, Long>();
+    	this.htlcInitTimeMap = new HashMap<String, Long>();
     }
     
     /**
@@ -157,12 +166,14 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     public void connectionOpen() {
     	lock.lock();
     	try {
+        	log.error("MPC_st {} {}", clientPrimaryKey.toAddress(wallet.getParams()), new Date().getTime());
     		step = InitStep.WAITING_FOR_VERSION_NEGOTIATION;
     		log.info("Sending version negotiation to server");
     		Protos.ClientVersion.Builder versionNegotiationBuilder = 
 				Protos.ClientVersion.newBuilder()
                     .setMajor(CLIENT_MAJOR_VERSION)
                     .setMinor(CLIENT_MINOR_VERSION)
+                    .setClientKey(ByteString.copyFrom(clientPrimaryKey.getPubKey()))
                     .setTimeWindowSecs(timeWindow);
     		conn.sendToServer(Protos.TwoWayChannelMessage.newBuilder()
                     .setType(
@@ -213,7 +224,6 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	    			closeReason = 
 						receiveInitiate(initiate, value, errorBuilder);
 	    			if (closeReason == null) {
-	    				log.error("Refund sent to server");
 	    				return;
 	    			}
 	    			log.error(
@@ -229,6 +239,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	    			return;
 	    		case HTLC_ROUND_INIT:
 	    			receiveHTLCRoundInit();
+	    			return;
 	    		case HTLC_ROUND_ACK:
 	    			receiveHTLCRoundAck();
 	    			return;
@@ -433,6 +444,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     
     @GuardedBy("lock")
     private void receiveHTLCRoundInit() {
+    	log.info("Received block request for HTLC update from server");
     	if (htlcRound == HTLCRound.OFF) {
     		log.info("Received block request for HTLC update from server");
     		// Send the HTLCRound ack back to server to lock in update round
@@ -456,6 +468,10 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     	htlcRound = HTLCRound.CONFIRMED;
     	// Retrieve all queued up updates
     	currentBatch = blockingQueue.getAll();
+    	for (HTLCPayment payment: currentBatch) {
+    		log.info("Pushing HTLCIDS {}", payment.getRequestId());
+    		htlcInitTimeMap.put(payment.getRequestId(), new Date().getTime());
+    	}
     	Protos.HTLCInit.Builder htlcInit = Protos.HTLCInit.newBuilder()
 			.addAllNewPayments(currentBatch);
     	final TwoWayChannelMessage initMsg = TwoWayChannelMessage.newBuilder()
@@ -468,6 +484,8 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     @GuardedBy("lock")
     private void receiveHTLCRoundDone() {
     	log.info("Hub finished its round of updates");
+    	// Mark HTLCs as settleable 
+    	state.makeAllSettleable();
     	htlcRound = HTLCRound.OFF;
     	if (!blockingQueue.isEmpty()) {
     		// Start new client update round
@@ -484,8 +502,6 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     	
     	Protos.HTLCInitReply htlcInitReply = msg.getHtlcInitReply();
     	
-    	List<String> ids = new ArrayList<String>();
-    	List<Integer> idxs = new ArrayList<Integer>();
     	List<Protos.HTLCPaymentReply> paymentsReply = 
 			htlcInitReply.getNewPaymentsReplyList();
     	
@@ -502,10 +518,26 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
         	Coin storedValue = paymentValueMap.get(requestIdString);
         	paymentValueMap.remove(requestIdString);
         	paymentValueMap.put(id, storedValue);
+        	
+        	Long buyTimestamp = buyTimeMap.get(requestIdString);
+        	buyTimeMap.remove(requestIdString);
+        	log.error("BUY_st {} {}", id, buyTimestamp);
+        	
+        	Long htlcInitTimeStamp = htlcInitTimeMap.get(requestIdString);
+        	htlcInitTimeMap.remove(requestIdString);
+        	log.error("HTLC_INIT1 {} {}", id, htlcInitTimeStamp);
+        	
+        	log.info("HTLCID IN ROUND: {}", id);
         
-    		int htlcIdx = state.updateTeardownTxWithHTLC(id, storedValue);
-    		ids.add(id);
-    		idxs.add(htlcIdx);
+    		state.updateTeardownTxWithHTLC(id, storedValue);
+    	}
+    	
+    	List<HTLCClientState> allHTLCs = state.getAllActiveHTLCs();
+    	List<String> allIds = new ArrayList<String>();
+    	List<Integer> allIdxs = new ArrayList<Integer>();
+    	for (HTLCClientState htlcState: allHTLCs) {
+    		allIds.add(htlcState.getId());
+    		allIdxs.add(htlcState.getIndex());
     	}
     	
     	log.info("Done processing HTLC init reply");
@@ -520,8 +552,8 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 				));
     	Protos.HTLCProvideSignedTeardown.Builder teardownMsg = 
 			Protos.HTLCProvideSignedTeardown.newBuilder()
-				.addAllIds(ids)
-				.addAllIdx(idxs)
+				.addAllIds(allIds)
+				.addAllIdx(allIdxs)
 				.setSignedTeardown(signedTeardown);
     	final Protos.TwoWayChannelMessage.Builder channelMsg =
 			Protos.TwoWayChannelMessage.newBuilder()
@@ -543,14 +575,12 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 		Protos.TwoWayChannelMessage msg
 	) {
     	checkState(step == InitStep.CHANNEL_OPEN);
-    	log.info("Received HTLC Signed Refund with Hash");
     	Protos.HTLCSignedRefundWithHash htlcSigRefundMsg = 
 			msg.getHtlcSignedRefundWithHash();
     	
     	List<Protos.HTLCSignedTransaction> allSignedRefunds = 
 			htlcSigRefundMsg.getSignedRefundList();
     	List<String> allIds = htlcSigRefundMsg.getIdsList();
-    	log.info("IDS: {}", Arrays.toString(allIds.toArray()));
     	List<Protos.HTLCSignedTransaction> allSignedForfeits =
 			new ArrayList<Protos.HTLCSignedTransaction>();
     	List<Protos.HTLCSignedTransaction> allSignedSettles =
@@ -584,7 +614,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 					.build();
     		
     		SignedTransaction signedSettle = state.getHTLCSettlementTx(
-				htlcId, 
+				htlcId,
 				teardownHash
 			);
     		Protos.HTLCSignedTransaction signedSettleProto =
@@ -613,8 +643,6 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 			Protos.TwoWayChannelMessage.MessageType.HTLC_SIGNED_SETTLE_FORFEIT
 		);
     	
-    	log.info("Replying with HTLC Signed Settle Forfeit");
-    	
     	conn.sendToServer(serverMsg.build());
     }
     
@@ -622,10 +650,9 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     private void receiveHTLCSetupComplete(Protos.TwoWayChannelMessage msg) 
     		throws ValueOutOfRangeException {
     	checkState(step == InitStep.CHANNEL_OPEN);
-    	log.info("Received HTLC Setup Complete");
     	List<String> allIds = msg.getHtlcSetupComplete().getIdsList();
     	for (String id: allIds) {
-        	log.info("received HTLC setup complete for {}", id);
+    		log.error("HTLC_SETUP1 {} {}", id, new Date().getTime());
     		state.makeSettleable(id);
     	}
     	htlcRound = HTLCRound.OFF;
@@ -680,8 +707,6 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     		allIdxs.add(htlcIdx);
     	}
     	
-    	log.info("AllIds in HTLCSignedTransaction {}", Arrays.toString(allIds.toArray()));
-
     	SignedTransaction signedTx = state.getSignedTeardownTx();
     	Protos.HTLCSignedTransaction.Builder signedTeardown =
 			Protos.HTLCSignedTransaction.newBuilder()
@@ -725,10 +750,11 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
     	} else {
             log.info("CLOSE message received without settlement tx");
         }
-        if (step == InitStep.WAITING_FOR_CHANNEL_CLOSE)
+        if (step == InitStep.WAITING_FOR_CHANNEL_CLOSE) {
             conn.destroyConnection(CloseReason.CLIENT_REQUESTED_CLOSE);
-        else
+        } else {
             conn.destroyConnection(CloseReason.SERVER_REQUESTED_CLOSE);
+        }
         step = InitStep.CHANNEL_CLOSED;
     }
 
@@ -744,6 +770,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 		);
 	}
 	
+	@GuardedBy("lock")
 	private void initializeHTLCRound() {
 		log.info("Sending block request for HTLC update round!");
 		Protos.HTLCRoundInit.Builder initRound = 
@@ -761,10 +788,10 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	public ListenableFuture<FlowResponse> nodeStats() {
 		lock.lock();
 		try {
-			log.info("Sending nodeStats query to twin hub");
 			// We can generate a UUID to identify the token request response
 			// This UUID will be mirrored back by the server
 			String reqIdString = new String(UUID.randomUUID().toString());
+			log.error("STAT_st {} {}", reqIdString, new Date().getTime());
 			SettableFuture<FlowResponse> responseFuture = 
 				SettableFuture.create();
 			responseFutureMap.put(reqIdString, responseFuture);
@@ -785,6 +812,35 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 		}
 	}
 	
+	@GuardedBy("lock")
+	public ListenableFuture<FlowResponse> sensorStats() {
+		lock.lock();
+		try {
+			// We can generate a UUID to identify the token request response
+			// This UUID will be mirrored back by the server
+			String reqIdString = new String(UUID.randomUUID().toString());
+			log.error("STAS_st {} {}", reqIdString, new Date().getTime());
+			SettableFuture<FlowResponse> responseFuture = 
+				SettableFuture.create();
+			responseFutureMap.put(reqIdString, responseFuture);
+			
+			Protos.HTLCFlow.Builder stats = Protos.HTLCFlow.newBuilder()
+				.setId(reqIdString)
+				.setType(Protos.HTLCFlow.FlowType.SENSOR_STATS);
+			final TwoWayChannelMessage msg = 
+				Protos.TwoWayChannelMessage.newBuilder()
+					.setHtlcFlow(stats)
+					.setType(MessageType.HTLC_FLOW)
+					.build();
+			conn.sendToServer(msg);
+			
+			return responseFuture;
+		} finally {
+			lock.unlock();
+		}
+	}
+	
+	@GuardedBy("lock")
 	private void receiveHTLCFlowMsg(TwoWayChannelMessage msg) {
 		Protos.HTLCFlow flowMsg = msg.getHtlcFlow();
 		FlowType type = flowMsg.getType();
@@ -794,7 +850,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 				receiveNodeStatsReply(id, flowMsg.getNodeStats());
 				return;
 			case SENSOR_STATS_REPLY:
-				//receiveSensorStatsReply(id, flowMsg.getNodeStats());
+				receiveSensorStatsReply(id, flowMsg.getSensorStats());
 				return;
 			case PAYMENT_INFO:
 				receivePaymentInfo(id, flowMsg.getPaymentInfo());
@@ -805,39 +861,40 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 		}
 	}
 	
+	@GuardedBy("lock")
 	private void receiveData(List<HTLCData> dataList) {
     	for (Protos.HTLCData data: dataList) {
     		String htlcId = data.getId();
     		List<String> sensorData = data.getDataList();
-    		state.cancelHTLCRefundTxBroadcast(htlcId);
     		SettableFuture<HTLCPaymentReceipt> future = 
     			paymentAckFutureMap.get(htlcId);
+    		log.error("BUY_en {} {}", htlcId, new Date().getTime());
         	future.set(new HTLCPaymentReceipt(value, sensorData));
         	paymentAckFutureMap.remove(htlcId);
         	paymentValueMap.remove(htlcId);
     	}
 	}
 	
+	@GuardedBy("lock")
 	private void receiveNodeStatsReply(
 		String id, 
 		Protos.HTLCNodeStats nodeStats
 	) {
 		SettableFuture<FlowResponse> flowFuture = responseFutureMap.get(id);
+		log.error("STAT_en {} {}", id, new Date().getTime());
 		flowFuture.set(new FlowResponse(nodeStats.getDevicesList()));
 	}
-/*
-	public ListenableFuture<String> sensorStats() {
-		log.info("Sending sensorStats query to twin hub");
-		Protos.HTLCFlow.Builder stats = Protos.HTLCFlow.newBuilder()
-			.setType(Protos.HTLCFlow.FlowType.SENSOR_STATS);
-		final TwoWayChannelMessage msg = 
-			Protos.TwoWayChannelMessage.newBuilder()
-				.setHtlcFlow(stats)
-				.setType(MessageType.HTLC_FLOW)
-				.build();
-		conn.sendToServer(msg);
+	
+	@GuardedBy("lock")
+	private void receiveSensorStatsReply(
+		String id, 
+		Protos.HTLCSensorStats sensorStats
+	) {
+		SettableFuture<FlowResponse> flowFuture = responseFutureMap.get(id);
+		log.error("STAS_en {} {}", id, new Date().getTime());
+		flowFuture.set(new FlowResponse(sensorStats.getSensorsList()));
 	}
-*/
+
 	@GuardedBy("lock")
 	private void receivePaymentInfo(
 		String id, 
@@ -855,6 +912,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 			);
 		}
 		future.set(priceInfoList);
+		log.error("SEL_en {} {}", id, new Date().getTime());
 	}
 	
 	@GuardedBy("lock")
@@ -864,6 +922,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 			// We can generate a UUID to identify the token request response
 			// This UUID will be mirrored back by the server
 			String reqIdString = new String(UUID.randomUUID().toString());
+			log.error("SEL_st {} {}", reqIdString, new Date().getTime());
 			SettableFuture<List<PriceInfo>> responseFuture = 
 				SettableFuture.create();
 			paymentInfoFutureMap.put(reqIdString, responseFuture);
@@ -898,6 +957,11 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 		try {
 			checkState(step == InitStep.CHANNEL_OPEN);
 			
+			String reqIdString = new String(UUID.randomUUID().toString());
+			buyTimeMap.put(reqIdString, new Date().getTime());
+			
+			log.info("Buying " + sensorType + " from " + deviceId);
+			
 			final SettableFuture<HTLCPaymentReceipt> incrementPaymentFuture = 
 				SettableFuture.create();
 			
@@ -912,7 +976,7 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 			
 			// We can generate a UUID to identify the token request response
 			// This UUID will be mirrored back by the hub
-			String reqIdString = new String(UUID.randomUUID().toString());
+			
 			paymentAckFutureMap.put(reqIdString, incrementPaymentFuture);
 			paymentValueMap.put(reqIdString, value);
 			
@@ -926,9 +990,11 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 			if (canInitHTLCRound()) {
 				log.info("Can init round. Hitting it");
 				blockingQueue.put(newPayment);
+				log.info("QUEUE SIZE: {}", blockingQueue.size());
 				initializeHTLCRound();
 			} else {
-				log.info("Cannot initialized round. Queue up");
+				log.info("Cannot initialized round. Queue up {}", htlcRound.toString());
+				log.info("QUEUE SIZE: {}", blockingQueue.size());
 				blockingQueue.put(newPayment);
 			}
 			return incrementPaymentFuture;
@@ -939,6 +1005,17 @@ public class HTLCBuyerClient implements IPaymentBuyerChannelClient {
 	
 	@Override
 	public void settle() throws IllegalStateException {
-				
+        lock.lock();
+        try {
+            checkState(step == InitStep.CHANNEL_OPEN);
+            step = InitStep.WAITING_FOR_CHANNEL_CLOSE;
+            log.info("Sending a CLOSE message to the server and waiting " +
+            		"for response indicating successful settlement.");
+            conn.sendToServer(Protos.TwoWayChannelMessage.newBuilder()
+                    .setType(Protos.TwoWayChannelMessage.MessageType.CLOSE)
+                    .build());
+        } finally {
+            lock.unlock();
+        }
 	}
 }

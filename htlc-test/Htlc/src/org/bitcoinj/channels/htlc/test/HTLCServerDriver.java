@@ -30,6 +30,8 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
 	
 	private WalletAppKit appKit;
 	
+	private HTLCPaymentChannelServerListener serverListener;
+	
 	public static void main(String[] args) throws Exception {
 		new HTLCServerDriver().run();
 	}
@@ -53,14 +55,15 @@ implements HTLCPaymentChannelServerListener.HandlerFactory {
         TransactionBroadcastScheduler broadcastScheduler = 
     		new TransactionBroadcastScheduler(appKit.peerGroup());
         
-        new HTLCPaymentChannelServerListener(
+        serverListener = new HTLCPaymentChannelServerListener(
     		broadcastScheduler, 
     		appKit.wallet(), 
     		serverKey, 
     		15, 
     		Coin.valueOf(100000), 
     		this
-		).bindAndStart(4242);
+		);
+        serverListener.bindAndStart(4242);
 	}
 
 	@Override

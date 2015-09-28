@@ -893,9 +893,9 @@ public final class Protos {
        */
       HTLC_UPDATE_TEARDOWN(18, 20),
       /**
-       * <code>HTLC_PAYMENT_ACK = 21;</code>
+       * <code>HTLC_DATA = 21;</code>
        */
-      HTLC_PAYMENT_ACK(19, 21),
+      HTLC_DATA(19, 21),
       /**
        * <code>HTLC_ROUND_INIT = 22;</code>
        */
@@ -1040,9 +1040,9 @@ public final class Protos {
        */
       public static final int HTLC_UPDATE_TEARDOWN_VALUE = 20;
       /**
-       * <code>HTLC_PAYMENT_ACK = 21;</code>
+       * <code>HTLC_DATA = 21;</code>
        */
-      public static final int HTLC_PAYMENT_ACK_VALUE = 21;
+      public static final int HTLC_DATA_VALUE = 21;
       /**
        * <code>HTLC_ROUND_INIT = 22;</code>
        */
@@ -1095,7 +1095,7 @@ public final class Protos {
           case 18: return HTLC_SETUP_COMPLETE;
           case 19: return HTLC_SERVER_UPDATE;
           case 20: return HTLC_UPDATE_TEARDOWN;
-          case 21: return HTLC_PAYMENT_ACK;
+          case 21: return HTLC_DATA;
           case 22: return HTLC_ROUND_INIT;
           case 23: return HTLC_ROUND_ACK;
           case 24: return HTLC_ROUND_DONE;
@@ -5563,6 +5563,24 @@ public final class Protos {
      */
     int getMinor();
 
+    // optional bytes client_key = 5;
+    /**
+     * <code>optional bytes client_key = 5;</code>
+     *
+     * <pre>
+     * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+     * </pre>
+     */
+    boolean hasClientKey();
+    /**
+     * <code>optional bytes client_key = 5;</code>
+     *
+     * <pre>
+     * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+     * </pre>
+     */
+    com.google.protobuf.ByteString getClientKey();
+
     // optional bytes previous_channel_contract_hash = 3;
     /**
      * <code>optional bytes previous_channel_contract_hash = 3;</code>
@@ -5674,13 +5692,18 @@ public final class Protos {
               break;
             }
             case 26: {
-              bitField0_ |= 0x00000004;
+              bitField0_ |= 0x00000008;
               previousChannelContractHash_ = input.readBytes();
               break;
             }
             case 32: {
-              bitField0_ |= 0x00000008;
+              bitField0_ |= 0x00000010;
               timeWindowSecs_ = input.readUInt64();
+              break;
+            }
+            case 42: {
+              bitField0_ |= 0x00000004;
+              clientKey_ = input.readBytes();
               break;
             }
           }
@@ -5755,6 +5778,30 @@ public final class Protos {
       return minor_;
     }
 
+    // optional bytes client_key = 5;
+    public static final int CLIENT_KEY_FIELD_NUMBER = 5;
+    private com.google.protobuf.ByteString clientKey_;
+    /**
+     * <code>optional bytes client_key = 5;</code>
+     *
+     * <pre>
+     * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+     * </pre>
+     */
+    public boolean hasClientKey() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional bytes client_key = 5;</code>
+     *
+     * <pre>
+     * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+     * </pre>
+     */
+    public com.google.protobuf.ByteString getClientKey() {
+      return clientKey_;
+    }
+
     // optional bytes previous_channel_contract_hash = 3;
     public static final int PREVIOUS_CHANNEL_CONTRACT_HASH_FIELD_NUMBER = 3;
     private com.google.protobuf.ByteString previousChannelContractHash_;
@@ -5769,7 +5816,7 @@ public final class Protos {
      * </pre>
      */
     public boolean hasPreviousChannelContractHash() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>optional bytes previous_channel_contract_hash = 3;</code>
@@ -5797,7 +5844,7 @@ public final class Protos {
      * </pre>
      */
     public boolean hasTimeWindowSecs() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
      * <code>optional uint64 time_window_secs = 4 [default = 86340];</code>
@@ -5814,6 +5861,7 @@ public final class Protos {
     private void initFields() {
       major_ = 0;
       minor_ = 0;
+      clientKey_ = com.google.protobuf.ByteString.EMPTY;
       previousChannelContractHash_ = com.google.protobuf.ByteString.EMPTY;
       timeWindowSecs_ = 86340L;
     }
@@ -5839,11 +5887,14 @@ public final class Protos {
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeInt32(2, minor_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeBytes(3, previousChannelContractHash_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeUInt64(4, timeWindowSecs_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeBytes(5, clientKey_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -5862,13 +5913,17 @@ public final class Protos {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(2, minor_);
       }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, previousChannelContractHash_);
       }
-      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeUInt64Size(4, timeWindowSecs_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(5, clientKey_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5995,10 +6050,12 @@ public final class Protos {
         bitField0_ = (bitField0_ & ~0x00000001);
         minor_ = 0;
         bitField0_ = (bitField0_ & ~0x00000002);
-        previousChannelContractHash_ = com.google.protobuf.ByteString.EMPTY;
+        clientKey_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000004);
-        timeWindowSecs_ = 86340L;
+        previousChannelContractHash_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000008);
+        timeWindowSecs_ = 86340L;
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -6038,9 +6095,13 @@ public final class Protos {
         if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
-        result.previousChannelContractHash_ = previousChannelContractHash_;
+        result.clientKey_ = clientKey_;
         if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000008;
+        }
+        result.previousChannelContractHash_ = previousChannelContractHash_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
         }
         result.timeWindowSecs_ = timeWindowSecs_;
         result.bitField0_ = to_bitField0_;
@@ -6064,6 +6125,9 @@ public final class Protos {
         }
         if (other.hasMinor()) {
           setMinor(other.getMinor());
+        }
+        if (other.hasClientKey()) {
+          setClientKey(other.getClientKey());
         }
         if (other.hasPreviousChannelContractHash()) {
           setPreviousChannelContractHash(other.getPreviousChannelContractHash());
@@ -6168,6 +6232,58 @@ public final class Protos {
         return this;
       }
 
+      // optional bytes client_key = 5;
+      private com.google.protobuf.ByteString clientKey_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes client_key = 5;</code>
+       *
+       * <pre>
+       * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+       * </pre>
+       */
+      public boolean hasClientKey() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional bytes client_key = 5;</code>
+       *
+       * <pre>
+       * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+       * </pre>
+       */
+      public com.google.protobuf.ByteString getClientKey() {
+        return clientKey_;
+      }
+      /**
+       * <code>optional bytes client_key = 5;</code>
+       *
+       * <pre>
+       * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+       * </pre>
+       */
+      public Builder setClientKey(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000004;
+        clientKey_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes client_key = 5;</code>
+       *
+       * <pre>
+       * Use it to distribute coins FAST from hub to connecting buyers; used for TESTING purposes
+       * </pre>
+       */
+      public Builder clearClientKey() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        clientKey_ = getDefaultInstance().getClientKey();
+        onChanged();
+        return this;
+      }
+
       // optional bytes previous_channel_contract_hash = 3;
       private com.google.protobuf.ByteString previousChannelContractHash_ = com.google.protobuf.ByteString.EMPTY;
       /**
@@ -6181,7 +6297,7 @@ public final class Protos {
        * </pre>
        */
       public boolean hasPreviousChannelContractHash() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>optional bytes previous_channel_contract_hash = 3;</code>
@@ -6210,7 +6326,7 @@ public final class Protos {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000004;
+  bitField0_ |= 0x00000008;
         previousChannelContractHash_ = value;
         onChanged();
         return this;
@@ -6226,7 +6342,7 @@ public final class Protos {
        * </pre>
        */
       public Builder clearPreviousChannelContractHash() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000008);
         previousChannelContractHash_ = getDefaultInstance().getPreviousChannelContractHash();
         onChanged();
         return this;
@@ -6243,7 +6359,7 @@ public final class Protos {
        * </pre>
        */
       public boolean hasTimeWindowSecs() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+        return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
        * <code>optional uint64 time_window_secs = 4 [default = 86340];</code>
@@ -6265,7 +6381,7 @@ public final class Protos {
        * </pre>
        */
       public Builder setTimeWindowSecs(long value) {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         timeWindowSecs_ = value;
         onChanged();
         return this;
@@ -6279,7 +6395,7 @@ public final class Protos {
        * </pre>
        */
       public Builder clearTimeWindowSecs() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000010);
         timeWindowSecs_ = 86340L;
         onChanged();
         return this;
@@ -31246,7 +31362,7 @@ public final class Protos {
   static {
     java.lang.String[] descriptorData = {
       "\n\024paymentchannel.proto\022\017paymentchannels\"" +
-      "\220\017\n\024TwoWayChannelMessage\022?\n\004type\030\001 \002(\01621" +
+      "\211\017\n\024TwoWayChannelMessage\022?\n\004type\030\001 \002(\01621" +
       ".paymentchannels.TwoWayChannelMessage.Me" +
       "ssageType\0226\n\016client_version\030\002 \001(\0132\036.paym" +
       "entchannels.ClientVersion\0226\n\016server_vers" +
@@ -31281,7 +31397,7 @@ public final class Protos {
       "und_done\030\030 \001(\0132\036.paymentchannels.HTLCRou" +
       "ndDone\022,\n\thtlc_flow\030\031 \001(\0132\031.paymentchann" +
       "els.HTLCFlow\022%\n\005error\030\n \001(\0132\026.paymentcha" +
-      "nnels.Error\"\214\004\n\013MessageType\022\022\n\016CLIENT_VE" +
+      "nnels.Error\"\205\004\n\013MessageType\022\022\n\016CLIENT_VE" +
       "RSION\020\001\022\022\n\016SERVER_VERSION\020\002\022\014\n\010INITIATE\020" +
       "\003\022\022\n\016PROVIDE_REFUND\020\004\022\021\n\rRETURN_REFUND\020\005" +
       "\022\024\n\020PROVIDE_CONTRACT\020\006\022\020\n\014CHANNEL_OPEN\020\007",
@@ -31291,89 +31407,89 @@ public final class Protos {
       "SIGNED_TEARDOWN\020\017\022\026\n\022HTLC_SIGNED_REFUND\020" +
       "\020\022\036\n\032HTLC_SIGNED_SETTLE_FORFEIT\020\021\022\027\n\023HTL" +
       "C_SETUP_COMPLETE\020\022\022\026\n\022HTLC_SERVER_UPDATE" +
-      "\020\023\022\030\n\024HTLC_UPDATE_TEARDOWN\020\024\022\024\n\020HTLC_PAY" +
-      "MENT_ACK\020\025\022\023\n\017HTLC_ROUND_INIT\020\026\022\022\n\016HTLC_" +
-      "ROUND_ACK\020\027\022\023\n\017HTLC_ROUND_DONE\020\030\022\r\n\tHTLC" +
-      "_FLOW\020\031\022\t\n\005ERROR\020\n\"y\n\rClientVersion\022\r\n\005m",
-      "ajor\030\001 \002(\005\022\020\n\005minor\030\002 \001(\005:\0010\022&\n\036previous" +
-      "_channel_contract_hash\030\003 \001(\014\022\037\n\020time_win" +
-      "dow_secs\030\004 \001(\004:\00586340\"0\n\rServerVersion\022\r" +
-      "\n\005major\030\001 \002(\005\022\020\n\005minor\030\002 \001(\005:\0010\"r\n\010Initi" +
-      "ate\022\024\n\014multisig_key\030\001 \002(\014\022!\n\031min_accepte" +
-      "d_channel_size\030\002 \002(\004\022\030\n\020expire_time_secs" +
-      "\030\003 \002(\004\022\023\n\013min_payment\030\004 \002(\004\"1\n\rProvideRe" +
-      "fund\022\024\n\014multisig_key\030\001 \002(\014\022\n\n\002tx\030\002 \002(\014\"!" +
-      "\n\014ReturnRefund\022\021\n\tsignature\030\001 \002(\014\"V\n\017Pro" +
-      "videContract\022\n\n\002tx\030\001 \002(\014\0227\n\017initial_paym",
-      "ent\030\002 \002(\0132\036.paymentchannels.UpdatePaymen" +
-      "t\"M\n\rUpdatePayment\022\033\n\023client_change_valu" +
-      "e\030\001 \002(\004\022\021\n\tsignature\030\002 \002(\014\022\014\n\004info\030\003 \001(\014" +
-      "\"\032\n\nPaymentAck\022\014\n\004info\030\001 \001(\014\"\030\n\nSettleme" +
-      "nt\022\n\n\002tx\030\001 \002(\014\"j\n\023HTLCProvideContract\022\n\n" +
-      "\002tx\030\001 \002(\014\022G\n\027signed_initial_teardown\030\002 \002" +
-      "(\0132&.paymentchannels.HTLCSignedTransacti" +
-      "on\"\035\n\rHTLCRoundInit\022\014\n\004info\030\001 \001(\014\"\034\n\014HTL" +
-      "CRoundAck\022\014\n\004info\030\001 \001(\014\"\035\n\rHTLCRoundDone" +
-      "\022\014\n\004info\030\001 \001(\014\"X\n\013HTLCPayment\022\022\n\nrequest",
-      "_id\030\001 \002(\t\022\021\n\tdevice_id\030\002 \002(\t\022\023\n\013sensor_t" +
-      "ype\030\003 \002(\t\022\r\n\005value\030\004 \002(\004\">\n\010HTLCInit\0222\n\014" +
-      "new_payments\030\001 \003(\0132\034.paymentchannels.HTL" +
-      "CPayment\"9\n\020HTLCPaymentReply\022\n\n\002id\030\001 \002(\t" +
-      "\022\031\n\021client_request_id\030\002 \002(\t\"N\n\rHTLCInitR" +
-      "eply\022=\n\022new_payments_reply\030\001 \003(\0132!.payme" +
-      "ntchannels.HTLCPaymentReply\"G\n\025HTLCSigne" +
-      "dTransaction\022\n\n\002tx\030\001 \002(\014\022\017\n\007tx_hash\030\002 \001(" +
-      "\014\022\021\n\tsignature\030\003 \002(\014\"v\n\031HTLCProvideSigne" +
-      "dTeardown\022\013\n\003ids\030\001 \003(\t\022\013\n\003idx\030\002 \003(\005\022?\n\017s",
-      "igned_teardown\030\003 \002(\0132&.paymentchannels.H" +
-      "TLCSignedTransaction\"f\n\030HTLCSignedRefund" +
-      "WithHash\022\013\n\003ids\030\001 \003(\t\022=\n\rsigned_refund\030\002" +
-      " \003(\0132&.paymentchannels.HTLCSignedTransac" +
-      "tion\"\306\001\n\032HTLCSignedSettleAndForfeit\022\013\n\003i" +
-      "ds\030\001 \003(\t\022>\n\016signed_forfeit\030\002 \003(\0132&.payme" +
-      "ntchannels.HTLCSignedTransaction\022=\n\rsign" +
-      "ed_settle\030\003 \003(\0132&.paymentchannels.HTLCSi" +
-      "gnedTransaction\022\034\n\024client_secondary_key\030" +
-      "\004 \002(\014\" \n\021HTLCSetupComplete\022\013\n\003ids\030\001 \003(\t\"",
-      ".\n\020HTLCRevealSecret\022\n\n\002id\030\001 \002(\t\022\016\n\006secre" +
-      "t\030\002 \002(\t\"Y\n\013HTLCBackOff\022\n\n\002id\030\001 \002(\t\022>\n\016si" +
-      "gned_forfeit\030\002 \002(\0132&.paymentchannels.HTL" +
-      "CSignedTransaction\"~\n\020HTLCServerUpdate\0229" +
-      "\n\016reveal_secrets\030\001 \003(\0132!.paymentchannels" +
-      ".HTLCRevealSecret\022/\n\tback_offs\030\002 \003(\0132\034.p" +
-      "aymentchannels.HTLCBackOff\"\360\004\n\010HTLCFlow\022" +
-      "0\n\004type\030\001 \002(\0162\".paymentchannels.HTLCFlow" +
-      ".FlowType\022\n\n\002id\030\002 \001(\t\022>\n\020register_sensor" +
-      "s\030\003 \001(\0132$.paymentchannels.HTLCRegisterSe",
-      "nsors\0222\n\nnode_stats\030\004 \001(\0132\036.paymentchann" +
-      "els.HTLCNodeStats\0226\n\014sensor_stats\030\005 \001(\0132" +
-      " .paymentchannels.HTLCSensorStats\0224\n\013sel" +
-      "ect_data\030\006 \001(\0132\037.paymentchannels.HTLCSel" +
-      "ectData\0226\n\014payment_info\030\007 \001(\0132 .paymentc" +
-      "hannels.HTLCPaymentInfo\0226\n\014resume_setup\030" +
-      "\010 \001(\0132 .paymentchannels.HTLCResumeSetup\022" +
-      "\'\n\004data\030\t \003(\0132\031.paymentchannels.HTLCData" +
-      "\"\252\001\n\010FlowType\022\016\n\nNODE_STATS\020\001\022\024\n\020NODE_ST" +
-      "ATS_REPLY\020\002\022\020\n\014SENSOR_STATS\020\003\022\026\n\022SENSOR_",
-      "STATS_REPLY\020\004\022\024\n\020REGISTER_SENSORS\020\005\022\n\n\006S" +
-      "ELECT\020\006\022\020\n\014PAYMENT_INFO\020\007\022\020\n\014RESUME_SETU" +
-      "P\020\010\022\010\n\004DATA\020\t\"$\n\010HTLCData\022\n\n\002id\030\001 \002(\t\022\014\n" +
-      "\004data\030\002 \003(\t\"6\n\023HTLCRegisterSensors\022\017\n\007se" +
-      "nsors\030\001 \003(\t\022\016\n\006prices\030\002 \003(\004\" \n\rHTLCNodeS" +
-      "tats\022\017\n\007devices\030\001 \003(\t\"\"\n\017HTLCSensorStats" +
-      "\022\017\n\007sensors\030\001 \003(\t\"%\n\016HTLCSelectData\022\023\n\013s" +
-      "ensor_type\030\001 \002(\t\"I\n\017HTLCPaymentInfo\022\021\n\td" +
-      "eviceIds\030\001 \003(\t\022\023\n\013sensorTypes\030\002 \003(\t\022\016\n\006p" +
-      "rices\030\003 \003(\004\"\"\n\017HTLCResumeSetup\022\017\n\007htlc_i",
-      "d\030\001 \003(\t\"\251\002\n\005Error\0225\n\004code\030\001 \001(\0162 .paymen" +
-      "tchannels.Error.ErrorCode:\005OTHER\022\023\n\013expl" +
-      "anation\030\002 \001(\t\022\026\n\016expected_value\030\003 \001(\004\"\273\001" +
-      "\n\tErrorCode\022\013\n\007TIMEOUT\020\001\022\020\n\014SYNTAX_ERROR" +
-      "\020\002\022\031\n\025NO_ACCEPTABLE_VERSION\020\003\022\023\n\017BAD_TRA" +
-      "NSACTION\020\004\022\034\n\030TIME_WINDOW_UNACCEPTABLE\020\005" +
-      "\022\033\n\027CHANNEL_VALUE_TOO_LARGE\020\006\022\031\n\025MIN_PAY" +
-      "MENT_TOO_LARGE\020\007\022\t\n\005OTHER\020\010B$\n\032org.bitco" +
-      "in.paymentchannelB\006Protos"
+      "\020\023\022\030\n\024HTLC_UPDATE_TEARDOWN\020\024\022\r\n\tHTLC_DAT" +
+      "A\020\025\022\023\n\017HTLC_ROUND_INIT\020\026\022\022\n\016HTLC_ROUND_A" +
+      "CK\020\027\022\023\n\017HTLC_ROUND_DONE\020\030\022\r\n\tHTLC_FLOW\020\031" +
+      "\022\t\n\005ERROR\020\n\"\215\001\n\rClientVersion\022\r\n\005major\030\001",
+      " \002(\005\022\020\n\005minor\030\002 \001(\005:\0010\022\022\n\nclient_key\030\005 \001" +
+      "(\014\022&\n\036previous_channel_contract_hash\030\003 \001" +
+      "(\014\022\037\n\020time_window_secs\030\004 \001(\004:\00586340\"0\n\rS" +
+      "erverVersion\022\r\n\005major\030\001 \002(\005\022\020\n\005minor\030\002 \001" +
+      "(\005:\0010\"r\n\010Initiate\022\024\n\014multisig_key\030\001 \002(\014\022" +
+      "!\n\031min_accepted_channel_size\030\002 \002(\004\022\030\n\020ex" +
+      "pire_time_secs\030\003 \002(\004\022\023\n\013min_payment\030\004 \002(" +
+      "\004\"1\n\rProvideRefund\022\024\n\014multisig_key\030\001 \002(\014" +
+      "\022\n\n\002tx\030\002 \002(\014\"!\n\014ReturnRefund\022\021\n\tsignatur" +
+      "e\030\001 \002(\014\"V\n\017ProvideContract\022\n\n\002tx\030\001 \002(\014\0227",
+      "\n\017initial_payment\030\002 \002(\0132\036.paymentchannel" +
+      "s.UpdatePayment\"M\n\rUpdatePayment\022\033\n\023clie" +
+      "nt_change_value\030\001 \002(\004\022\021\n\tsignature\030\002 \002(\014" +
+      "\022\014\n\004info\030\003 \001(\014\"\032\n\nPaymentAck\022\014\n\004info\030\001 \001" +
+      "(\014\"\030\n\nSettlement\022\n\n\002tx\030\001 \002(\014\"j\n\023HTLCProv" +
+      "ideContract\022\n\n\002tx\030\001 \002(\014\022G\n\027signed_initia" +
+      "l_teardown\030\002 \002(\0132&.paymentchannels.HTLCS" +
+      "ignedTransaction\"\035\n\rHTLCRoundInit\022\014\n\004inf" +
+      "o\030\001 \001(\014\"\034\n\014HTLCRoundAck\022\014\n\004info\030\001 \001(\014\"\035\n" +
+      "\rHTLCRoundDone\022\014\n\004info\030\001 \001(\014\"X\n\013HTLCPaym",
+      "ent\022\022\n\nrequest_id\030\001 \002(\t\022\021\n\tdevice_id\030\002 \002" +
+      "(\t\022\023\n\013sensor_type\030\003 \002(\t\022\r\n\005value\030\004 \002(\004\">" +
+      "\n\010HTLCInit\0222\n\014new_payments\030\001 \003(\0132\034.payme" +
+      "ntchannels.HTLCPayment\"9\n\020HTLCPaymentRep" +
+      "ly\022\n\n\002id\030\001 \002(\t\022\031\n\021client_request_id\030\002 \002(" +
+      "\t\"N\n\rHTLCInitReply\022=\n\022new_payments_reply" +
+      "\030\001 \003(\0132!.paymentchannels.HTLCPaymentRepl" +
+      "y\"G\n\025HTLCSignedTransaction\022\n\n\002tx\030\001 \002(\014\022\017" +
+      "\n\007tx_hash\030\002 \001(\014\022\021\n\tsignature\030\003 \002(\014\"v\n\031HT" +
+      "LCProvideSignedTeardown\022\013\n\003ids\030\001 \003(\t\022\013\n\003",
+      "idx\030\002 \003(\005\022?\n\017signed_teardown\030\003 \002(\0132&.pay" +
+      "mentchannels.HTLCSignedTransaction\"f\n\030HT" +
+      "LCSignedRefundWithHash\022\013\n\003ids\030\001 \003(\t\022=\n\rs" +
+      "igned_refund\030\002 \003(\0132&.paymentchannels.HTL" +
+      "CSignedTransaction\"\306\001\n\032HTLCSignedSettleA" +
+      "ndForfeit\022\013\n\003ids\030\001 \003(\t\022>\n\016signed_forfeit" +
+      "\030\002 \003(\0132&.paymentchannels.HTLCSignedTrans" +
+      "action\022=\n\rsigned_settle\030\003 \003(\0132&.paymentc" +
+      "hannels.HTLCSignedTransaction\022\034\n\024client_" +
+      "secondary_key\030\004 \002(\014\" \n\021HTLCSetupComplete",
+      "\022\013\n\003ids\030\001 \003(\t\".\n\020HTLCRevealSecret\022\n\n\002id\030" +
+      "\001 \002(\t\022\016\n\006secret\030\002 \002(\t\"Y\n\013HTLCBackOff\022\n\n\002" +
+      "id\030\001 \002(\t\022>\n\016signed_forfeit\030\002 \002(\0132&.payme" +
+      "ntchannels.HTLCSignedTransaction\"~\n\020HTLC" +
+      "ServerUpdate\0229\n\016reveal_secrets\030\001 \003(\0132!.p" +
+      "aymentchannels.HTLCRevealSecret\022/\n\tback_" +
+      "offs\030\002 \003(\0132\034.paymentchannels.HTLCBackOff" +
+      "\"\360\004\n\010HTLCFlow\0220\n\004type\030\001 \002(\0162\".paymentcha" +
+      "nnels.HTLCFlow.FlowType\022\n\n\002id\030\002 \001(\t\022>\n\020r" +
+      "egister_sensors\030\003 \001(\0132$.paymentchannels.",
+      "HTLCRegisterSensors\0222\n\nnode_stats\030\004 \001(\0132" +
+      "\036.paymentchannels.HTLCNodeStats\0226\n\014senso" +
+      "r_stats\030\005 \001(\0132 .paymentchannels.HTLCSens" +
+      "orStats\0224\n\013select_data\030\006 \001(\0132\037.paymentch" +
+      "annels.HTLCSelectData\0226\n\014payment_info\030\007 " +
+      "\001(\0132 .paymentchannels.HTLCPaymentInfo\0226\n" +
+      "\014resume_setup\030\010 \001(\0132 .paymentchannels.HT" +
+      "LCResumeSetup\022\'\n\004data\030\t \003(\0132\031.paymentcha" +
+      "nnels.HTLCData\"\252\001\n\010FlowType\022\016\n\nNODE_STAT" +
+      "S\020\001\022\024\n\020NODE_STATS_REPLY\020\002\022\020\n\014SENSOR_STAT",
+      "S\020\003\022\026\n\022SENSOR_STATS_REPLY\020\004\022\024\n\020REGISTER_" +
+      "SENSORS\020\005\022\n\n\006SELECT\020\006\022\020\n\014PAYMENT_INFO\020\007\022" +
+      "\020\n\014RESUME_SETUP\020\010\022\010\n\004DATA\020\t\"$\n\010HTLCData\022" +
+      "\n\n\002id\030\001 \002(\t\022\014\n\004data\030\002 \003(\t\"6\n\023HTLCRegiste" +
+      "rSensors\022\017\n\007sensors\030\001 \003(\t\022\016\n\006prices\030\002 \003(" +
+      "\004\" \n\rHTLCNodeStats\022\017\n\007devices\030\001 \003(\t\"\"\n\017H" +
+      "TLCSensorStats\022\017\n\007sensors\030\001 \003(\t\"%\n\016HTLCS" +
+      "electData\022\023\n\013sensor_type\030\001 \002(\t\"I\n\017HTLCPa" +
+      "ymentInfo\022\021\n\tdeviceIds\030\001 \003(\t\022\023\n\013sensorTy" +
+      "pes\030\002 \003(\t\022\016\n\006prices\030\003 \003(\004\"\"\n\017HTLCResumeS",
+      "etup\022\017\n\007htlc_id\030\001 \003(\t\"\251\002\n\005Error\0225\n\004code\030" +
+      "\001 \001(\0162 .paymentchannels.Error.ErrorCode:" +
+      "\005OTHER\022\023\n\013explanation\030\002 \001(\t\022\026\n\016expected_" +
+      "value\030\003 \001(\004\"\273\001\n\tErrorCode\022\013\n\007TIMEOUT\020\001\022\020" +
+      "\n\014SYNTAX_ERROR\020\002\022\031\n\025NO_ACCEPTABLE_VERSIO" +
+      "N\020\003\022\023\n\017BAD_TRANSACTION\020\004\022\034\n\030TIME_WINDOW_" +
+      "UNACCEPTABLE\020\005\022\033\n\027CHANNEL_VALUE_TOO_LARG" +
+      "E\020\006\022\031\n\025MIN_PAYMENT_TOO_LARGE\020\007\022\t\n\005OTHER\020" +
+      "\010B$\n\032org.bitcoin.paymentchannelB\006Protos"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -31391,7 +31507,7 @@ public final class Protos {
           internal_static_paymentchannels_ClientVersion_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_paymentchannels_ClientVersion_descriptor,
-              new java.lang.String[] { "Major", "Minor", "PreviousChannelContractHash", "TimeWindowSecs", });
+              new java.lang.String[] { "Major", "Minor", "ClientKey", "PreviousChannelContractHash", "TimeWindowSecs", });
           internal_static_paymentchannels_ServerVersion_descriptor =
             getDescriptor().getMessageTypes().get(2);
           internal_static_paymentchannels_ServerVersion_fieldAccessorTable = new

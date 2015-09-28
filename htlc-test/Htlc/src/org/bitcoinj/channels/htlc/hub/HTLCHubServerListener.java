@@ -7,6 +7,7 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,22 +21,29 @@ import org.bitcoin.paymentchannel.Protos.TwoWayChannelMessage;
 import org.bitcoinj.channels.htlc.FlowResponse;
 import org.bitcoinj.channels.htlc.PriceInfo;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
+import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
+import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.Sha256Hash;
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.net.NioServer;
-import org.bitcoinj.net.ProtobufParser;
-import org.bitcoinj.net.StreamParserFactory;
+import org.bitcoinj.net.ProtobufConnection;
+import org.bitcoinj.net.StreamConnectionFactory;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.protocols.channels.ServerConnectionEventHandler;
 import org.bitcoinj.protocols.channels.StoredPaymentChannelServerStates;
+import org.bitcoinj.script.ScriptBuilder;
 import org.bitcoinj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.pqc.math.ntru.polynomial.SparseTernaryPolynomial;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
 
@@ -60,6 +68,9 @@ public class HTLCHubServerListener {
 	private final ECKey receivingKey;
 	private final TransactionBroadcastScheduler broadcaster;
 	
+	private Integer counter = 1;
+	private Transaction transaction;
+	
 	// The event handler factory which creates new 
 	// ServerConnectionEventHandler per connection
     private final AndroidHandlerFactory androidEventHandlerFactory;
@@ -70,43 +81,10 @@ public class HTLCHubServerListener {
     private NioServer buyerServer;
     private final int timeoutSeconds;
     
-    private final List<HTLCHubBuyerServer> buyers;
-    
     private final Map<HTLCHubAndroidServer, List<PriceInfo>> deviceMap;
-    private final Map<String, List<AndroidData>> sensorToDeviceMap;
     
     private final HTLCHubMessageFilter messageFilter;
     
-    class AndroidData {
-    	private List<PriceInfo> priceInfoList;
-    	private HTLCHubAndroidServer server;
-    	
-    	public List<PriceInfo> getPriceInfoList() {
-    		return priceInfoList;
-    	}
-    	
-    	public HTLCHubAndroidServer getServer() {
-    		return server;
-    	}
-    }
-    
-    class RequestResponse {
-    	private List<FlowResponse> responseList;
-    	private final Integer counter;
-    	
-    	RequestResponse(Integer counter) {
-    		this.counter = counter;
-    	}
-    	
-    	public void addResponse(FlowResponse response) {
-    		responseList.add(response);
-    	}
-    	
-    	public boolean isReady() {
-    		return responseList.size() == counter;
-    	}
-    }
-	
     /**
      * A factory which generates connection-specific event handlers.
      */
@@ -143,17 +121,7 @@ public class HTLCHubServerListener {
 					public void sendToBuyer(TwoWayChannelMessage msg) {
 						socketProtobufHandler.write(msg);
 					}
-					
-					@Override
-					@Nullable
-					public ListenableFuture<ByteString> paymentIncrease(
-						Coin by, 
-						Coin to,
-						@Nullable ByteString info
-					) {
-						return eventHandler.paymentIncrease(by, to, info);	
-					}
-					
+
 					@Override
 					public void destroyConnection(CloseReason reason) {
 						if (reason != null) {						
@@ -169,19 +137,33 @@ public class HTLCHubServerListener {
 
 					@Override
 					public List<String> nodeStats() {
-						List<String> nodes = new ArrayList<String>();
-						for (
-							Map.Entry<HTLCHubAndroidServer, List<PriceInfo>> 
-								entry: deviceMap.entrySet()
-						) {
-							nodes.add(entry.getKey().getDeviceId());
+						lock.lock();
+						try {
+							List<String> nodes = new ArrayList<String>();
+							for (
+								Map.Entry<HTLCHubAndroidServer, List<PriceInfo>> 
+									entry: deviceMap.entrySet()
+							) {
+								nodes.add(entry.getKey().getDeviceId());
+							}
+							return nodes;
+						} finally {
+							lock.unlock();
 						}
-						return nodes;
 					}
 
 					@Override
 					public Set<String> sensorStats() {
-						return sensorToDeviceMap.keySet();
+						Set<String> sensors = new HashSet<String>();
+						for (
+							Map.Entry<HTLCHubAndroidServer, List<PriceInfo>> 
+								entry: deviceMap.entrySet()
+						) {
+							for (PriceInfo price: entry.getValue()) {
+								sensors.add(price.getSensor());
+							}
+						}
+						return sensors;
 					}
 
 					@Override
@@ -229,10 +211,29 @@ public class HTLCHubServerListener {
 					) {
 						lock.lock();
 						try {
-							messageFilter.filterMessageForAndroid(
-								fromBuyerServer, 
-								msg
-							);
+							messageFilter.putAndroidMsg(fromBuyerServer, msg);
+						} finally {
+							lock.unlock();
+						}
+					}
+
+					@Override
+					public void addAddress(Address addr) {
+						lock.lock();
+						try {
+							log.error("COUNTER: {}", counter);
+					//		if (counter > 0) {
+								transaction.addOutput(Coin.valueOf(100, 0), addr);
+								counter--;
+				//			} else {
+								Wallet.SendRequest req = Wallet.SendRequest.forTx(transaction);
+								wallet.completeTx(req);
+								log.warn("Broadcasting spread tx {}", req.tx);
+								broadcaster.broadcastTransaction(req.tx);
+					//		}							
+						} catch (InsufficientMoneyException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						} finally {
 							lock.unlock();
 						}
@@ -241,10 +242,10 @@ public class HTLCHubServerListener {
 			);
     		
     		protobufHandlerListener = 
-				new ProtobufParser.Listener<Protos.TwoWayChannelMessage>() {
+				new ProtobufConnection.Listener<Protos.TwoWayChannelMessage>() {
 					@Override
 					public void connectionClosed(
-						ProtobufParser<TwoWayChannelMessage> handler
+						ProtobufConnection<TwoWayChannelMessage> handler
 					) {
 						paymentChannelManager.connectionClosed();
 						if (closeReason != null) {
@@ -259,7 +260,7 @@ public class HTLCHubServerListener {
 
 					@Override
 					public void connectionOpen(
-							ProtobufParser<TwoWayChannelMessage> handler
+						ProtobufConnection<TwoWayChannelMessage> handler
 					) {
 						log.info("New buyer connection open!");
 						ServerConnectionEventHandler eventHandler = 
@@ -274,7 +275,7 @@ public class HTLCHubServerListener {
 
 					@Override
 					public void messageReceived(
-						ProtobufParser<TwoWayChannelMessage> handler,
+						ProtobufConnection<TwoWayChannelMessage> handler,
 						TwoWayChannelMessage msg
 					) {	
 						paymentChannelManager.receiveMessage(msg);
@@ -285,7 +286,7 @@ public class HTLCHubServerListener {
 			log.info("timeoutSeconds*1000: {}", timeoutSeconds*1000);
     		
 			socketProtobufHandler = 
-				new ProtobufParser<Protos.TwoWayChannelMessage>(
+				new ProtobufConnection<Protos.TwoWayChannelMessage>(
 					protobufHandlerListener, 		
 					Protos.TwoWayChannelMessage.getDefaultInstance(), 	
 					Short.MAX_VALUE, 	
@@ -302,11 +303,11 @@ public class HTLCHubServerListener {
         private final HTLCHubBuyerServer paymentChannelManager;
 
         // The connection handler which puts/gets protobufs from the TCP socket
-        private final ProtobufParser<Protos.TwoWayChannelMessage> 
+        private final ProtobufConnection<Protos.TwoWayChannelMessage> 
         	socketProtobufHandler;
 
         // The listener which connects to socketProtobufHandler
-        private final ProtobufParser.Listener<Protos.TwoWayChannelMessage> 
+        private final ProtobufConnection.Listener<Protos.TwoWayChannelMessage> 
         	protobufHandlerListener;
     }
 
@@ -372,21 +373,29 @@ public class HTLCHubServerListener {
 					) {
 						lock.lock();
 						try {
-							messageFilter.filterMessageForBuyer(
-								fromAndroidServer, 
-								msg
-							);
+							messageFilter.putBuyerMsg(fromAndroidServer, msg);
 						} finally {
+							lock.unlock();
+						}
+					}
+
+					@Override
+					public void unregisterDevice(HTLCHubAndroidServer server) {
+						messageFilter.unregisterDevice(server.getDeviceId());
+						lock.lock();
+						try {
+							deviceMap.remove(server);
+						} finally { 
 							lock.unlock();
 						}
 					}
 	            });
 
             protobufHandlerListener = 
-        		new ProtobufParser.Listener<Protos.TwoWayChannelMessage>() {
+        		new ProtobufConnection.Listener<Protos.TwoWayChannelMessage>() {
             		@Override
             		public synchronized void messageReceived(
-        				ProtobufParser<Protos.TwoWayChannelMessage> handler, 
+        				ProtobufConnection<Protos.TwoWayChannelMessage> handler, 
         				Protos.TwoWayChannelMessage msg
     				) {
             			paymentChannelManager.receiveMessage(msg);
@@ -394,7 +403,7 @@ public class HTLCHubServerListener {
 
 	                @Override
 	                public synchronized void connectionClosed(
-                		ProtobufParser<Protos.TwoWayChannelMessage> handler
+                		ProtobufConnection<Protos.TwoWayChannelMessage> handler
             		) {
 	                    paymentChannelManager.connectionClosed();
 	                    if (closeReason != null) {
@@ -409,7 +418,7 @@ public class HTLCHubServerListener {
 
 	                @Override
 	                public synchronized void connectionOpen(
-                		ProtobufParser<Protos.TwoWayChannelMessage> handler
+                		ProtobufConnection<Protos.TwoWayChannelMessage> handler
             		) {
 	                	log.info("New android connection open!");
 	                    ServerConnectionEventHandler eventHandler = 
@@ -426,7 +435,7 @@ public class HTLCHubServerListener {
         	log.info("timeoutSeconds*1000: {}", timeoutSeconds*1000);
 
             socketProtobufHandler = 
-        		new ProtobufParser<Protos.TwoWayChannelMessage>(
+        		new ProtobufConnection<Protos.TwoWayChannelMessage>(
     				protobufHandlerListener, 
     				Protos.TwoWayChannelMessage.getDefaultInstance(), 
     				Short.MAX_VALUE, 
@@ -443,11 +452,11 @@ public class HTLCHubServerListener {
         private final HTLCHubAndroidServer paymentChannelManager;
 
         // The connection handler which puts/gets protobufs from the TCP socket
-        private final ProtobufParser<Protos.TwoWayChannelMessage> 
+        private final ProtobufConnection<Protos.TwoWayChannelMessage> 
         	socketProtobufHandler;
 
         // The listener which connects to socketProtobufHandler
-        private final ProtobufParser.Listener<Protos.TwoWayChannelMessage> 
+        private final ProtobufConnection.Listener<Protos.TwoWayChannelMessage> 
         	protobufHandlerListener;
     }
     
@@ -476,10 +485,9 @@ public class HTLCHubServerListener {
     	this.androidEventHandlerFactory = androidHandlerFactory;
     	this.buyerEventHandlerFactory = buyerHandlerFactory;
     	this.timeoutSeconds = timeoutSeconds;
-    	this.buyers = new ArrayList<HTLCHubBuyerServer>();
     	this.deviceMap = new HashMap<HTLCHubAndroidServer, List<PriceInfo>>();
-    	this.sensorToDeviceMap = new HashMap<String, List<AndroidData>>();
     	this.messageFilter = new HTLCHubMessageFilter();
+    	this.transaction = new Transaction(wallet.getParams());
     }
 
     /**
@@ -489,31 +497,31 @@ public class HTLCHubServerListener {
      */
     public void bindAndStart(int buyerPort, int androidPort) throws Exception {
     	buyerServer = new NioServer(
-			new StreamParserFactory() {
+			new StreamConnectionFactory() {
 				@Override
-				public ProtobufParser<Protos.TwoWayChannelMessage> getNewParser(
+				public ProtobufConnection<Protos.TwoWayChannelMessage> getNewConnection(
 					InetAddress inetAddress,
 					int port
 				) {
-					BuyerServerHandler handler = new BuyerServerHandler(
+					return new BuyerServerHandler(
 						new InetSocketAddress(inetAddress, port),
 						timeoutSeconds
-					);
-					buyers.add(handler.paymentChannelManager);
-					return handler.socketProtobufHandler;
+					).socketProtobufHandler;
 				}
 			},
 			new InetSocketAddress(buyerPort)
 		);
     	
         androidServer = new NioServer(
-    		new StreamParserFactory() {
+    		new StreamConnectionFactory() {
 	            @Override
-	            public ProtobufParser<Protos.TwoWayChannelMessage> getNewParser(
+	            public ProtobufConnection<Protos.TwoWayChannelMessage> getNewConnection(
 	        		InetAddress inetAddress, 
 	        		int port
 	    		) {
 	            	String deviceId = UUID.randomUUID().toString();
+	            	// TODO: HERE WE HARDCODE THE DEVICE ID FOR TESTING. REMOVE
+	            	deviceId = new String("SAMSUNG");
 	            	log.info("Launched new AndroidServer with id {}", deviceId);
 	            	AndroidServerHandler handler = new AndroidServerHandler(
 	            		deviceId,
@@ -560,13 +568,13 @@ public class HTLCHubServerListener {
     	try {
     		List<PriceInfo> updatedSensors = new ArrayList<PriceInfo>();
     		for (int i = 0; i < sensors.size(); i++) {
-    			updatedSensors.add(
-					new PriceInfo(
-						server.getDeviceId(), 
-						sensors.get(i), 
-						prices.get(i)
-					)
+    			PriceInfo priceInfo = new PriceInfo(
+					server.getDeviceId(), 
+					sensors.get(i), 
+					prices.get(i)
 				);
+    			// Update map
+    			updatedSensors.add(priceInfo);
     		}
     		deviceMap.put(server, updatedSensors);
     		log.info("Received new update on sensors");

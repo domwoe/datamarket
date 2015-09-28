@@ -13,11 +13,10 @@ import org.bitcoin.paymentchannel.Protos;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.TransactionBroadcaster;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.net.NioServer;
-import org.bitcoinj.net.ProtobufParser;
-import org.bitcoinj.net.StreamParserFactory;
+import org.bitcoinj.net.ProtobufConnection;
+import org.bitcoinj.net.StreamConnectionFactory;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
 import org.bitcoinj.protocols.channels.ServerConnectionEventHandler;
 import org.slf4j.Logger;
@@ -50,8 +49,6 @@ public class HTLCPaymentChannelServerListener {
     private NioServer server;
     private final int timeoutSeconds;
     
-    private final List<ServerHandler> allHandlers = new ArrayList<ServerHandler>();
-	
     /**
      * A factory which generates connection-specific event handlers.
      */
@@ -108,10 +105,10 @@ public class HTLCPaymentChannelServerListener {
 	            });
 
             protobufHandlerListener = 
-        		new ProtobufParser.Listener<Protos.TwoWayChannelMessage>() {
+        		new ProtobufConnection.Listener<Protos.TwoWayChannelMessage>() {
             		@Override
             		public synchronized void messageReceived(
-        				ProtobufParser<Protos.TwoWayChannelMessage> handler, 
+        				ProtobufConnection<Protos.TwoWayChannelMessage> handler, 
         				Protos.TwoWayChannelMessage msg
     				) {
             			paymentChannelManager.receiveMessage(msg);
@@ -119,7 +116,7 @@ public class HTLCPaymentChannelServerListener {
 
 	                @Override
 	                public synchronized void connectionClosed(
-                		ProtobufParser<Protos.TwoWayChannelMessage> handler
+                		ProtobufConnection<Protos.TwoWayChannelMessage> handler
             		) {
 	                    paymentChannelManager.connectionClosed();
 	                    if (closeReason != null) {
@@ -134,7 +131,7 @@ public class HTLCPaymentChannelServerListener {
 
 	                @Override
 	                public synchronized void connectionOpen(
-                		ProtobufParser<Protos.TwoWayChannelMessage> handler
+                		ProtobufConnection<Protos.TwoWayChannelMessage> handler
             		) {
 	                    ServerConnectionEventHandler eventHandler = 
                     		eventHandlerFactory.onNewConnection(address);
@@ -148,7 +145,7 @@ public class HTLCPaymentChannelServerListener {
         	};
 
             socketProtobufHandler = 
-        		new ProtobufParser<Protos.TwoWayChannelMessage>(
+        		new ProtobufConnection<Protos.TwoWayChannelMessage>(
     				protobufHandlerListener, 
     				Protos.TwoWayChannelMessage.getDefaultInstance(), 
     				Short.MAX_VALUE, 
@@ -165,11 +162,11 @@ public class HTLCPaymentChannelServerListener {
         private final HTLCPaymentChannelServer paymentChannelManager;
 
         // The connection handler which puts/gets protobufs from the TCP socket
-        private final ProtobufParser<Protos.TwoWayChannelMessage> 
+        private final ProtobufConnection<Protos.TwoWayChannelMessage> 
         	socketProtobufHandler;
 
         // The listener which connects to socketProtobufHandler
-        private final ProtobufParser.Listener<Protos.TwoWayChannelMessage> 
+        private final ProtobufConnection.Listener<Protos.TwoWayChannelMessage> 
         	protobufHandlerListener;
     }
     
@@ -196,9 +193,9 @@ public class HTLCPaymentChannelServerListener {
      */
     public void bindAndStart(int port) throws Exception {
         server = new NioServer(
-    		new StreamParserFactory() {
+    		new StreamConnectionFactory() {
 	            @Override
-	            public ProtobufParser<Protos.TwoWayChannelMessage> getNewParser(
+	            public ProtobufConnection<Protos.TwoWayChannelMessage> getNewConnection(
 	        		InetAddress inetAddress, 
 	        		int port
 	    		) {
@@ -206,7 +203,6 @@ public class HTLCPaymentChannelServerListener {
                 		new InetSocketAddress(inetAddress, port), 
                 		timeoutSeconds
             		);
-	            	allHandlers.add(handler);
 	            	return handler.socketProtobufHandler;
 	            }
         	}, 

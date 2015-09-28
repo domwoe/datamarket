@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.10.13)  22 SEP 2015 11:21
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013/Debian) (format=pdflatex 2014.10.13)  24 SEP 2015 00:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -713,14 +713,14 @@ Package caption Info: wrapfig package is loaded.
 Package caption Info: End \AtBeginDocument code.
 \c@lstlisting=\count163
 
-<figures/eth_logo_black.pdf, id=183, 191.71625pt x 57.21375pt>
+<figures/eth_logo_black.pdf, id=191, 191.71625pt x 57.21375pt>
 File: figures/eth_logo_black.pdf Graphic file (type pdf)
 
 <use figures/eth_logo_black.pdf>
 Package pdftex.def Info: figures/eth_logo_black.pdf used on input line 45.
 (pdftex.def)             Requested size: 177.66374pt x 47.17624pt.
 
-<figures/disco-logo-col.pdf, id=184, 132.1854pt x 46.78677pt>
+<figures/disco-logo-col.pdf, id=192, 132.1854pt x 46.78677pt>
 File: figures/disco-logo-col.pdf Graphic file (type pdf)
 
 <use figures/disco-logo-col.pdf>
@@ -735,7 +735,7 @@ df> <./figures/disco-logo-col.pdf>]pdfTeX warning (ext4): destination with the
 same identifier (name{page.i}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.67 \tableofcontents
+l.70 \tableofcontents
                       [1
 
 
@@ -760,80 +760,80 @@ Chapter 1.
 [1
 
 
-] <figures/Blockchain.pdf, id=278, 626.34pt x 238.8925pt>
+] <figures/Blockchain.pdf, id=288, 626.34pt x 238.8925pt>
 File: figures/Blockchain.pdf Graphic file (type pdf)
 
 <use figures/Blockchain.pdf>
-Package pdftex.def Info: figures/Blockchain.pdf used on input line 119.
+Package pdftex.def Info: figures/Blockchain.pdf used on input line 124.
 (pdftex.def)             Requested size: 381.4pt x 145.47269pt.
  [2 <./figures/Blockchain.pdf>] [3]
-<figures/MicropaymentSeq.pdf, id=297, 597.23125pt x 786.94pt>
+<figures/MicropaymentSeq.pdf, id=307, 597.23125pt x 786.94pt>
 File: figures/MicropaymentSeq.pdf Graphic file (type pdf)
 
 <use figures/MicropaymentSeq.pdf>
-Package pdftex.def Info: figures/MicropaymentSeq.pdf used on input line 168.
+Package pdftex.def Info: figures/MicropaymentSeq.pdf used on input line 173.
 (pdftex.def)             Requested size: 381.4pt x 502.55919pt.
  [4 <./figures/MicropaymentSeq.pdf>] [5]
-<figures/HTLCPubScript.pdf, id=312, 525.965pt x 279.0425pt>
+<figures/HTLCPubScript.pdf, id=322, 525.965pt x 279.0425pt>
 File: figures/HTLCPubScript.pdf Graphic file (type pdf)
 
 <use figures/HTLCPubScript.pdf>
-Package pdftex.def Info: figures/HTLCPubScript.pdf used on input line 230.
+Package pdftex.def Info: figures/HTLCPubScript.pdf used on input line 235.
 (pdftex.def)             Requested size: 190.7pt x 101.17479pt.
 
-<figures/HTLCTxs.pdf, id=313, 430.60875pt x 131.49126pt>
+<figures/HTLCTxs.pdf, id=323, 430.60875pt x 131.49126pt>
 File: figures/HTLCTxs.pdf Graphic file (type pdf)
 
 <use figures/HTLCTxs.pdf>
-Package pdftex.def Info: figures/HTLCTxs.pdf used on input line 232.
+Package pdftex.def Info: figures/HTLCTxs.pdf used on input line 237.
 (pdftex.def)             Requested size: 190.7pt x 58.23352pt.
 
-Overfull \hbox (7.29999pt too wide) in paragraph at lines 230--233
+Overfull \hbox (7.29999pt too wide) in paragraph at lines 235--238
  [][][][][][] 
  []
 
 [6 <./figures/HTLCPubScript.pdf> <./figures/HTLCTxs.pdf>] [7] [8] [9]
 Chapter 2.
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 362.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 357.
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 362.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 357.
 
-<figures/SystemOverview.pdf, id=373, 568.1225pt x 288.07625pt>
+<figures/SystemOverview.pdf, id=388, 568.1225pt x 288.07625pt>
 File: figures/SystemOverview.pdf Graphic file (type pdf)
 
 <use figures/SystemOverview.pdf>
-Package pdftex.def Info: figures/SystemOverview.pdf used on input line 381.
+Package pdftex.def Info: figures/SystemOverview.pdf used on input line 377.
 (pdftex.def)             Requested size: 381.4pt x 193.40129pt.
  [10
 
 ] [11 <./figures/SystemOverview.pdf>]
-[12] <figures/MicroHTLC.pdf, id=410, 640.3925pt x 239.89626pt>
+[12] <figures/MicroHTLC.pdf, id=425, 640.3925pt x 239.89626pt>
 File: figures/MicroHTLC.pdf Graphic file (type pdf)
 
 <use figures/MicroHTLC.pdf>
-Package pdftex.def Info: figures/MicroHTLC.pdf used on input line 469.
+Package pdftex.def Info: figures/MicroHTLC.pdf used on input line 466.
 (pdftex.def)             Requested size: 381.4pt x 142.8773pt.
  [13 <./figures/MicroHTLC.pdf>] [14]
-<figures/FullMicroHTLC.pdf, id=432, 568.1225pt x 288.07625pt>
+<figures/FullMicroHTLC.pdf, id=447, 568.1225pt x 288.07625pt>
 File: figures/FullMicroHTLC.pdf Graphic file (type pdf)
 
 <use figures/FullMicroHTLC.pdf>
-Package pdftex.def Info: figures/FullMicroHTLC.pdf used on input line 523.
+Package pdftex.def Info: figures/FullMicroHTLC.pdf used on input line 520.
 (pdftex.def)             Requested size: 381.4pt x 193.40129pt.
  [15 <./figures/FullMicroHTLC.pdf>]
 Chapter 3.
-<figures/LayeredAPI.pdf, id=492, 258.9675pt x 429.605pt>
+<figures/LayeredAPI.pdf, id=509, 258.9675pt x 429.605pt>
 File: figures/LayeredAPI.pdf Graphic file (type pdf)
 
 <use figures/LayeredAPI.pdf>
-Package pdftex.def Info: figures/LayeredAPI.pdf used on input line 566.
+Package pdftex.def Info: figures/LayeredAPI.pdf used on input line 562.
 (pdftex.def)             Requested size: 113.81169pt x 199.16772pt.
 
-Overfull \hbox (6.1077pt too wide) in paragraph at lines 580--584
+Overfull \hbox (6.1077pt too wide) in paragraph at lines 576--580
 \OT1/cmr/m/n/10.95 mon-i-tor mul-ti-ple I/O op-er-a-tions ex-e-cut-ing con-cur-
 rently from a sin-gle thread,
  []
@@ -841,80 +841,80 @@ rently from a sin-gle thread,
 [16
 
 ] [17 <./figures/LayeredAPI.pdf>] [18]
-<figures/MicroSeq.pdf, id=555, 560.69473pt x 383.031pt>
+<figures/MicroSeq.pdf, id=572, 560.69473pt x 383.031pt>
 File: figures/MicroSeq.pdf Graphic file (type pdf)
 
 <use figures/MicroSeq.pdf>
-Package pdftex.def Info: figures/MicroSeq.pdf used on input line 666.
+Package pdftex.def Info: figures/MicroSeq.pdf used on input line 662.
 (pdftex.def)             Requested size: 381.4pt x 260.5453pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<figures/MicroStates.pdf, id=556, 914.81778pt x 448.07399pt>
+<figures/MicroStates.pdf, id=573, 914.81778pt x 448.07399pt>
 File: figures/MicroStates.pdf Graphic file (type pdf)
 
 <use figures/MicroStates.pdf>
-Package pdftex.def Info: figures/MicroStates.pdf used on input line 671.
+Package pdftex.def Info: figures/MicroStates.pdf used on input line 667.
 (pdftex.def)             Requested size: 381.4pt x 186.8087pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 [19] [20 <./figures/MicroSeq.pdf>]
-<figures/RoundNegotiation.pdf, id=582, 463.13025pt x 319.79475pt>
+<figures/RoundNegotiation.pdf, id=599, 463.13025pt x 319.79475pt>
 File: figures/RoundNegotiation.pdf Graphic file (type pdf)
 
 <use figures/RoundNegotiation.pdf>
-Package pdftex.def Info: figures/RoundNegotiation.pdf used on input line 723.
+Package pdftex.def Info: figures/RoundNegotiation.pdf used on input line 719.
 (pdftex.def)             Requested size: 381.4pt x 263.36058pt.
  [21 <./figures/MicroStates.pdf>]
-<figures/HTLCSetupSeq.pdf, id=604, 548.0475pt x 383.031pt>
+<figures/HTLCSetupSeq.pdf, id=622, 548.0475pt x 383.031pt>
 File: figures/HTLCSetupSeq.pdf Graphic file (type pdf)
 
 <use figures/HTLCSetupSeq.pdf>
-Package pdftex.def Info: figures/HTLCSetupSeq.pdf used on input line 743.
+Package pdftex.def Info: figures/HTLCSetupSeq.pdf used on input line 739.
 (pdftex.def)             Requested size: 381.4pt x 266.5652pt.
 
-<figures/HTLCStates.pdf, id=605, 847.96799pt x 506.49225pt>
+<figures/HTLCStates.pdf, id=623, 847.96799pt x 506.49225pt>
 File: figures/HTLCStates.pdf Graphic file (type pdf)
 
 <use figures/HTLCStates.pdf>
-Package pdftex.def Info: figures/HTLCStates.pdf used on input line 749.
+Package pdftex.def Info: figures/HTLCStates.pdf used on input line 745.
 (pdftex.def)             Requested size: 381.4pt x 227.8112pt.
  [22 <./figures/RoundNegotiation.pdf>] [23 <./figures/HTLCSetupSeq.pdf> <./figu
 res/HTLCStates.pdf
 
 pdfTeX warning: /usr/bin/pdflatex (file ./figures/HTLCStates.pdf): PDF inclusio
 n: multiple pdfs with page group included in a single page
->] [24] <figures/HTLCClaimSeq.pdf, id=656, 531.18451pt x 364.9635pt>
+>] <figures/HTLCClaimSeq.pdf, id=668, 531.18451pt x 364.9635pt>
 File: figures/HTLCClaimSeq.pdf Graphic file (type pdf)
 
 <use figures/HTLCClaimSeq.pdf>
-Package pdftex.def Info: figures/HTLCClaimSeq.pdf used on input line 799.
+Package pdftex.def Info: figures/HTLCClaimSeq.pdf used on input line 787.
 (pdftex.def)             Requested size: 381.4pt x 262.0607pt.
- [25 <./figures/HTLCClaimSeq.pdf>]
-LaTeX Font Info:    Try loading font information for OML+cmr on input line 848.
+ [24] [25 <./figures/HTLCClaimSeq.pdf>]
+LaTeX Font Info:    Try loading font information for OML+cmr on input line 836.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/omlcmr.fd
 File: omlcmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OML/cmr/m/it' in size <10.95> not available
-(Font)              Font shape `OML/cmm/m/it' tried instead on input line 848.
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 836.
  [26]
-<figures/app.png, id=682, 722.7pt x 1284.8pt>
+<figures/app.png, id=699, 722.7pt x 1284.8pt>
 File: figures/app.png Graphic file (type png)
  <use figures/app.png>
-Package pdftex.def Info: figures/app.png used on input line 889.
+Package pdftex.def Info: figures/app.png used on input line 877.
 (pdftex.def)             Requested size: 190.7pt x 339.01965pt.
  [27]
 [28 <./figures/app.png>]
-<figures/FullHTLCSetup.pdf, id=696, 1031.6543pt x 498.663pt>
+<figures/FullHTLCSetup.pdf, id=714, 1031.6543pt x 498.663pt>
 File: figures/FullHTLCSetup.pdf Graphic file (type pdf)
 
 <use figures/FullHTLCSetup.pdf>
-Package pdftex.def Info: figures/FullHTLCSetup.pdf used on input line 934.
+Package pdftex.def Info: figures/FullHTLCSetup.pdf used on input line 922.
 (pdftex.def)             Requested size: 595.80026pt x 287.99208pt.
  [29] [30] [31 <./figures/FullHTLCSetup.pdf>]
 Chapter 4.
@@ -922,39 +922,49 @@ Chapter 4.
 
 ]
 LaTeX Font Info:    Font shape `OML/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OML/cmm/m/it' tried instead on input line 1001.
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 989.
+ [33] [34] <figures/trace.png, id=769, 1370.11874pt x 854.19125pt>
+File: figures/trace.png Graphic file (type png)
 
- [33] [34] [35] [36]
+<use figures/trace.png>
+Package pdftex.def Info: figures/trace.png used on input line 1074.
+(pdftex.def)             Requested size: 381.4pt x 237.7773pt.
+ [35 <./figures/trace.png>] [36] [37] [38]
 Chapter 5.
-(./Thesis.bbl [37
+(./Thesis.bbl [39
 
 ]
-Underfull \hbox (badness 2277) in paragraph at lines 15--19
+Underfull \hbox (badness 2277) in paragraph at lines 25--29
 []\OT1/cmr/m/n/10.95 Alex Ak-sel-rod.  Es-cha-ton.  [][]$\OT1/cmtt/m/n/10.95 ht
 tps : / / gist . github . com / aakselrod /
  []
 
 
-Underfull \hbox (badness 7064) in paragraph at lines 31--38
+Underfull \hbox (badness 7064) in paragraph at lines 41--48
 \OT1/cmtt/m/n/10.95 www . ultimatestunts . nl / bitcoin / ripple _ bitcoin _ dr
 aft _ 2 . pdf$[][]\OT1/cmr/m/n/10.95 , Jan-
  []
 
-[38
+[40
 
 ]
-Underfull \hbox (badness 1052) in paragraph at lines 82--87
+Underfull \hbox (badness 1052) in paragraph at lines 92--97
 \OT1/cmr/m/n/10.95 Scal-able Off-Chain In-stant Pay-ments.  [][]$\OT1/cmtt/m/n/
 10.95 https : / / lightning . network /
  []
 
-) [39]
+) [41] <figures/HTLCPubScripts.pdf, id=823, 645.41125pt x 368.37625pt>
+File: figures/HTLCPubScripts.pdf Graphic file (type pdf)
+
+<use figures/HTLCPubScripts.pdf>
+Package pdftex.def Info: figures/HTLCPubScripts.pdf used on input line 1223.
+(pdftex.def)             Requested size: 381.4pt x 217.6886pt.
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 1169.
+nput line 1233.
  (./protobuf.txt [1
 
 
-]
+ <./figures/HTLCPubScripts.pdf>]
 Overfull \hbox (12.80411pt too wide) in paragraph at lines 42--43
 [][][][][][][][][][][][][] 
  []
@@ -969,66 +979,66 @@ Overfull \hbox (91.64493pt too wide) in paragraph at lines 46--47
 [][][][][][][][][][][][][] 
  []
 
-
+[2]
 Overfull \hbox (6.23404pt too wide) in paragraph at lines 62--63
 [][][][][][][][][][][][][][][][][][][][] 
  []
 
-[2]
+[3]
 Overfull \hbox (12.80411pt too wide) in paragraph at lines 107--108
 [][][][][][][][][][][][][] 
  []
 
-[3] [4]) <figures/ClientUML.pdf, id=968, 1116.57152pt x 1506.82945pt>
+[4] [5]) <figures/ClientUML.pdf, id=1034, 1116.57152pt x 1506.82945pt>
 File: figures/ClientUML.pdf Graphic file (type pdf)
 
 <use figures/ClientUML.pdf>
-Package pdftex.def Info: figures/ClientUML.pdf used on input line 1185.
+Package pdftex.def Info: figures/ClientUML.pdf used on input line 1249.
 (pdftex.def)             Requested size: 457.67882pt x 617.64314pt.
 
 
-LaTeX Warning: Float too large for page by 43.84288pt on input line 1188.
+LaTeX Warning: Float too large for page by 43.84288pt on input line 1252.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<figures/ServerUML.pdf, id=969, 1231.60126pt x 1508.63625pt>
+<figures/ServerUML.pdf, id=1035, 1231.60126pt x 1508.63625pt>
 File: figures/ServerUML.pdf Graphic file (type pdf)
 
 <use figures/ServerUML.pdf>
-Package pdftex.def Info: figures/ServerUML.pdf used on input line 1191.
+Package pdftex.def Info: figures/ServerUML.pdf used on input line 1255.
 (pdftex.def)             Requested size: 457.67882pt x 560.62679pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<figures/HubUML.pdf, id=970, 1235.81696pt x 1053.33528pt>
+<figures/HubUML.pdf, id=1036, 1235.81696pt x 1053.33528pt>
 File: figures/HubUML.pdf Graphic file (type pdf)
 
 <use figures/HubUML.pdf>
-Package pdftex.def Info: figures/HubUML.pdf used on input line 1197.
+Package pdftex.def Info: figures/HubUML.pdf used on input line 1261.
 (pdftex.def)             Requested size: 476.74998pt x 406.347pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1202.
-[5] [6 <./figures/ClientUML.pdf>] [7 <./figures/ServerUML.pdf>] [8 <./figures/H
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1266.
+[6] [7 <./figures/ClientUML.pdf>] [8 <./figures/ServerUML.pdf>] [9 <./figures/H
 ubUML.pdf>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 1202.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1266.
  (./Thesis.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1202.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1202.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1266.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1266.
 
 Package rerunfilecheck Info: File `Thesis.out' has not changed.
-(rerunfilecheck)             Checksum: 1868249FBD8591E27CA007F942A7A8E7;3038.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1202.
+(rerunfilecheck)             Checksum: 3053D019EEF1653880B6E4B9635E47AA;3183.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1266.
  ) 
 Here is how much of TeX's memory you used:
- 18423 strings out of 495028
- 315704 string characters out of 6181496
- 406343 words of memory out of 5000000
- 20933 multiletter control sequences out of 15000+600000
+ 18450 strings out of 495028
+ 316141 string characters out of 6181496
+ 403597 words of memory out of 5000000
+ 20947 multiletter control sequences out of 15000+600000
  13123 words of font info for 49 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  69i,10n,92p,425b,1726s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1042,10 +1052,10 @@ s/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-dist/fonts/type1/
 public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
 /amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmtt10.pfb>
-Output written on Thesis.pdf (51 pages, 2724526 bytes).
+Output written on Thesis.pdf (54 pages, 2908593 bytes).
 PDF statistics:
- 1143 PDF objects out of 1200 (max. 8388607)
- 972 compressed objects within 10 object streams
- 340 named destinations out of 1000 (max. 500000)
- 470 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1189 PDF objects out of 1200 (max. 8388607)
+ 1011 compressed objects within 11 object streams
+ 351 named destinations out of 1000 (max. 500000)
+ 496 words of extra memory for PDF output out of 10000 (max. 10000000)
 

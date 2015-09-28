@@ -51,6 +51,7 @@
 \citation{forum}
 \citation{hearnmicropay}
 \citation{ripplebitcoin}
+\citation{ripple}
 \citation{draft}
 \citation{eschaton}
 \citation{malleability}
@@ -65,12 +66,13 @@
 \@writefile{toc}{\contentsline {section}{\numberline {2.3}System components}{11}{section.2.3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Sensor nodes}{11}{subsection.2.3.1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Buyers}{11}{subsection.2.3.2}}
-\citation{hubandspoke}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Central Hub}{12}{subsection.2.3.3}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.4}Achieving the requirements}{12}{section.2.4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}Achieving Scalability and Efficiency}{12}{subsection.2.4.1}}
+\citation{hubandspoke}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Achieving Security}{13}{subsection.2.4.2}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.2}{\ignorespaces Micropayment channels with HTLCs for end-to-end security on payment paths\relax }}{13}{figure.caption.7}}
+\citation{tor}
 \@writefile{lof}{\contentsline {figure}{\numberline {2.3}{\ignorespaces Securing payment paths between buyer, hub, and sensor nodes with micropayment channels and HTLCs\relax }}{15}{figure.caption.8}}
 \newlabel{fig:fullmicrohtlc}{{2.3}{15}{Securing payment paths between buyer, hub, and sensor nodes with micropayment channels and HTLCs\relax }{figure.caption.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}Achieving Anonymity}{15}{subsection.2.4.3}}
@@ -107,15 +109,15 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {3.7}{\ignorespaces HTLC Settlement and Forfeiture sequence diagram\relax }}{25}{figure.caption.18}}
 \newlabel{fig:htlcclaimseq}{{3.7}{25}{HTLC Settlement and Forfeiture sequence diagram\relax }{figure.caption.18}{}}
 \@writefile{toc}{\contentsline {subsubsection}{Closing the channel}{25}{section*.19}}
-\@writefile{toc}{\contentsline {subsubsection}{Data transmission}{26}{section*.20}}
+\@writefile{toc}{\contentsline {subsubsection}{Data transmission}{25}{section*.20}}
 \@writefile{toc}{\contentsline {section}{\numberline {3.2}Application implementation}{26}{section.3.2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Buyer application}{26}{subsection.3.2.1}}
 \@writefile{toc}{\contentsline {subsubsection}{Running queries}{26}{section*.21}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Hub application}{27}{subsection.3.2.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Hub application}{26}{subsection.3.2.2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Android application}{27}{subsection.3.2.3}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3.8}{\ignorespaces Android application user interface.\relax }}{28}{figure.caption.22}}
 \newlabel{fig:app}{{3.8}{28}{Android application user interface.\relax }{figure.caption.22}{}}
-\@writefile{toc}{\contentsline {subsubsection}{ChannelConnection layer adaptation}{29}{section*.23}}
+\@writefile{toc}{\contentsline {subsubsection}{ChannelConnection layer adaptation}{28}{section*.23}}
 \@writefile{toc}{\contentsline {subsubsection}{Connectivity}{29}{section*.24}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}Running the full-system protocol}{29}{subsection.3.2.4}}
 \newlabel{RF1}{31}
@@ -130,58 +132,67 @@
 \@writefile{toc}{\contentsline {subsubsection}{Making queries}{33}{section*.27}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1.2}Results}{33}{subsection.4.1.2}}
 \@writefile{toc}{\contentsline {subsubsection}{Micropayment channels}{33}{section*.28}}
-\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Micropayment channel setup time average and standard deviation on TestNet.\relax }}{34}{table.caption.29}}
-\newlabel{microsetup}{{4.1}{34}{Micropayment channel setup time average and standard deviation on TestNet.\relax }{table.caption.29}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Micropayment channel setup and close time average and standard deviation on TestNet.\relax }}{34}{table.caption.29}}
+\newlabel{microsetup}{{4.1}{34}{Micropayment channel setup and close time average and standard deviation on TestNet.\relax }{table.caption.29}{}}
 \@writefile{toc}{\contentsline {subsubsection}{Queries}{34}{section*.30}}
-\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces Mean and standard deviation of the response times for select, node and sensor queries.\relax }}{34}{table.caption.31}}
-\newlabel{simplequeries}{{4.2}{34}{Mean and standard deviation of the response times for select, node and sensor queries.\relax }{table.caption.31}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces Mean and standard deviation of the response times for select, node and sensor, and buy queries.\relax }}{34}{table.caption.31}}
+\newlabel{simplequeries}{{4.2}{34}{Mean and standard deviation of the response times for select, node and sensor, and buy queries.\relax }{table.caption.31}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4.3}{\ignorespaces Buy query response time breakdown by payment hop.\relax }}{34}{table.caption.32}}
 \newlabel{breakdown}{{4.3}{34}{Buy query response time breakdown by payment hop.\relax }{table.caption.32}{}}
-\@writefile{toc}{\contentsline {subsubsection}{Discussion}{34}{section*.33}}
-\@writefile{toc}{\contentsline {section}{\numberline {4.2}Protocol vulnerabilities}{35}{section.4.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Flow messages}{35}{subsection.4.2.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Sensor data}{36}{subsection.4.2.2}}
-\@writefile{toc}{\contentsline {subsubsection}{Data validity}{36}{section*.34}}
-\@writefile{toc}{\contentsline {subsubsection}{Data confidentiality}{36}{section*.35}}
+\@writefile{toc}{\contentsline {subsubsection}{Full communication trace}{34}{section*.33}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces Full communication trace using mean measurement values.\relax }}{35}{figure.caption.34}}
+\newlabel{fig:trace}{{4.1}{35}{Full communication trace using mean measurement values.\relax }{figure.caption.34}{}}
+\@writefile{toc}{\contentsline {subsubsection}{Discussion}{35}{section*.35}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}Protocol vulnerabilities}{36}{section.4.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Payment security}{36}{subsection.4.2.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.2}Flow messages}{37}{subsection.4.2.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.3}Sensor data}{37}{subsection.4.2.3}}
+\@writefile{toc}{\contentsline {subsubsection}{Data validity}{37}{section*.36}}
+\@writefile{toc}{\contentsline {subsubsection}{Data confidentiality}{37}{section*.37}}
 \bibstyle{plainurl}
 \bibdata{references}
-\@writefile{toc}{\contentsline {chapter}{\numberline {5}Conclusion}{37}{chapter.5}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Conclusion}{39}{chapter.5}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
 \bibcite{forum}{1}
-\bibcite{draft}{2}
-\bibcite{eschaton}{3}
-\bibcite{iotsurvey}{4}
-\bibcite{hashcash}{5}
-\bibcite{ripplebitcoin}{6}
-\bibcite{malleability}{7}
-\bibcite{hearnmicropay}{8}
-\bibcite{microrevisited}{9}
-\bibcite{satoshibitcoin}{10}
-\bibcite{moneyfly}{11}
-\bibcite{micropay2}{12}
-\bibcite{Payeras-Capella:2003:EAS:1758260.1758276}{13}
-\@writefile{toc}{\contentsline {chapter}{Bibliography}{38}{chapter*.36}}
-\bibcite{lightning}{14}
-\bibcite{Rivest:1996:PMT:647214.720369}{15}
-\bibcite{sheng2013sensing}{16}
-\bibcite{hubandspoke}{17}
-\bibcite{3279}{18}
-\bibcite{couponbased}{19}
-\bibcite{iotzhang}{20}
+\bibcite{ripple}{2}
+\bibcite{tor}{3}
+\bibcite{draft}{4}
+\bibcite{eschaton}{5}
+\bibcite{iotsurvey}{6}
+\bibcite{hashcash}{7}
+\bibcite{ripplebitcoin}{8}
+\bibcite{malleability}{9}
+\bibcite{hearnmicropay}{10}
+\bibcite{microrevisited}{11}
+\bibcite{satoshibitcoin}{12}
+\bibcite{moneyfly}{13}
+\bibcite{micropay2}{14}
+\bibcite{Payeras-Capella:2003:EAS:1758260.1758276}{15}
+\@writefile{toc}{\contentsline {chapter}{Bibliography}{40}{chapter*.38}}
+\bibcite{lightning}{16}
+\bibcite{Rivest:1996:PMT:647214.720369}{17}
+\bibcite{sheng2013sensing}{18}
+\bibcite{hubandspoke}{19}
+\bibcite{3279}{20}
+\bibcite{couponbased}{21}
+\bibcite{iotzhang}{22}
 \@writefile{toc}{\contentsline {chapter}{\numberline {A}Appendix Chapter}{A-1}{appendix.U}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {A.1}Protobuf messages}{A-1}{section.U.1}}
-\newlabel{protobuf}{{A.1}{A-1}{Protobuf messages}{section.U.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.1}HTLC Transactions}{A-1}{section.U.1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {A.1}{\ignorespaces The HTLC refund, settlement and forfeiture transactions.\relax }}{A-1}{figure.caption.40}}
+\newlabel{fig:pubscripts}{{A.1}{A-1}{The HTLC refund, settlement and forfeiture transactions.\relax }{figure.caption.40}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.2}Protobuf messages}{A-1}{section.U.2}}
+\newlabel{protobuf}{{A.2}{A-1}{Protobuf messages}{section.U.2}{}}
 \@writefile{lol}{\contentsline {lstlisting}{protobuf.txt}{A-1}{lstlisting.U.-1}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.2}Android application}{A-5}{section.U.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.2.1}Permission requirements}{A-5}{subsection.U.2.1}}
-\newlabel{permissions}{{A.2.1}{A-5}{Permission requirements}{subsection.U.2.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.3}UML diagrams}{A-5}{section.U.3}}
-\@writefile{lof}{\contentsline {figure}{\numberline {A.1}{\ignorespaces UML class diagram of the Client component\relax }}{A-6}{figure.caption.38}}
-\newlabel{fig:clientuml}{{A.1}{A-6}{UML class diagram of the Client component\relax }{figure.caption.38}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {A.2}{\ignorespaces UML class diagram of the Server component\relax }}{A-7}{figure.caption.39}}
-\newlabel{fig:serveruml}{{A.2}{A-7}{UML class diagram of the Server component\relax }{figure.caption.39}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {A.3}{\ignorespaces Hub class diagram of the first three layers.\relax }}{A-8}{figure.caption.40}}
-\newlabel{fig:hubuml}{{A.3}{A-8}{Hub class diagram of the first three layers.\relax }{figure.caption.40}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.3}Android application}{A-6}{section.U.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3.1}Permission requirements}{A-6}{subsection.U.3.1}}
+\newlabel{permissions}{{A.3.1}{A-6}{Permission requirements}{subsection.U.3.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.4}UML diagrams}{A-6}{section.U.4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {A.2}{\ignorespaces UML class diagram of the Client component\relax }}{A-7}{figure.caption.41}}
+\newlabel{fig:clientuml}{{A.2}{A-7}{UML class diagram of the Client component\relax }{figure.caption.41}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {A.3}{\ignorespaces UML class diagram of the Server component\relax }}{A-8}{figure.caption.42}}
+\newlabel{fig:serveruml}{{A.3}{A-8}{UML class diagram of the Server component\relax }{figure.caption.42}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {A.4}{\ignorespaces Hub class diagram of the first three layers.\relax }}{A-9}{figure.caption.43}}
+\newlabel{fig:hubuml}{{A.4}{A-9}{Hub class diagram of the first three layers.\relax }{figure.caption.43}{}}

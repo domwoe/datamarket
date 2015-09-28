@@ -14,49 +14,51 @@ refers to entry "DBLP:conf/ctrsa/2002", which doesn't exist
 Warning--I didn't find a database entry for "conf/icin/2015"
 Warning--I didn't find a database entry for "DBLP:conf/ctrsa/2002"
 Warning--to sort, need author or key in forum
+Warning--to sort, need author or key in ripple
+Warning--to sort, need author or key in tor
 Warning--empty institution in hashcash
 Warning--empty journal in micropay2
 Warning--empty year in micropay2
 Warning--empty booktitle in 3279
-You've used 20 entries,
+You've used 22 entries,
             2849 wiz_defined-function locations,
-            728 strings with 8199 characters,
-and the built_in function-call counts, 8311 in all, are:
-= -- 872
-> -- 267
+            734 strings with 8279 characters,
+and the built_in function-call counts, 8813 in all, are:
+= -- 922
+> -- 271
 < -- 8
-+ -- 96
++ -- 98
 - -- 76
-* -- 353
-:= -- 1176
-add.period$ -- 70
-call.type$ -- 20
-change.case$ -- 99
+* -- 363
+:= -- 1226
+add.period$ -- 76
+call.type$ -- 22
+change.case$ -- 105
 chr.to.int$ -- 0
-cite$ -- 25
-duplicate$ -- 249
-empty$ -- 815
+cite$ -- 29
+duplicate$ -- 263
+empty$ -- 885
 format.name$ -- 76
-if$ -- 2205
+if$ -- 2359
 int.to.chr$ -- 0
-int.to.str$ -- 20
+int.to.str$ -- 22
 missing$ -- 11
-newline$ -- 109
+newline$ -- 119
 num.names$ -- 38
-pop$ -- 225
+pop$ -- 253
 preamble$ -- 1
-purify$ -- 78
+purify$ -- 82
 quote$ -- 0
-skip$ -- 630
+skip$ -- 674
 stack$ -- 0
-substring$ -- 321
-swap$ -- 71
+substring$ -- 331
+swap$ -- 73
 text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 80
-warning$ -- 5
+type$ -- 88
+warning$ -- 7
 while$ -- 57
-width$ -- 22
-write$ -- 228
+width$ -- 24
+write$ -- 246
 (There were 2 error messages)

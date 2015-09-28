@@ -6,7 +6,9 @@ import static com.google.common.base.Preconditions.checkState;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,15 +35,18 @@ import org.bitcoinj.channels.htlc.HTLCServerState;
 import org.bitcoinj.channels.htlc.SignedTransaction;
 import org.bitcoinj.channels.htlc.SignedTransactionWithHash;
 import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
+import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
+import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.crypto.TransactionSignature;
+import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.protocols.channels.PaymentChannelServer;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
@@ -95,8 +100,11 @@ public class HTLCHubBuyerServer {
 	@GuardedBy("lock")
 	private final Map<String, HTLCPayment> htlcPaymentMap;
 	 
+	// The list of HTLC ids that are being closed in this server update round 
     @GuardedBy("lock")
     private final List<String> closingHTLCIds;
+    // The set of HTLC ids that are being created in this client update round
+    @GuardedBy("lock") private final Set<String> newHTLCIds;
     
     /**
      * Implements the connection between this server and the client, providing 
@@ -107,12 +115,14 @@ public class HTLCHubBuyerServer {
      */
     public interface ServerConnection {
     	
+    	public void addAddress(Address addr);
+    	
     	public List<String> nodeStats();
     	
     	public Set<String> sensorStats();
     	
     	public void select(
-			String id, 
+			String id,
 			String sensorType, 
 			HTLCHubBuyerServer server
 		);
@@ -159,26 +169,7 @@ public class HTLCHubBuyerServer {
          *  (actually the hash of the multisig contract)
          */
         public void channelOpen(Sha256Hash contractHash);
-
-        /**
-         * <p>Called when the payment in this channel was successfully 
-         * incremented by the client</p>
-         *
-         * <p>Called while holding a lock on the {@link PaymentChannelServer} 
-         * object - be careful about reentrancy</p>
-         *
-         * @param by The increase in total payment
-         * @param to The new total payment to us (not including fees which may 
-         * be required to claim the payment)
-         * @param info Information about this payment increase, used to extend 
-         * this protocol.
-         * @return A future that completes with the ack message that will be 
-         * included in the PaymentAck message to the client. Use null for no ack message.
-         */
-        @Nullable
-        public ListenableFuture<ByteString> paymentIncrease(
-    		Coin by, Coin to, @Nullable ByteString info
-		);
+        
     }
     private final ServerConnection conn;
     
@@ -220,6 +211,7 @@ public class HTLCHubBuyerServer {
     	this.blockingQueue = new HTLCBlockingQueue<Object>(MAX_MESSAGES);
     	this.htlcPaymentMap = new HashMap<String, HTLCPayment>();
     	this.closingHTLCIds = new ArrayList<String>();
+    	this.newHTLCIds = new HashSet<String>();
     }
         
     /**
@@ -339,6 +331,13 @@ public class HTLCHubBuyerServer {
             return;
     	}
     	
+    	ECKey clientKey = ECKey.fromPublicOnly(
+			clientVersion.getClientKey().toByteArray()
+		);
+    	
+    	// TODO: REMOVE THIS: ONLY FOR TESTING PURPOSES
+    	conn.addAddress(clientKey.toAddress(wallet.getParams()));
+    	
     	Protos.ServerVersion.Builder versionNegotiationBuilder =
 			Protos.ServerVersion.newBuilder()
 				.setMajor(SERVER_MAJOR_VERSION)
@@ -424,7 +423,7 @@ public class HTLCHubBuyerServer {
     				@Override
     				public void run() {
     					try {
-							multisigContractPropogated(
+							multisigContractPropagated(
 								providedContract, 
 								multisigContract.getHash()
 							);
@@ -435,7 +434,7 @@ public class HTLCHubBuyerServer {
     			}, Threading.SAME_THREAD);
     }
     
-    private void multisigContractPropogated(
+    private void multisigContractPropagated(
 		Protos.HTLCProvideContract providedContract,
 		Sha256Hash contractHash
 	) throws ValueOutOfRangeException {
@@ -446,7 +445,9 @@ public class HTLCHubBuyerServer {
 				false
 			);
     		conn.sendToBuyer(Protos.TwoWayChannelMessage.newBuilder()
-    				.setType(Protos.TwoWayChannelMessage.MessageType.CHANNEL_OPEN)
+    				.setType(
+						Protos.TwoWayChannelMessage.MessageType.CHANNEL_OPEN
+					)
     				.build());
     		step = InitStep.CHANNEL_OPEN;
     		conn.channelOpen(contractHash);
@@ -476,13 +477,6 @@ public class HTLCHubBuyerServer {
     	Coin bestPaymentChange = 
 			state.getBestValueToMe().subtract(lastBestPayment);
     	
-    	if (bestPaymentChange.signum() > 0) {
-    		conn.paymentIncrease(
-				bestPaymentChange, 
-				state.getBestValueToMe(), 
-				null
-			);
-    	}
     	if (sendAck) {
 	    	// Send the ACK for the payment
 	    	final Protos.TwoWayChannelMessage.Builder ack = 
@@ -494,6 +488,7 @@ public class HTLCHubBuyerServer {
     
     @GuardedBy("lock") 
     private void receiveHTLCRoundInitMessage(TwoWayChannelMessage msg) {
+    	log.info("RECEIVED HTLCINIT ROUND IN STATE: {}", htlcRound.toString());
     	if (canAckHTLCRound()) {
     		log.info("Received block request for HTLC update from client");
     		// Send the HTLCRound ack back to the client
@@ -527,6 +522,7 @@ public class HTLCHubBuyerServer {
 					(Protos.HTLCRevealSecret) update;
     			allSecrets.add(revealMsg);
     			closingHTLCIds.add(revealMsg.getId());
+    			log.error("HTLC_SET1 {} {}", revealMsg.getId(), new Date().getTime());
     		} else if (update instanceof Protos.HTLCBackOff) {
     			allBackoffs.add((Protos.HTLCBackOff) update);
     		}
@@ -596,15 +592,19 @@ public class HTLCHubBuyerServer {
     	log.info("Received HTLC_INIT_REPLY from Android server. " +
     			"Processing it. Creating HTLCs and Sending it " +
     			"to the buyer client");
-    	
+
     	final Protos.HTLCInitReply htlcReply = msg.getHtlcInitReply();
     	
     	List<Protos.HTLCPaymentReply> paymentReplies = 
 			htlcReply.getNewPaymentsReplyList();
     	
+    	newHTLCIds.clear();
+    	
     	for (Protos.HTLCPaymentReply reply: paymentReplies) {
     		String clientRequestId = reply.getClientRequestId();
     		String htlcId = reply.getId();
+    		log.info("Received android reply htlcid {}", htlcId);
+    		newHTLCIds.add(htlcId);
     		HTLCPayment payment = htlcPaymentMap.get(clientRequestId);
 			htlcPaymentMap.remove(clientRequestId);
 			htlcPaymentMap.put(htlcId, payment);
@@ -617,39 +617,6 @@ public class HTLCHubBuyerServer {
     	// Forward the message to the buyer client
     	conn.sendToBuyer(msg);
     }
-    
-    /*
-    @GuardedBy("lock")
-    private void receiveHtlcInitMessage(TwoWayChannelMessage msg) 
-    		throws UnsupportedEncodingException {
-    	log.info("Received HTLC INIT msg, replying with HTLC_INIT_REPLY");
-    	
-    	final Protos.HTLCInit htlcInit = msg.getHtlcInit();
-    	List<Protos.HTLCPayment> newPayments = htlcInit.getNewPaymentsList();
-    	List<Protos.HTLCPaymentReply> paymentsReply = 
-			new ArrayList<Protos.HTLCPaymentReply>();
-    	
-    	for (Protos.HTLCPayment payment: newPayments) {
-    		long value = payment.getValue();
-    		ByteString clientRequestId = payment.getRequestId();
-    		HTLCServerState newHTLCState = 
-				state.createNewHTLC(Coin.valueOf(value));
-    		Protos.HTLCPaymentReply paymentReply = 
-				Protos.HTLCPaymentReply.newBuilder()
-					.setId(ByteString.copyFrom(newHTLCState.getId().getBytes()))
-					.setClientRequestId(clientRequestId)
-					.build();
-    		paymentsReply.add(paymentReply);
-    	}
-    	Protos.HTLCInitReply.Builder initReply = 
-			Protos.HTLCInitReply.newBuilder()
-				.addAllNewPaymentsReply(paymentsReply);
-		final TwoWayChannelMessage replyMsg = TwoWayChannelMessage.newBuilder()
-			.setType(MessageType.HTLC_INIT_REPLY)
-			.setHtlcInitReply(initReply)
-			.build();
-		conn.sendToBuyer(replyMsg);
-    }*/
       
     private static ByteString txToBS(Transaction tx) {
     	return ByteString.copyFrom(tx.bitcoinSerialize());
@@ -675,6 +642,8 @@ public class HTLCHubBuyerServer {
 			wallet.getParams(), 
 			signedTeardown.getTx().toByteArray()
 		);
+    	
+    	log.info("RECEIVED TEARDOWN: {}", teardownTx);
     	
     	TransactionSignature teardownSig = 
 			TransactionSignature.decodeFromBitcoin(
@@ -775,35 +744,32 @@ public class HTLCHubBuyerServer {
     		);
         	// If we already have some secrets, queue them up for the next
         	// server update round
-        	if (htlcRound == HTLCRound.CLIENT) {
-        		log.info("Queueing up secret for HTLC ID {}", htlcId);
+        	if (htlcRound == HTLCRound.CLIENT && newHTLCIds.contains(htlcId)) {
+        		log.info("Attempt to queue up secret for HTLC ID {}", htlcId);
         		queueUpSecret(htlcId);
         	}
     	}
     	
     	if (htlcRound == HTLCRound.CONFIRMED) { 
-    		// It's the server's round, send a round done msg instead of setup
-    		// complete
     		// The data msgs are sent async. They will not break the transaction
     		// signature process so it is safe to do it;
     		List<HTLCData> allData = new ArrayList<>();
     		for (String htlcId: closingHTLCIds) {
-    			// Remove from the HTLCMap
-    			state.removeHTLC(htlcId);
+    			log.error("HTLC_COMP1 {} {}", htlcId, new Date().getTime());
     			List<String> sensorData = state.getDataForHTLC(htlcId);
     			if (sensorData == null) {
     				log.error(
 						"Retrieving data but failed with NULL for htlcID {}. " +
-						"This should not happen.", htlcId
+						"Data is late.", htlcId
 					);
     			} else {
-    				log.info("Retrieving data for HTLCId {}", htlcId);
-    				log.info("Data is: {}", sensorData);
 	    			HTLCData.Builder dataMsg = HTLCData.newBuilder()
 	    				.setId(htlcId)
 						.addAllData(state.getDataForHTLC(htlcId));
 	    			allData.add(dataMsg.build());
     			}
+    			// Remove from the HTLCMap
+    			state.removeHTLC(htlcId);
     		}
     		// Send the data msgs to the Buyer
     		Protos.HTLCFlow.Builder flowMsg = Protos.HTLCFlow.newBuilder()
@@ -814,7 +780,7 @@ public class HTLCHubBuyerServer {
 					.setHtlcFlow(flowMsg)
 					.setType(MessageType.HTLC_FLOW)
 					.build();
-    		conn.sendToBuyer(dataMsg);    		
+    		conn.sendToBuyer(dataMsg);
     		
         	Protos.HTLCRoundDone.Builder roundDone = 
     			Protos.HTLCRoundDone.newBuilder();
@@ -823,6 +789,7 @@ public class HTLCHubBuyerServer {
     				.setHtlcRoundDone(roundDone)
     				.setType(MessageType.HTLC_ROUND_DONE);
         	conn.sendToBuyer(roundDoneMsg.build());
+        	htlcRound = HTLCRound.OFF;
     		
     	} else {
 	    	// Let's ACK the successful setup
@@ -839,11 +806,11 @@ public class HTLCHubBuyerServer {
 	    	conn.sendToBuyer(htlcSetupMsg.build());
 	    	
 	    	// Call all the Android handlers to create the corresponding HTLCs
-	    	// on the path
-	    	log.info("Sending resume setup for {}", Arrays.toString(allIds.toArray()));
+	    	// on the path; ONLY DO IT FOR THE NEWLY CREATED HTLCs
+	    	log.info("Sending resume setup for {}", Arrays.toString(newHTLCIds.toArray()));
 	    	Protos.HTLCResumeSetup.Builder htlcResume = 	
 				Protos.HTLCResumeSetup.newBuilder()
-					.addAllHtlcId(allIds);
+					.addAllHtlcId(newHTLCIds);
 	    	Protos.HTLCFlow flow = Protos.HTLCFlow.newBuilder()
 				.setType(FlowType.RESUME_SETUP)
 				.setResumeSetup(htlcResume)
@@ -866,6 +833,7 @@ public class HTLCHubBuyerServer {
 			updateMsg.getRevealSecretsList();
     	List<Protos.HTLCBackOff> allBackOffs = updateMsg.getBackOffsList();
     	for (HTLCRevealSecret secret: allSecrets) {
+    		log.info("QUEUE SIZE: {}", blockingQueue.size());
     		blockingQueue.put(secret);
     	}
     	for (HTLCBackOff backoff: allBackOffs) {
@@ -885,10 +853,12 @@ public class HTLCHubBuyerServer {
     	String secret = state.getSecretForHTLC(htlcId);
     	if (secret != null) {
     		log.info("Queueing up secret for next Hub Buyer round");
-    		Protos.HTLCRevealSecret.Builder revealMsg = 
+    		Protos.HTLCRevealSecret revealMsg = 
 				Protos.HTLCRevealSecret.newBuilder()
 					.setId(htlcId)
-					.setSecret(secret);
+					.setSecret(secret)
+					.build();
+    		log.info("QUEUE SIZE: {}", blockingQueue.size());
     		blockingQueue.put(revealMsg);
     	}
     }
@@ -949,12 +919,14 @@ public class HTLCHubBuyerServer {
     		case REGISTER_SENSORS:
     			return;
     		case SENSOR_STATS:
+    			receiveSensorStatsMsg(flowMsg.getId());
     			return;
     		case SELECT:
     			receiveSelectMsg(flowMsg.getId(), flowMsg.getSelectData());
     			return;
     		case DATA:
     			receiveDataMsg(flowMsg.getDataList());
+    			return;
     		default:
     			return;
     	}
@@ -978,6 +950,23 @@ public class HTLCHubBuyerServer {
     }
     
     @GuardedBy("lock")
+    private void receiveSensorStatsMsg(String id) {
+    	Set<String> sensorStats = conn.sensorStats();
+    	Protos.HTLCSensorStats.Builder sensorMsg =
+			Protos.HTLCSensorStats.newBuilder()
+				.addAllSensors(sensorStats);
+    	Protos.HTLCFlow.Builder flowMsg = Protos.HTLCFlow.newBuilder()
+			.setId(id)
+			.setSensorStats(sensorMsg)
+			.setType(FlowType.SENSOR_STATS_REPLY); 
+    	conn.sendToBuyer(
+			Protos.TwoWayChannelMessage.newBuilder()
+				.setType(MessageType.HTLC_FLOW)
+				.setHtlcFlow(flowMsg).build()
+		);
+    }
+    
+    @GuardedBy("lock")
     private void receiveSelectMsg(String id, Protos.HTLCSelectData selectData) {
     	conn.select(id, selectData.getSensorType(), this);
     }
@@ -989,7 +978,8 @@ public class HTLCHubBuyerServer {
         	log.info("Received DATA FLOW MSG. Processing it");
     		String htlcId = data.getId();
     		List<String> sensorData = data.getDataList();
-    		if (state.isHTLCActive(htlcId)) { 
+    		log.info("DATA IS: {}", Arrays.toString(sensorData.toArray()));
+    		if (state.isHTLCActive(htlcId)) {
     			// This means the transaction that pays for this data has 
     			// not been closed yet; Store the data
         		state.setDataForHTLC(htlcId, sensorData);

@@ -18,6 +18,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.script.ScriptChunk;
 import org.bitcoinj.script.ScriptOpCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +29,6 @@ import com.google.protobuf.ByteString;
 
 public class HTLCClientState extends HTLCState {
 	
-	// TODO: ADD STATE VALIDATION FOR EACH STEP
-	
 	private static final Logger log = 
 		LoggerFactory.getLogger(HTLCClientState.class);
 	private static final NetworkParameters PARAMS = RegTestParams.get();
@@ -38,10 +37,8 @@ public class HTLCClientState extends HTLCState {
 		NEW,
 		OUTPUT_INITIATED,
 		REFUND_VERIFIED,
-		SETTLE_CREATED,
 		FORFEIT_CREATED,
-		SETTLE_EXPIRED,
-		FORFEIT_EXPIRED,
+		SETTLE_CREATED,
 		SETTLEABLE
 	}
 	private State state;
@@ -135,14 +132,14 @@ public class HTLCClientState extends HTLCState {
 	) {		
 		TransactionInput refundInput = refundTx.getInput(0);
 		
-		log.info("REFUND TX {}", refundTx);
 		ECKey.ECDSASignature clientSig = clientPrimaryKey.sign(teardownTxHash);
 		TransactionSignature clientTs = 
 			new TransactionSignature(clientSig, Transaction.SigHash.ALL, false);
 		
 		// Create the script that spends the multi-sig output.
 		ScriptBuilder bld = new ScriptBuilder();
-		bld.data(new byte[]{}); // Null dummy
+		bld.smallNum(0);
+//		bld.data(new byte[]{}); // Null dummy
 		bld.data(clientTs.encodeToBitcoin());
 		bld.data(refundSig.encodeToBitcoin());
 		bld.op(ScriptOpCodes.OP_1);
@@ -150,11 +147,15 @@ public class HTLCClientState extends HTLCState {
 		
 		refundInput.setScriptSig(refundInputScript);
 		
-		refundInputScript.correctlySpends(
+		refundInput.getScriptSig().correctlySpends(
 			refundTx, 
 			0,
 			teardownTxHTLCOutput.getScriptPubKey()
 		);
+		
+		log.error("REFUND TX: {}", refundTx);
+		log.error("REFUND TX  OUTPUT {}", refundTx.getOutput(0).getScriptPubKey().toString());
+		log.error("REFUND INPUT: {}", refundTx.getInput(0).getScriptSig().toString());
 		
 		this.refundTx = refundTx;
 		this.state = State.REFUND_VERIFIED;
@@ -170,7 +171,7 @@ public class HTLCClientState extends HTLCState {
 		settlementTx.addOutput(getValue(), serverKey.toAddress(PARAMS));
 		settlementTx.addInput(
 			teardownTxHash,
-			2,
+			getIndex(),
 			htlcPubScript
 		).setSequenceNumber(0);
 		settlementTx.setLockTime(getSettlementExpiryTime());
@@ -191,7 +192,8 @@ public class HTLCClientState extends HTLCState {
 			SigHash.ALL, 
 			false
 		);
-		
+		log.error("Settlement TX OUTPUT: {}", settlementTx.getOutput(0).getScriptPubKey().toString());
+		log.error("SETTLEMENT INPUT: {}", settlementTx.getInput(0).getScriptSig().toString());
 		this.settlementTx = settlementTx;
 		this.state = State.SETTLE_CREATED;
 		return new SignedTransaction(settlementTx, clientSig);
@@ -209,6 +211,10 @@ public class HTLCClientState extends HTLCState {
 			2,
 			htlcPubScript
 		);
+		
+		log.error("FORFEIT TX: {}", forfeitTx);
+		log.error("FORFEIT TX OUTPUT: {}", forfeitTx.getOutput(0).getScriptPubKey().toString());
+		log.error("FORFEIT TX INPUT: {}", forfeitTx.getInput(0).getScriptSig().toString());
 		
 		TransactionSignature clientSig = forfeitTx.calculateSignature(
 			0,
@@ -229,7 +235,8 @@ public class HTLCClientState extends HTLCState {
 	) {
 				
 		ScriptBuilder bld = new ScriptBuilder();
-		bld.data(new byte[]{});
+		bld.smallNum(0);
+//		bld.data(new byte[]{});
 		bld.data(forfeitTxSig.encodeToBitcoin());
 		bld.data(forfeitServerSig.encodeToBitcoin());
 		bld.op(ScriptOpCodes.OP_1);
@@ -238,7 +245,7 @@ public class HTLCClientState extends HTLCState {
 		TransactionInput forfeitInput = forfeitTx.getInput(0);
 		forfeitInput.setScriptSig(forfeitInputScript);
 		
-		forfeitInputScript.correctlySpends(
+		forfeitInput.getScriptSig().correctlySpends(
 			refundTx, 
 			0,
 			teardownTxHTLCOutput.getScriptPubKey()
@@ -247,10 +254,12 @@ public class HTLCClientState extends HTLCState {
 	}
 	
 	public void makeSettleable() {
+		log.error("MADE {} SETTLEABLE", getId());
 		this.state = State.SETTLEABLE;
 	}
 	
 	public boolean verifySecret(String secret) {
+		log.error("STATE: {}", state.toString());
 		checkState(state == State.SETTLEABLE);
 		final String hashedSecret = Hashing.sha256()
 	        .hashString(secret, Charsets.UTF_8)

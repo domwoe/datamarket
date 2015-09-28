@@ -15,7 +15,7 @@ import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.Wallet;
 import org.bitcoinj.net.NioClient;
-import org.bitcoinj.net.ProtobufParser;
+import org.bitcoinj.net.ProtobufConnection;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException;
 import org.bitcoinj.protocols.channels.PaymentIncrementAck;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
@@ -29,7 +29,7 @@ public class HTLCBuyerClientConnection {
 	private final SettableFuture<HTLCBuyerClientConnection> 
 		channelOpenFuture = SettableFuture.create();
 	private final HTLCBuyerClient channelClient;
-	private final ProtobufParser<Protos.TwoWayChannelMessage> wireParser;
+	private final ProtobufConnection<Protos.TwoWayChannelMessage> wireParser;
 	
 	public HTLCBuyerClientConnection(
 		InetSocketAddress server,
@@ -92,11 +92,11 @@ public class HTLCBuyerClientConnection {
 			}
 		);
 		 // And glue back in the opposite direction - network to the channelClient.
-	    wireParser = new ProtobufParser<Protos.TwoWayChannelMessage>(
-			new ProtobufParser.Listener<Protos.TwoWayChannelMessage>() {
+	    wireParser = new ProtobufConnection<Protos.TwoWayChannelMessage>(
+			new ProtobufConnection.Listener<Protos.TwoWayChannelMessage>() {
 	            @Override
 	            public void messageReceived(
-	        		ProtobufParser<Protos.TwoWayChannelMessage> handler, 
+            		ProtobufConnection<Protos.TwoWayChannelMessage> handler, 
 	        		Protos.TwoWayChannelMessage msg
 	    		) {
 	                try {
@@ -110,7 +110,7 @@ public class HTLCBuyerClientConnection {
 	
 	            @Override
 	            public void connectionOpen(
-	        		ProtobufParser<Protos.TwoWayChannelMessage> handler
+            		ProtobufConnection<Protos.TwoWayChannelMessage> handler
 	    		) {
 	            	System.out.println("Connection opened");
 	                channelClient.connectionOpen();
@@ -118,7 +118,7 @@ public class HTLCBuyerClientConnection {
 	
 	            @Override
 	            public void connectionClosed(
-	        		ProtobufParser<Protos.TwoWayChannelMessage> handler
+            		ProtobufConnection<Protos.TwoWayChannelMessage> handler
 	    		) {
 	                channelClient.connectionClosed();
 	                channelOpenFuture.setException(
@@ -153,11 +153,11 @@ public class HTLCBuyerClientConnection {
 		return channelClient.nodeStats();
 	}
 	
-	/*
-	public String sensorStats() {
+	
+	public ListenableFuture<FlowResponse> sensorStats() {
 		return channelClient.sensorStats();
 	}
-	*/
+	
 	
 	public ListenableFuture<List<PriceInfo>> select(String sensorType) {
 		return channelClient.select(sensorType);
@@ -182,4 +182,8 @@ public class HTLCBuyerClientConnection {
 	        // Already closed...oh well
 	    }
 	}
+	
+   public void disconnectWithoutSettlement() {
+        wireParser.closeConnection();
+    }
 }

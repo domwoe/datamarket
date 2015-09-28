@@ -4,6 +4,7 @@ package org.bitcoinj.channels.htlc.hub;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class HTLCHubAndroidServer {
 	private static final int SERVER_MAJOR_VERSION = 1;
 	private static final int CLIENT_MAJOR_VERSION = 1;
 	private final int CLIENT_MINOR_VERSION = 0;
-	private final int MAX_MESSAGES = 10;
+	private final int MAX_MESSAGES = 100;
 	
 	@GuardedBy("lock") private long minPayment;
 	
@@ -67,6 +68,9 @@ public class HTLCHubAndroidServer {
 	
 	@GuardedBy("lock")
 	private Map<String, Coin> paymentValueMap;
+	
+	@GuardedBy("lock")
+	private Map<String, Long> htlcInitTimeMap;
 	
 	private final String deviceId;
 	
@@ -109,6 +113,7 @@ public class HTLCHubAndroidServer {
 			List<String> sensors, 
 			List<Long> prices
 		);
+    	public void unregisterDevice(HTLCHubAndroidServer server);
     	public void destroyConnection(CloseReason reason);
     	public void channelOpen(Sha256Hash contractHash);
     	public boolean acceptExpireTime(long expireTime);
@@ -142,6 +147,7 @@ public class HTLCHubAndroidServer {
     	this.blockingQueue = 
 			new HTLCBlockingQueue<Protos.HTLCPayment>(MAX_MESSAGES);
     	this.currentBatch = new ArrayList<Protos.HTLCPayment>();
+    	this.htlcInitTimeMap = new HashMap<String, Long>();
     }
     
     public String getDeviceId() {
@@ -429,7 +435,7 @@ public class HTLCHubAndroidServer {
     @GuardedBy("lock")
     private void receiveHTLCRoundInit() {
     	if (htlcRound == HTLCRound.OFF) {
-    		log.info("Received block request for HTLC update from server");
+    		log.info("Received block request for HTLC update from device");
     		// Send the HTLCRound ack back to server to lock in update round
     		Protos.HTLCRoundAck.Builder htlcAck = 
 				Protos.HTLCRoundAck.newBuilder();
@@ -462,7 +468,9 @@ public class HTLCHubAndroidServer {
     
     @GuardedBy("lock")
     private void receiveHTLCRoundDone(Protos.TwoWayChannelMessage msg) {
-    	log.info("Server finished its round of updates");
+    	log.info("Device finished its round of updates");
+    	// Mark HTLCs as settleable 
+    	state.makeAllSettleable();
     	htlcRound = HTLCRound.OFF;
     	if (!blockingQueue.isEmpty()) {
     		// Start new client update round
@@ -471,9 +479,7 @@ public class HTLCHubAndroidServer {
     }
     
     @GuardedBy("lock")
-    private void receiveHTLCInit(Protos.TwoWayChannelMessage msg) {
-    	log.info("Got here w/o deadlock");
-    	
+    public void receiveHTLCInit(Protos.TwoWayChannelMessage msg) {
     	checkState(step == InitStep.CHANNEL_OPEN);
     	log.info("Received htlc INIT forwarded from Buyer server");
     	Protos.HTLCInit htlcInit = msg.getHtlcInit();
@@ -484,6 +490,7 @@ public class HTLCHubAndroidServer {
 				payment.getRequestId(), 
 				Coin.valueOf(payment.getValue())
 			);
+    		htlcInitTimeMap.put(payment.getRequestId(), new Date().getTime());
     	}
     	if (canInitHTLCRound()) {
 			initializeHTLCRound();
@@ -504,11 +511,16 @@ public class HTLCHubAndroidServer {
 		) {
     		String requestId = paymentReply.getClientRequestId();
     		String htlcId = paymentReply.getId();
+    		log.info("Received Android reply with htlcId {}", htlcId);
     		
     		// Update the map
     		Coin storedValue = paymentValueMap.get(requestId);
     		paymentValueMap.remove(requestId);
     		paymentValueMap.put(htlcId, storedValue);
+    		
+    		long htlcInitTime = htlcInitTimeMap.get(requestId);
+    		log.error("HTLC_INIT2 {} {}", htlcId, htlcInitTime);
+    		htlcInitTimeMap.remove(requestId);
     	}
     	
     	conn.forwardToBuyerServers(this, msg);
@@ -604,7 +616,7 @@ public class HTLCHubAndroidServer {
     	checkState(step == InitStep.CHANNEL_OPEN);
     	List<String> allIds = msg.getHtlcSetupComplete().getIdsList();
     	for (String id: allIds) {
-        	log.info("received HTLC setup complete for {}", id);
+    		log.error("HTLC_SETUP2 {} {}", id, new Date().getTime());
     		state.makeSettleable(id);
     	}
     	htlcRound = HTLCRound.OFF;
@@ -627,12 +639,18 @@ public class HTLCHubAndroidServer {
     	Protos.HTLCServerUpdate updateMsg = msg.getHtlcServerUpdate();
     	List<Protos.HTLCRevealSecret> allSecrets = 
 			updateMsg.getRevealSecretsList();
+    	log.info("NUMBER OF SECRETS: {}", allSecrets.size());
     	List<Protos.HTLCBackOff> allBackOffs = updateMsg.getBackOffsList();
     	
     	for (Protos.HTLCRevealSecret secretMsg: allSecrets) {
     		String secret = secretMsg.getSecret();
+    		log.info("Validating secret: {}", secret);
     		// Remove all incorrect secrets; do no propagate them on the path
     		if (!state.attemptSettle(secretMsg.getId(), secret)) {
+    			log.info(
+					"Received incorrect secret for HTLC id: {} {}", 
+					secretMsg.getId(), secretMsg.getSecret()
+				);
     			allSecrets.remove(secretMsg);
     		}
     	}
@@ -710,6 +728,7 @@ public class HTLCHubAndroidServer {
     			receiveResumeSetup(flowMsg.getResumeSetup());
     			break;
     		case DATA:
+    			log.info("RECEIVED DATA ON ANDROID SERVEr; Forwarding");
     			conn.forwardToBuyerServers(this, msg);
     			break;
     		default:
@@ -835,6 +854,7 @@ public class HTLCHubAndroidServer {
     }
     
     public void connectionClosed() {
-   		log.info("Server channel closed.");
+   		log.info("Server channel closed. Unregistering device");
+   		conn.unregisterDevice(this);
     }
 }

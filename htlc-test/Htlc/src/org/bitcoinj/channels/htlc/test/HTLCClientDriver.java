@@ -28,6 +28,7 @@ public class HTLCClientDriver {
 		LoggerFactory.getLogger(HTLCClientDriver.class);
 	private static final NetworkParameters PARAMS = RegTestParams.get();
 	private final Coin MICROPAYMENT_SIZE = CENT;
+	private HTLCPaymentChannelClientConnection client;
 	
 	private CountDownLatch latch;
 	
@@ -71,17 +72,16 @@ public class HTLCClientDriver {
 		TransactionBroadcastScheduler broadcastScheduler = 
 			new TransactionBroadcastScheduler(appKit.peerGroup());
 		
-		HTLCPaymentChannelClientConnection client = 
-			new HTLCPaymentChannelClientConnection(
-				server,
-				timeoutSecs,
-				appKit.wallet(),
-				broadcastScheduler,
-				primaryKey, 
-				secondaryKey,
-				value,
-				timeWindow
-			);
+		client = new HTLCPaymentChannelClientConnection(
+			server,
+			timeoutSecs,
+			appKit.wallet(),
+			broadcastScheduler,
+			primaryKey, 
+			secondaryKey,
+			value,
+			timeWindow
+		);
 		latch = new CountDownLatch(1);
 		Futures.addCallback(
 			client.getChannelOpenFuture(), 

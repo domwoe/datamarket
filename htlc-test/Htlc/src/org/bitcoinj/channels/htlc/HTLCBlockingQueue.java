@@ -86,4 +86,8 @@ public class HTLCBlockingQueue<T> {
 	private boolean isFull() {
 		return q.size() == limit;
 	} 
+	
+	public int size() {
+		return q.size();
+	}
 }

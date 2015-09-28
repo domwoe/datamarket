@@ -5,6 +5,6 @@ package ch.eth.datamarketclean;
 
 interface HTLCServiceListener {
    List<String> getDataFromSensor(String sensorType);
-   void handleWalletUpdate();
+   void handleWalletUpdate(long value);
    void channelEstablished();
 }

@@ -3,18 +3,10 @@
     <PreferenceCategory android:title="Quote">
         <EditTextPreference
             android:defaultValue="0"
-            android:key="EntryPrice"
-            android:title="Price entry"
+            android:key="price"
+            android:title="Price"
             android:inputType="numberDecimal"
             android:id="@+id/price_entry"
-            android:enabled="true"
-        />
-        <EditTextPreference
-            android:defaultValue="0"
-            android:key="SecAvg"
-            android:title="1 Sec Avg"
-            android:inputType="numberDecimal"
-            android:id="@+id/avg_price_entry"
             android:enabled="true"
         />
     </PreferenceCategory>

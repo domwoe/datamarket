@@ -4,27 +4,26 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.bitcoinj.core.AbstractWalletEventListener;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.InsufficientMoneyException;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.Transaction.SigHash;
+import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.core.TransactionInput;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.core.Wallet;
-import org.bitcoinj.core.Transaction.SigHash;
+import org.bitcoinj.core.listeners.AbstractWalletEventListener;
 import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.script.Script;
@@ -56,8 +55,6 @@ public class HTLCChannelClientState {
 	private final int SERVER_OUT_IDX = 0;
 	private final int CLIENT_OUT_IDX = 1;
 	
-	private final int MAX_HTLCS = 5;
-	
 	private Wallet wallet;
 	
 	private final ECKey clientPrimaryKey;
@@ -87,7 +84,8 @@ public class HTLCChannelClientState {
 	private final long htlcRefundExpiryTime;
 	
 	private Map<String, HTLCClientState> htlcMap;
-	private Set<HTLCClientState> htlcSet;
+	
+	private boolean init = false;
 
 	/**
 	 * This stores the hash of the previously seen teardown transactions;
@@ -98,14 +96,14 @@ public class HTLCChannelClientState {
 	public HTLCChannelClientState(
 		Wallet wallet, 
 		TransactionBroadcastScheduler broadcastScheduler,
-		ECKey myPrimaryKey,
-		ECKey mySecondaryKey,
+		ECKey clientPrimaryKey,
+		ECKey clientSecondaryKey,
 		ECKey serverMultisigKey,
 		Coin value,
 		long expiryTimeInSec
 	) {
-		this.clientPrimaryKey = myPrimaryKey;
-		this.clientSecondaryKey = mySecondaryKey;
+		this.clientPrimaryKey = clientPrimaryKey;
+		this.clientSecondaryKey = clientSecondaryKey;
 		this.serverMultisigKey = serverMultisigKey;
 		this.wallet = wallet;
 		this.expireTime = expiryTimeInSec;
@@ -113,7 +111,6 @@ public class HTLCChannelClientState {
 		this.htlcRefundExpiryTime = expiryTimeInSec + 2*TIME_DELTA*60;
 		this.totalValue = this.valueToMe = value;
 		this.htlcMap = new HashMap<String, HTLCClientState>();
-		this.htlcSet = new HashSet<HTLCClientState>();
 		this.teardownForfeitureTxMap = 
 			new LinkedHashMap<Sha256Hash, List<Transaction> >();
 		this.totalValueInHTLCs = Coin.valueOf(0L);
@@ -136,9 +133,23 @@ public class HTLCChannelClientState {
     
     AbstractWalletEventListener walletListener = 
 		new AbstractWalletEventListener() {
+    	
+    		@Override
+    		public void onTransactionConfidenceChanged(Wallet w, Transaction tx) {
+    			 if (multisigContract != null) {
+		    		 if (tx.getHash() == multisigContract.getHash()) {
+		    			 if (tx.getConfidence().getConfidenceType() == ConfidenceType.BUILDING &&
+		    				 tx.getConfidence().getDepthInBlocks() == 1 && !init) {
+		    				 log.error("MPC_en {} {}", clientPrimaryKey.toAddress(wallet.getParams()), new Date().getTime());
+			    			 init = true;
+		    			 }
+		    		 }
+	    		 }
+    		}
+    	
 	    	 @Override
 	    	 public void onCoinsReceived(
-				 Wallet w, 
+				 Wallet w,
 				 Transaction tx, 
 				 Coin prevBalance, 
 				 Coin newBalance
@@ -154,8 +165,8 @@ public class HTLCChannelClientState {
 		    			 // Let's broadcast all found forfeiture transactions
 		    			 // immediately
 		    			 for (Transaction forfeiture: 
-		    				 	teardownForfeitureTxMap.get(sighash)) {
-		    				 
+		    				 	teardownForfeitureTxMap.get(sighash)
+    					 ) {
 		    				 log.info("Found forfeiture: {}. Broadcasting it", forfeiture);
 		    				 broadcastScheduler.broadcastTransaction(forfeiture);
 		    			 }
@@ -391,7 +402,6 @@ public class HTLCChannelClientState {
 			)
 		);
 		
-		htlcSet.add(htlcState);
 		htlcMap.put(hashId, htlcState);		
 		log.info("Created fresh teardown tx {}", teardownTx);
 		
@@ -447,7 +457,6 @@ public class HTLCChannelClientState {
 			new HTLCKeys(clientPrimaryKey, clientSecondaryKey, serverMultisigKey)
 		);
 		
-		htlcSet.add(htlcState);
 		htlcMap.put(hashId, htlcState);		
 		log.info("Created fresh teardown tx {}", teardownTx);
 		// Now construct the signature on the teardown Tx
@@ -526,15 +535,20 @@ public class HTLCChannelClientState {
 		);
 	}
 	
+	public synchronized void makeAllSettleable() {
+		for (Map.Entry<String, HTLCClientState> entry: htlcMap.entrySet()) {
+			entry.getValue().makeSettleable();
+		}
+	}
+	
 	public synchronized void makeSettleable(String htlcId) {
 		HTLCClientState htlcState = htlcMap.get(htlcId);
 		htlcState.makeSettleable();
-		htlcSet.remove(htlcState);
 	}
 	
 	public synchronized void cancelHTLCRefundTxBroadcast(String htlcId) {
 		HTLCClientState htlcState = htlcMap.get(htlcId);
-		log.info("ATTEMPTING TO CANCEL BROADCAST HTLC REFUND TX {}", htlcState.getRefundTx());
+		//log.info("ATTEMPTING TO CANCEL BROADCAST HTLC REFUND TX {}", htlcState.getRefundTx());
 		broadcastScheduler.removeTransaction(htlcState.getRefundTx());
 	}
 
@@ -550,6 +564,8 @@ public class HTLCChannelClientState {
 		String htlcId,
 		String secret
 	) throws ValueOutOfRangeException {
+		log.info("HTLCID: {}", htlcId);
+		log.info("HTLCMAP: {}", htlcMap.get(htlcId));
 		HTLCClientState htlcState = htlcMap.get(htlcId);
 		if (htlcState.verifySecret(secret)) {
 			log.info("Secret verified");
@@ -602,6 +618,7 @@ public class HTLCChannelClientState {
 	
 	private synchronized void refundHTLC(HTLCClientState htlcState) {
 		checkState(htlcState.isSettleable());
+		cancelHTLCRefundTxBroadcast(htlcState.getId());
 		removeHTLC(htlcState);
 		Coin htlcValue = htlcState.getValue();
 		valueToMe = valueToMe.add(htlcValue);
@@ -613,6 +630,7 @@ public class HTLCChannelClientState {
 	private synchronized void closeHTLC(HTLCClientState htlcState) 
 			throws ValueOutOfRangeException {
 		checkState(htlcState.isSettleable());
+		cancelHTLCRefundTxBroadcast(htlcState.getId());
 		removeHTLC(htlcState);
 		Coin htlcValue = htlcState.getValue();
 		totalValueInHTLCs = totalValueInHTLCs.subtract(htlcValue);
@@ -625,7 +643,8 @@ public class HTLCChannelClientState {
 	private synchronized void removeHTLC(HTLCClientState htlcState) {
 		checkState(htlcState.isSettleable());
 		
-		List<TransactionOutput> allOutputs = teardownTx.getOutputs();
+		List<TransactionOutput> allOutputs = 
+			new ArrayList<TransactionOutput>(teardownTx.getOutputs());
 		Iterator<TransactionOutput> itr = allOutputs.listIterator();
 		while (itr.hasNext()) {
 			TransactionOutput output = itr.next();

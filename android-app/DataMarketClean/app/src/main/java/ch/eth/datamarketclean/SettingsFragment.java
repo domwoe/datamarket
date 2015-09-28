@@ -1,7 +1,10 @@
 package ch.eth.datamarketclean;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.util.Log;
 
@@ -10,6 +13,7 @@ import android.util.Log;
  */
 public class SettingsFragment extends PreferenceFragment {
 
+    private static final String PREFERENCES = "DataMarketPreferences";
     private SettingsChangedListener mSettingsListener;
 
     @Override
@@ -32,10 +36,9 @@ public class SettingsFragment extends PreferenceFragment {
         super.onPause();
     }
 
-    static final class SettingsChangedListener implements SharedPreferences.OnSharedPreferenceChangeListener {
+    final class SettingsChangedListener implements SharedPreferences.OnSharedPreferenceChangeListener {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            Log.e("Frabu:", key);
         }
     }
 }

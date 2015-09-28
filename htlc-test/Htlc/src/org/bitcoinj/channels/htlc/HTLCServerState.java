@@ -32,11 +32,14 @@ public class HTLCServerState extends HTLCState {
 		SETTLE_RECEIVED,
 		FORFEIT_RECEIVED,
 		FORFEIT_RETRIEVED,
-		SETTLE_RETRIEVED
+		SETTLE_RETRIEVED,
+		SECRET_RETRIEVED
 	}
 	private State state;
 	
 	private Transaction refundTx;
+	
+	private TransactionOutput teardownTxHTLCOutput;
 	
 	private Transaction settlementTx;
 	private TransactionSignature serverSettlementTxSig;
@@ -87,23 +90,29 @@ public class HTLCServerState extends HTLCState {
 		ECKey clientKey,
 		ECKey serverKey
 	) {
-		checkState(state == State.NEW || state == State.FORFEIT_RECEIVED);
-		TransactionOutput htlcOut = teardownTx.getOutput(idx);
+		checkState(
+			state == State.NEW || 
+			state == State.FORFEIT_RECEIVED || 
+			state == State.SECRET_RETRIEVED
+		);
+		teardownTxHTLCOutput = teardownTx.getOutput(idx);
 		refundTx = new Transaction(PARAMS);
-		refundTx.addOutput(htlcOut.getValue(), clientKey.toAddress(PARAMS));
-		refundTx.addInput(htlcOut).setSequenceNumber(0);
+		refundTx.addOutput(teardownTxHTLCOutput.getValue(), clientKey.toAddress(PARAMS));
+		refundTx.addInput(teardownTxHTLCOutput).setSequenceNumber(0);
 		refundTx.setLockTime(getRefundExpiryTime());
+		
+		log.error("REFUND TX: {}", refundTx);
 		
 		TransactionSignature serverRefundSig = refundTx.calculateSignature(
 			0,
 			serverKey,
-			htlcOut.getScriptPubKey(),
+			teardownTxHTLCOutput.getScriptPubKey(),
 			Transaction.SigHash.ALL,
 			false
 		);
 		Sha256Hash sighash = refundTx.hashForSignature(
 			0, 
-			htlcOut.getScriptPubKey(), 
+			teardownTxHTLCOutput.getScriptPubKey(), 
 			Transaction.SigHash.ALL, 
 			false
 		);
@@ -113,7 +122,6 @@ public class HTLCServerState extends HTLCState {
 	
 	public void verifyAndStoreSignedSettlementTx(
 		ECKey clientSecondaryKey,
-		Script htlcPubScript,
 		Transaction settlementTx,
 		TransactionSignature settlementClientSig
 	) {
@@ -121,7 +129,7 @@ public class HTLCServerState extends HTLCState {
 		// Verify that the client's signature is correct
 		Sha256Hash sighash = settlementTx.hashForSignature(
 			0, 
-			htlcPubScript, 
+			teardownTxHTLCOutput.getScriptPubKey(), 
 			Transaction.SigHash.ALL, 
 			false
 		);
@@ -140,7 +148,6 @@ public class HTLCServerState extends HTLCState {
 	
 	public void verifyAndStoreSignedForfeitTx(
 		ECKey clientPrimaryKey,
-		Script htlcPubScript,
 		Transaction forfeitTx,
 		TransactionSignature clientForfeitTxSig
 	) {
@@ -148,7 +155,7 @@ public class HTLCServerState extends HTLCState {
 		// Verify that the client's signature is correct
 		Sha256Hash sighash = forfeitTx.hashForSignature(
 			0, 
-			htlcPubScript, 
+			teardownTxHTLCOutput.getScriptPubKey(), 
 			Transaction.SigHash.ALL, 
 			false
 		);
@@ -170,7 +177,7 @@ public class HTLCServerState extends HTLCState {
 		TransactionSignature serverSig = forfeitTx.calculateSignature(
 			0, 
 			serverKey, 
-			teardownTx.getOutput(2).getScriptPubKey(), 
+			teardownTxHTLCOutput.getScriptPubKey(), 
 			SigHash.ALL,
 			false
 		);
@@ -184,11 +191,10 @@ public class HTLCServerState extends HTLCState {
 	) {
 		checkState(state == State.FORFEIT_RETRIEVED);
 		TransactionInput settleTxIn = settlementTx.getInput(0);
-		TransactionOutput htlcOutput = teardownTx.getOutput(2);
 		TransactionSignature serverSig = settlementTx.calculateSignature(
 			0,
 			serverKey,
-			htlcOutput.getScriptPubKey(),
+			teardownTxHTLCOutput.getScriptPubKey(),
 			SigHash.ALL,
 			false
 		);
@@ -196,14 +202,18 @@ public class HTLCServerState extends HTLCState {
 		
 		// Create the script that spends the multisig output.
 		ScriptBuilder bld = new ScriptBuilder();
-		bld.data(serverSettlementTxSig.encodeToBitcoin());
 		bld.data(clientSettlementTxSig.encodeToBitcoin());
+		bld.data(serverSettlementTxSig.encodeToBitcoin());
 		bld.data(secret.getBytes());
-		bld.data(new byte[]{});
+		bld.smallNum(0);
 		Script inputScript = bld.build();
 
 		settleTxIn.setScriptSig(inputScript);
-		settleTxIn.verify(htlcOutput);
+		settleTxIn.getScriptSig().correctlySpends(
+			settlementTx, 
+			0, 
+			teardownTxHTLCOutput.getScriptPubKey()
+		);
 	
 		this.state = State.SETTLE_RETRIEVED;
 		return settlementTx;
@@ -214,6 +224,7 @@ public class HTLCServerState extends HTLCState {
 	}
 	
 	public String getSecret() {
+		this.state = State.SECRET_RETRIEVED;
 		return secret;
 	}
 }

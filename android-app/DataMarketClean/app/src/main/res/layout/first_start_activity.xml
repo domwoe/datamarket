@@ -33,14 +33,6 @@
             android:id="@+id/textView2"
             android:layout_gravity="left|center_vertical" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="1 Secong Avg"
-            android:id="@+id/textView3"
-            android:layout_gravity="left|bottom" />
-
         <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -49,13 +41,6 @@
             android:id="@+id/editText"
             android:layout_gravity="right|center_vertical" />
 
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:ems="10"
-            android:id="@+id/editText2"
-            android:layout_gravity="right|bottom" />
     </FrameLayout>
 
     <FrameLayout

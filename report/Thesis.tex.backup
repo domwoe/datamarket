@@ -10,6 +10,7 @@
 \usepackage{lscape}
 \usepackage{rotating}
 \usepackage{epstopdf}
+\usepackage{float}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,18 +50,21 @@ ETH Zürich}
 \hspace*{12pt} In recent years, there has been a widespread expansion of data collection and complex methods to analyze such 
 collected data. Everyone is constantly generating data by using a large range of computers, smartphones, and gadgets.
 In addition, there is an emerging trend towards the Internet of Things technologies that consist
-of billions of sensor nodes bridging the gap between the physical and the digital world, and creating massive amounts
-of data, but with no incentive to share. 
+of billions of sensor nodes creating massive amounts of data, but with no incentive to share. To provide an incentive for
+data sharing, data markets need to be created such that interested customers can subscribe to and 
+pay for the acquired data. Bitcoin provides an Internet-native payment mechanism, and protocols on top of Bitcoin are 
+able to support small payments and avoid high cumulated transaction processing costs.
 
-	In order to provide an incentive for the sensor node owners to share the generated data, these sensor networks
-have to initiate data markets that interested customers can subscribe to and pay for the acquired data. Bitcoin provides
-an Internet-native payment mechanism and protocols on top of Bitcoin are able to support small payments and avoid 
-high cumulated transaction processing costs.
+	The aim of this thesis is to propose, implement and evaluate a centralized, low-trust and secure scheme 
+that allows buyers to purchase data from any Internet-connected sensor node using Bitcoin payments. 
+It first examines existing Bitcoin constructs and protocols such as micropayment channels to aggregate 
+payments and minimize transaction fees, and contracts between protocol participants to minimize trust. 
+In a second stage, these building blocks are combined, and a full two-hop payment protocol is derived. 
+Finally, this protocol is implemented and experimental results are charted.
 
-	This thesis proposes a centralized secure scheme that allows data purchasing from any Internet-connected sensor
-node using Bitcoin payments. Based on micropayment channels to aggregate payments and minimize transaction fees, 
-and on contracts between the protocol participants to minimize trust, the scheme allows human judgement to be taken
-out of the loop and supports complete automation. 
+	The results of the evaluation show that the built system is well-suited for the Internet of Things scenario,
+allowing buyers to purchase data in real-time. In addition, the evaluation proves that the protocol allows 
+human judgment to be taken out of the loop and supports complete automation. 
 \end{abstract}
 
 \tableofcontents
@@ -71,10 +75,11 @@ out of the loop and supports complete automation.
 \chapter{Introduction}
 
 \hspace*{12pt} The Internet of Things (IoT) is a novel concept that has rapidly expanded in the last few years, 
-refering to the network formed by any physical object, embedded with sensors and connectivity \textemdash 
-such as Radio-Frequency  Identification (RFID) tags, sensors, smartphones, etc. \textemdash that enables such 
-nodes to exchange data. This technology allows these objects to be sensed and controlled remotely (\cite{iotsurvey}), 
-having a great impact on the every-day life of users, and resulting in efficiency and financial benefits.
+referring to the network formed by any physical object embedded with sensors and connectivity that enables such 
+nodes to exchange data. This network can include objects such as as Radio-Frequency  Identification (RFID) tags, 
+sensors, smartphones, etc. The IoT technology allows these objects to be queried for data and controlled 
+remotely \cite{iotsurvey}, having a great impact on the every-day life of users, and resulting in 
+efficiency and financial benefits.
 
 Sensor nodes with Internet connectivity enable attractive sensing applications in various domains, ranging from
 health-care, security and surveillance, event forecasts, environmental monitoring, agriculture automation, 
@@ -89,17 +94,18 @@ a decentralized electronic payment system. Bitcoin has at its root the block cha
 that is shared by all network nodes. However, the solutions following this approach fail to address the 
 scalability problem of Bitcoin: they rely on atomic operations that are completed directly on the block chain, 
 thus increasing its size. At the moment, Bitcoin supports less than 7 transactions per second with a 1 megabyte block limit,
-with a fee per transaction of 0.0001 BTC, equivalent to $0.02$ USD. Broadcasting a high volume of small-value transactions 
+with a fee per transaction of $0.0001$ BTC, equivalent to $0.02$ USD. Broadcasting a high volume of small-value transactions 
 for each individual data query is clearly not feasible since Bitcoin does not support such a high transaction rate, and 
 the associated fees could easily exceed the transfered amount.
 
 This project proposes a centralized, low-trust and secure scheme that allows and incentivizes sensor nodes
-to share sensed data and get paid in exchange in bitcoins. The presented solution utilizes micropayment channels
-to solve Bitcoin's scalability problem by bundling several small payments for each set of acquired data and only
-publishing the final, aggregated transaction to the network. In order to confer a low-trust relation between the system 
-entities, the protocol relies on contracts that pass the payment obligation down from the buyer to the central coordinator,
-and then to the sensor node. In addition to the theoretical model, a proof-of-concept is built based on the Android built-in
-sensors.
+to share sensed data and get paid in exchange in bitcoins. The presented solution relies on micropayment 
+channels to solve the scalability problem of Bitcoin by bundling several small payments for each set 
+of acquired data and only publishing the final, aggregated transaction to the network. 
+In order to confer a low-trust relation between the system entities, the protocol relies on contracts 
+that pass the payment obligation down from the buyer to the central coordinator, and then to the sensor node. 
+In addition to the theoretical model, a proof-of-concept is implemented based on the Android built-in sensors
+and evaluated on the Bitcoin TestNet.
 
 \section{Background}
 
@@ -212,7 +218,7 @@ intermediaries from delaying or keeping funds for themselves.
 To create an HTLC, a special {\it HTLC setup transaction} is created. Its output can only be claimed 
 by the final recipient {\it B} of the payment using a previously created secret.
 In order to receive a payment, {\it B} has to generate a secret {\it R} and hash it to obtain {\it H}. 
-Then {\it H} and the B's address are directly transferred to the payer {\it A}. 
+Then {\it H} and B's address are directly transferred to the payer {\it A}. 
 At this step, all nodes on the  payment path between the sender {\it A} and the recipient {\it B}
 need to create HTLC setup transactions connected to the output of a shared account 
 using the provided hash H. The output of the HTLC setup contains a pubScript as shown in
@@ -233,7 +239,8 @@ step by step by all nodes on path all the way back to {\it A}, which completes t
 
 To prevent the intermediaries from delaying the funds, stealing or keeping them hostage, 
 HTLC refund, settlement and sometimes forfeiture transactions are created, all three types
-claiming the HTLC output. 
+claiming the HTLC output. The detailed structure of these transactions is given in the 
+Appendix \ref{fig:pubscripts}.
 The {\it HTLC refund transaction} is similar to the refund that is created in the micropayment
 channel setup protocol, but has a higher time lock to give the sender enough time
 to react, should the receiver not cooperate.
@@ -259,11 +266,6 @@ sign a forfeiture transaction and hand it over to the sender, guaranteeing the s
 it will not use an older setup transaction. By doing this, the HTLC output is again
 removed, and its value is added back to the output of the sender.
 
-%Notes: 
-% reputation systems
-% bitcoin soft-fork from Lightning to secure the protocol
-% Android device can encrypt data with the buyer's pubkey  + secret : onion, or ECDSA
-
 \section{Related work}
 
 \hspace*{12pt} Following the expansion trend of the Internet of Things technologies, there has been an increasing interest in 
@@ -283,7 +285,7 @@ Amazon Flexible Payment Service uses a central provider that aggregates
 clients' micropayments into macropayments that are flushed to the seller at specific times. This solution
 does not provide anonymity, since the central provider can keep track of all payments, and moreover,
 was discontinued on June 1, 2015.
-Other protocols (\cite{microrevisited}) involve a probabilistic approach. Using a selection rate {\it s}, it
+Other protocols \cite{microrevisited} involve a probabilistic approach. Using a selection rate {\it s}, it
 discards all unselected micropayments and selects one with probability {\it s} that can be deposited for an amount
 {\it 1/s} times bigger than the original amount. This should ensure everyone gets, on average, the expected amount. 
 However, this solution lacks anonymity, requires PKI certificates and comes closer to a bet than an actual transaction.
@@ -294,62 +296,62 @@ The \cite{couponbased} paper proposes an anonymous, semi-offline micropayment sy
 In this approach, an electronic coin is obtained by iteratively applying a hash function to some initial seed, 
 thus allowing the user to spend it in fractions, by presenting a set of hash chain nodes to the vendor. 
 The protocol is designed to meet the needs of IoT transactions, however, it has limited potential to be 
-implemented because it does not rely on an existing financial institution. 
-Another coupon-based system has been proposed by Rivest in \cite{Rivest:1996:PMT:647214.720369} and was improved by Payeras-Capella 
-(\cite{Payeras-Capella:2003:EAS:1758260.1758276}) to integrate anonymity and prevent users from exceeding their account limit. The drawback of the
-latter is that the financial institution needs to be contacted directly before each payment, and any unspent value is lost
+implemented because it does not rely on an existing payment infrastructure. 
+Another coupon-based system has been proposed by Rivest in \cite{Rivest:1996:PMT:647214.720369} and was 
+improved by Payeras-Capella (\cite{Payeras-Capella:2003:EAS:1758260.1758276}) to integrate anonymity and 
+prevent users from exceeding their account limit. The drawback of the latter is that the financial institution 
+needs to be contacted directly before each payment, and any unspent value is lost
 in favor of the financial institution. Wilusz \cite{3279} solves these issues by requiring a single 
-contact with the financial institution at coin issue time and allowing the user to use unspent fractions in future transactions.
-However, a clearing house is necessary to lock in the coin by the vendor, which increases transactions costs, 
-and poses the risk of locking the coin indefinitely.
+contact with the financial institution at coin issue time and allowing the user to use unspent fractions in 
+future transactions. However, a clearing house is necessary to lock in the coin by the vendor, which 
+increases transactions costs, and poses the risk of locking the coin indefinitely.
 
 It is worth mentioning that there have been several proposals and ideas that can be exploited to support
 trustless, instant, off-the-chain Bitcoin payments on the Bitcoin discussion forum \cite{forum} by Mike Hearn, 
-Alex Akselrod, hashcoin, Meni Rosenfeld, C.J. Plooy, Tier Nolan etc.
+Alex Akselrod, C.J. Plooy, Tier Nolan etc.
 
 On the Contracts page of the Bitcoin Wiki \cite{hearnmicropay}, Mike Hearn describes an idea
 on how to trade with somebody with no trust involved, based on multi-signature transactions. 
-The funds get locked in a shared account controlled by at least two of the three participating parties: the client, 
-merchant and mediator. If the transaction is successful or a refund is agreed upon, the client and the merchant 
-can move funds. If the trade fails, the client and the mediator can agree, and a charge-back occurs. 
-Finally, if the goods are delivered but the client does not want to fulfill its part of the agreement,
-the mediator and the merchant agree and the merchant gets the client's money. Mike also proposed the 
-idea of trading across multiple currencies without a third party, and Tier Nolan formalized it in a 
-protocol that allows the exchange atomically, using time locks and hash commits.
+Hearn also proposed the idea of trading across multiple currencies without a third party, 
+and Tier Nolan formalized it in a protocol that allows the exchange atomically, using time locks and hash commits.
 
 C.J. Plooy presented a draft that combines Bitcoin and Ripple to create a high-speed, scalable, anonymous, 
-decentralized, low-trust payment network \cite{ripplebitcoin}. In this Bitcoin-specialized variation of 
-the Ripple system, neighboring pairs have a shared account that is partly allocated to one of them, and the 
-rest to the other, as agreed between the two, which lowers the needed trust. Using sequence numbers to update 
-this transaction as payments in the network are made and lock times to prevent blocking the money indefinitely. 
-
-Meni Rosenfeld proposed a simple way of reusing existing micropayment channels instead of establishing new ones if a 
-path between the payer and the payee already exists. The intermediaries would then only be trusted with the amount 
-of a single payment from a single buyer. 
+decentralized, low-trust payment network \cite{ripplebitcoin}. Ripple \cite{ripple} is a real-time gross settlement system
+based on a distributed consensus ledger. It manages transactions as as debts between trusted parties. 
+In this Bitcoin-specialized variation of the Ripple system, neighboring pairs have a shared account that is 
+partly allocated to one of them, and the rest to the other, as agreed between the two, which lowers the 
+needed trust. Using sequence numbers to update this transaction as payments in the network are made and 
+lock times to prevent blocking the money indefinitely. 
 
 Alex Akselrod proposed \cite{draft} \cite{eschaton} and built a proof-of-concept
 for chained micropayment channels with two-phase commits. The original micropayment channel payment scheme was modified
 to allow sending funds both ways using commit hashes and cycles of refund transaction updates with decreasing
-time locks. However, the proposal suffers from the Bitcoin malleability issue \cite{malleability} and the possibility of getting 
-money locked in indefinitely, should the contract transaction be broadcast before refund transactions are fully signed.
+time locks. However, the proposal suffers from the Bitcoin malleability issue \cite{malleability} 
+and the possibility of getting money locked in indefinitely, should the contract transaction be broadcast before 
+refund transactions are fully signed.
 
-Peter Todd's proposal in \cite{hubandspoke} provides the an efficient way for establishing micropayment
+Peter Todd's proposal in \cite{hubandspoke} provides an efficient way for establishing micropayment
 channels between peers with a central hub. This central entity plays the role of a router, forwarding
 payments from the payer to the payee. Suppose Alice and Bob have previously established micropayment channels with
 the hub. If Alice wishes to send bitcoins to Bob, she should normally establish a new micropayment channel with him.
 However, both of them have channels opened with the hub, so Alice can send the funds to the hub, and the hub can then
 forward the payment to Bob. Using Hub-and-Spoke payments, payments between buyers and service providers with a central
-coordinator can be made efficiently, saving costs in terms of fees. However, the forwarding process should be enforced and secured,
-part that is noted in the proposal, but without specifying an actual way to do so. 
+coordinator can be made efficiently, saving costs in terms of fees. However, the forwarding process should be enforced
+and secured, part that is noted in the proposal, but without specifying an actual way to do so. 
 
 The Lightning paper \cite{lightning} presents a promising solution to Bitcoin's scalability problem and provides a way to
 securely forward payments on a path of peers through block chain enforced contracts. 
-It solves the issue by using timelocks on a network of micropayment channels combined with Hashed Timelock Contracts (HTLC) 
-\textemdash recipient generates random data R, hashes it to produce H and sends H to the sender of funds, together with its bitcoin address. 
-Sender routes its payment to the receiver and when an updated transaction is received, the recipient may elect to redeem the 
-transaction by disclosing the random data R, which pulls the funds from the sender. With the introduction of a new sighash
-type which solves malleability, the proposed protocol allows offchain transactions between untrusted parties 
-with fully enforceable contracts, making Bitcoin scale to billions of users.
+It solves the issue by using timelocks on a network of bidirectional micropayment channels combined with 
+Hashed Timelock Contracts (HTLC) introduced in Section \ref{htlcintro}. With the introduction of a 
+new sighash type which solves malleability, the proposed protocol allows offchain transactions between 
+untrusted parties with fully enforceable contracts. However, due to the missing symmetry of the IoT scenario,
+this solution allowing bidirectional fund transfers cannot be applied 
+
+However, in the IoT scenario, payments are made only way, from buyers to data providers, 
+
+However, this solution allowing bidirectional fund transfers 
+is not applicable to the IoT scenario due to the missing symmetry: payments are made only one way, from
+buyers to data providers.
 
 \chapter{Design}
 
@@ -362,19 +364,20 @@ to share sensed data and get paid in exchange must meet the following requiremen
  \item Provide an entity that buyers can query for available data and that can provide sensor node contact
  information.
  \item Scalability: avoid broadcasting all micro-transactions to the block chain.
- \item Efficiency and speed: fast communication between components, payments and data should be confirmed and received instantly
- \item End-to-end security of the payments.
+ \item Efficiency: fast communication between components, payments and data should be confirmed and 
+ received instantly.
+ \item End-to-end security of the payments: intermediary nodes should not be able to keep funds for themselves.
  \item Anonymous: linking of buyers and sellers and identification across sessions should not be possible.
 \end{itemize}
 
 \section{System Overview}
 
 \hspace*{12pt} The design of the payment system achieving the requirements above comprises three major components:
-sensor nodes, a central hub, and data buyers. The first component consists of several sensor data providers 
-:IoT sensor nodes, Android phones running specialized app, etc. The central hub plays an essential role 
-in sensor node discovery, payment and data relaying.  Last, the buyers' component consists of all entities
-interested in the sensed data. The communication between the buyers and the hub, and 
-between the hub and the sensor nodes is done through TCP links.
+sensor nodes, a central hub, and data buyers. The first component consists of several sensor data providers: 
+IoT sensor nodes, Android phones running specialized apps, etc. The central hub plays an essential role 
+in sensor node discovery, payment and data relaying. Last, the buyers' component consists of all entities
+interested in the sensed data. All three components needs Internet connectivity to communicate with
+each other and the Bitcoin network.
 
 \begin{figure}[!ht]
   \includegraphics[width=\textwidth]{figures/SystemOverview}
@@ -386,12 +389,12 @@ between the hub and the sensor nodes is done through TCP links.
 \subsection{Sensor nodes}
 
 \hspace*{12pt} The sensor nodes are the data generating elements in the system. Their role is to obtain various
-parameters about the surrounding environment and provide this data to interested entities for a fixed cost.
+parameters about the surrounding environment and provide this data to interested entities for a fixed price.
 
 In order to participate in the system, the sensor nodes need Internet connectivity to establish 
-TCP connections to the central hub. The node then initiates the establishment of a long-term micropayment channel. 
-Once the setup is complete, the availability of the sensors is signaled to the hub, which registers them
-accordingly for future buyer queries.
+TCP connections to the central hub. The node then initiates the establishment of a long-term micropayment channel,
+for example, $30$ days. Once the setup is complete, the availability of the sensors is signaled to the hub, 
+which registers them accordingly for future buyer queries.
 
 \subsection{Buyers}
 
@@ -410,9 +413,9 @@ can run queries such as:
 \subsection{Central Hub}
 
 \hspace*{12pt} At the heart of the system lies the central hub. According to the requirements, the hub acts as 
-a coordinator, payment forwarding medium and meeting point between the buyers and the data providers. It establishes micropayment
-channels with all sensor nodes sharing their data and all buyers. On the other hand, each of the other two components
-only need to keep one micropayment channel open, with the central hub.
+a coordinator, payment forwarding medium and meeting point between the buyers and the data providers. 
+It establishes micropayment channels with all sensor nodes and all buyers. On the other hand, each of the 
+other two components only need to keep one micropayment channel open, with the central hub.
 
 When a new data provider connects to the central entity, it establishes a TCP connection and sets up a new 
 micropayment channel between the two. That is, the hub has to lock in a certain amount for a longer time interval 
@@ -428,9 +431,10 @@ between the buyers and nodes.
 
 \subsection{Achieving Scalability and Efficiency}
 
-\hspace*{12pt} In order to achieve scalability and efficiency, there are two important factors that need to be taken
-into account: the inherent scalability issue of Bitcoin and the number of peer pairs that need
-to interact to successfully get payments from buyers to the sensors.
+\hspace*{12pt} In order to achieve scalability and efficiency, there are three important factors that need to be taken
+into account: the inherent scalability issue of Bitcoin, the number of peer pairs that need
+to interact to successfully get payments from buyers to the sensors, and the long and probabilistic 
+confirmation times of Bitcoin transactions.
 
 Creating new transactions for each small-value payment would have a very high overhead in terms of fees, 
 which reduces the incentive for both the buyers and the sensor nodes to participate in the protocol. 
@@ -478,7 +482,7 @@ the full channel amount to the sender, and $0$ to the recipient. When a new paym
 instead of directly increasing the amount which the recipient, an HTLC output with the
 payment amount is added to the HTLC setup transaction, which requires a secret $R$, 
 known only by the recipient, to be revealed in order to claim the payment. 
-As previously explained in \ref{htlcintro}, the HTLC output is spent by three
+As previously explained in Section \ref{htlcintro}, the HTLC output is spent by three
 transactions: the HTLC refund, settlement and forfeiture transactions.  These transactions
 are only to be used for conflict resolution.
 
@@ -534,8 +538,8 @@ can reveal the secret so late the upstream is not given the opportunity to claim
 
 \hspace*{12pt} By design, the role of the central hub is to connect data buyers and sellers, and given that
 the lifetime of the established micropayment channels are rather long, the hub can easily analyze
-the data a buyer is interested in, build a profile and ultimately, identifying it. To address
-this privacy issue, buyers could make use of an anonymization network, such as Tor,
+the data a buyer is interested in, build a profile and ultimately, identify it. To address
+this privacy issue, buyers could make use of an anonymization network, such as Tor \cite{tor},
 open several, shorter-lived sessions, over several vantage points, 
 and spread payments and data exchanges on these session when buying different sets of data. 
 An additional precaution is to never reuse addresses across sessions. 
@@ -544,9 +548,8 @@ and the hub cannot link anymore buyers and data they have purchased through the 
 
 \chapter{Implementation}
 
-\hspace*{12pt} The focus of this work is to propose a centralized, low-trust, and secure scheme that enables
-IoT sensor nodes to share their data in exchange for bitcoins. Following the introduced design, 
-the Java implementation of a proof-of-concept based on the Android built-in sensor is presented in this chapter.
+\hspace*{12pt} Following the introduced design, the Java implementation of a proof-of-concept based on 
+the Android built-in sensor is presented in this chapter.
 
 \section {API design}
 
@@ -759,22 +762,14 @@ and sending the fresh HTLC id. From this stage on, each HTLC payment will be ref
 
 At this step, the client can also create HTLCClientStateMachine instances and update the HTLC setup transaction, adding
 outputs for each initiated payment. The transaction is then signed and sent over to the server, together with the 
-payment ids and indexes of each payment output.
+payment id and index of each active HTLC output.
 
-Because of the Bitcoin malleability issue, this stage in the protocol has a major caveat: it sends over the signed 
-HTLC setup transaction before having any signed HTLC refund transaction that protects the client in case the server
-decides to lock away the funds in the HTLC outputs indefinitely. It cannot be avoided without the malleability fix,
-because the client cannot create by itself an HTLC refund transaction that spends from the HTLC output:
-the HTLC setup transaction spends from the multisig output between the two parties, and it needs to be fully signed
-for the refund transaction to correctly reference it by its hash. Thus, in the current implementation, a minimal amount
-of trust is needed in the server component, that it will indeed sign, compute the hash of the HTLC setup transaction,
-and return signed HTLC refund transactions for all active HTLC payments (HTLCSignedRefundWithHash). 
+Upon receiving the updated and signed HTLC setup transaction, the server can compute its hash,
+and return signed HTLC refund transactions for all active HTLC payments (HTLCSignedRefundWithHash).
 This step is necessary because removing outputs from the HTLC setup transaction invalidates the signatures 
-of previously created HTLC refund, settlement and forfeiture transactions. The amount of trust
-can be adjusted by limiting the number of active HTLC payments at a time.
+of previously created HTLC refund, settlement and forfeiture transactions.
 
-Once the client received the HTLC setup transaction hash and HTLC refund transactions for each payment, 
-the protocol is back to a secure state. The client stores the HTLC refund transactions and broadcasts them 
+Once the client received the HTLCSignedRefundWithHash message, it stores the HTLC refund transactions and broadcasts them 
 when their time lock expires if the HTLC setup transaction makes it to the block chain and the corresponding
 HTLC outputs are not claimed by that time. The client can now recreate the HTLC forfeiture and settlement transactions
 for all active HTLC payments, sign and hand them over to the server. After the server checks the signatures 
@@ -984,7 +979,7 @@ connected to the same local Internet network.
 
 \subsubsection{Micropayment channels}
 
-\hspace*{12pt} The time needed to set up the micropayment channels between the buyers and the hub was measured. 
+\hspace*{12pt} The time needed to set up and close the micropayment channels between the buyers and the hub was measured. 
 In the {\it bitcoinj} library, the server signals the client that the micropayment channel has been opened 
 immediately after the multi-signature contract propagated to the network. 
 However, in order to be truly secure, the channel should only be considered open after the transaction
@@ -1015,127 +1010,137 @@ The following data was collected during the experiment:
 
 \subsubsection{Micropayment channels}
 
-\hspace*{12pt} As it can be seen in Table \ref{microsetup}, the time spent by buyers to establish a micropayment channel
-with the central hub varies from a couple of seconds to just under a minute. This variation is given by the 
-probabilistic nature of proof of work performed by the miners to include transactions in new blocks. In addition,
+\hspace*{12pt} As it can be seen in Table \ref{microsetup}, the time spent by buyers to establish 
+a micropayment channel with the central hub and close it at the end of a session varies 
+from a couple of minutes for up to ten minutes. This variation is given by the probabilistic nature 
+of proof of work performed by the miners to include transactions in new blocks. In addition,
 the TestNet tends to be rather unstable due to experimental work. In the main Bitcoin network, the expected time
 to get a transaction included in the block chain is 10 minutes.
 
 \begin{table}[!ht]
 \centering
-\begin{tabular}{|l|c|}
+\begin{tabular}{|l|r|r|}
 \hline
-{\bf }   	& \multicolumn{1}{l|}{{\bf Micropayment channel}} \\ \hline
-Mean            & 22.114 {[}s{]}                                  \\ \hline
-St. Dev.        & 13.588 {[}s{]}                                  \\ \hline
+{\bf Micropayment channel}   	& \multicolumn{1}{l|}{{\bf Setup}} & \multicolumn{1}{l|}{{\bf Close}} \\ \hline
+Mean            		& 107.11 s	    	           &   977.83 s          \\ \hline
+St. Dev.        		& 5.16 s	                   &   3.34 s         \\ \hline
 \end{tabular}
-\caption{Micropayment channel setup time average and standard deviation on TestNet.}
+\caption{Micropayment channel setup and close time average and standard deviation on TestNet.}
 \label{microsetup}
 \end{table}
 
 \subsubsection{Queries} 
 
-\begin{table}[]
+\begin{table}[H]
 \centering
-
 \begin{tabular}{|l|c|r|r|}
 \hline
 {\bf Query type}   & {\bf Nr. of queries} & \multicolumn{1}{l|}{{\bf Mean}} & \multicolumn{1}{l|}{{\bf St. Dev.}} \\ \hline
-Select		   & 853                  & 41.62 {[}ms{]}                  & 2.86 {[}ms{]}                       \\ \hline
-Node stats         & 863                  & 40.91 {[}ms{]}                  & 2.68 {[}ms{]}                       \\ \hline
-Sensor stats       & 922                  & 40.75 {[}ms{]}                  & 4.25 {[}ms{]}                       \\ \hline
-Buy  		   & 744 		  & 1581.74 {[}ms{]}		    & 1497.95 {[}ms{]}			  \\ \hline
+Select		   & 853                  & 41.6 ms                  & 2.9 ms                      \\ \hline
+Node stats         & 863                  & 40.9 ms                  & 2.7 ms                      \\ \hline
+Sensor stats       & 922                  & 40.8 ms                  & 4.3 ms                      \\ \hline
+Buy  		   & 744 		  & 1497.9 ms		    & 229.9 ms			  \\ \hline
 \end{tabular}
 \caption{Mean and standard deviation of the response times for select, node and sensor queries.}
 \label{simplequeries}
 \end{table}
 
 \hspace*{12pt} To get a better understanding of where is most of the response time for buy queries is 
-spent in the system, a breakdown of the measurements is given for each system component.
+spent in the system, a breakdown of the measurements is given for each hop on the payment path.
 
-\begin{table}[!ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{|l|r|r|}
 \hline
 {\bf Buy queries breakdown} & \multicolumn{1}{l|}{{\bf Mean}} & \multicolumn{1}{l|}{{\bf St. Dev.}} \\ \hline
-Full setup                  & 1054.56 {[}ms{]}                & 151.40 {[}ms{]}                     \\ \hline
-Buyer-Hub setup             & 479.29 {[}ms{]}                 & 78.81 {[}ms{]}                      \\ \hline
-Hub-Sensor setup            & 1015.08 {[}ms{]}                & 151.41 {[}ms{]}                     \\ \hline
-Hub-Sensor teardown         & 199.60 {[}ms{]}                 & 68.29 {[}ms{]}                      \\ \hline
-Buyer-Hub teardown          & 146.57 {[}ms{]}                 & 10.09 {[}ms{]}                      \\ \hline
+Full setup                  & 1054.6 ms                & 151.4 ms                     \\ \hline
+Buyer-Hub setup             & 479.3 ms                 & 78.8 ms                      \\ \hline
+Hub-Sensor setup            & 1015.1 ms                & 151.4 ms                     \\ \hline
+Hub-Sensor teardown         & 199.6 ms                 & 68.3 ms                      \\ \hline
+Buyer-Hub teardown          & 146.6 ms                 & 10.1 ms                      \\ \hline
 \end{tabular}
-\caption{Buy query response time breakdown by component.}
+\caption{Buy query response time breakdown by payment hop.}
 \label{breakdown}
 \end{table}
 
-In Figure \ref{fig:fullsetup}, the HTLC setup time, which includes initiating a payment, updating the HTLC setup transaction
-and the exchange of HTLC refund, settlement, and forfeiture transactions on the full path, is shown. On average, the HTLC
-setup phase of the payment took $1054.56$ [ms]. The breakdown of setup times per hop is illustrated in Figures 
-\ref{fig:buyer_hub_setup} and \ref{fig:hub_sensor_setup}.
+\subsubsection{Full communication trace}
 
-\begin{figure}[ht!]
-  \centerline{\includegraphics[width=\textwidth]{figures/buyer_hub_setup}}
-  \caption{Buyer-Hub setup times, evenly split and averaged over 138 bins.}
-  \label{fig:buyer_hub_setup}
+\hspace*{12pt} In this section, a full communication trace is inferred from the obtained mean results. A buyer session
+is expected to have the following pattern:
+\begin{itemize}
+ \item {\it Establish a micropayment channel} with the hub. This step takes place on the block chain because it needs
+ the bond transaction to be confirmed by the network to lock in the buyer's funds.
+ \item {\it Run several buy queries}. This step runs completely off the block chain.
+ \item {\it Close the micropayment channel}. The settlement of the channel involves broadcasting the latest
+ version of the HTLC setup transaction, taking place on the block chain.
+\end{itemize}
+
+\begin{figure}[h]
+  \centerline{\includegraphics[width=\textwidth]{figures/trace}}
+  \caption{Full communication trace using mean measurement values.}
+  \label{fig:trace}
 \end{figure}
 
-\begin{figure}[ht!]
-  \centerline{\includegraphics[width=\textwidth]{figures/hub_sensor_setup}}
-  \caption{Hub-Sensor setup times, evenly split and averaged over 138 bins.}
-  \label{fig:hub_sensor_setup}
-\end{figure}
-
-Last, the time needed to clear a payment by releasing the secret was measured per hop. The results are displayed
-in Figures \ref{fig:hub_sensor_teardown} and \ref{fig:buyer_hub_teardown}.
-
-\begin{figure}[ht!]
-  \centerline{\includegraphics[width=\textwidth]{figures/hub_sensor_teardown}}
-  \caption{Hub-Sensor tear down times, evenly split and averaged over 138 bins.}
-  \label{fig:hub_sensor_teardown}
-\end{figure}
-
-\begin{figure}[ht!]
-  \centerline{\includegraphics[width=\textwidth]{figures/buyer_hub_teardown}}
-  \caption{Buyer-Hub tear down times, evenly split and averaged over 138 bins.}
-  \label{fig:buyer_hub_teardown}
-\end{figure}
+Figure \ref{fig:trace} shows the average times for a full communication trace based on the described pattern. For each pattern
+step, the mean values obtained from the previous evaluation results are used.
 
 \subsubsection{Discussion}
 
-\hspace*{12pt} An important observation regarding the performance results is the high transaction confirmation times on the Bitcoin
-network. On average, the Bitcoin TestNet took $22.12$ [s]. However, on the main Bitcoin network, it takes about 10 minutes for
-a transaction to be included in the block chain. If each payment in the system was included in an individual 
-transaction, the overall experience of the buyer would be poor, encountering high fees and query times, and possibly
-getting transactions rejected by the system because of the anti-flood algorithms running on the network.
+\hspace*{12pt} An important observation regarding the performance results is the unpredictable and high transaction 
+confirmation times on the Bitcoin TestNet network.
+If each payment in the system was included in an individual transaction, the overall experience of the buyer would 
+be poor, encountering high fees and query times, and possibly getting transactions rejected by the system because 
+of the anti-flood algorithms running on the network.
 
-On the other hand, micropayment channels only require one transaction to be confirmed, locking in the funds allocated by the
-buyer. After this setup time, queries and payments can be made securely and very fast, without broadcasting any transaction
-to the block chain.
+On the other hand, micropayment channels only require one transaction to be confirmed, locking in the funds 
+allocated by the buyer. After this setup time, queries and payments can be made securely and very fast, 
+without broadcasting any transaction to the block chain. This can be observed by analyzing Figure \ref{fig:trace}:
+after the setup time, buy queries are executed very fast. When the channel needs to be closed, the broadcast
+of the final transaction takes again a long time to be included in the block chain. If the expected transaction
+confirmation time of 10 minutes from the main Bitcoin network is considered, the payments done through the built system
+are approximately $400$ times faster.
 
-By analyzing the obtained performance results, it can be observed that most of the time in a buy query is spent
-during the HTLC setup phase. In fact, the setup phase takes on average $1054.56$ [ms], which represents $67\%$ 
-out of the total buy query time. This is mainly due to the fact that the sensor node has to wait until 
-the HTLC is successfully set up between the buyer and the hub ($479.29$ [ms] on average), 
-before it can resume the HTLC setup process with the hub. 
+By further analyzing the obtained performance results, it can be observed that most of the time in a buy query is spent
+during the HTLC setup phase, which includes initiating a payment, updating the HTLC setup transaction and the
+exchange of HTLC refund, settlement, and forfeiture transactions on the full path. 
+In fact, the setup phase represents $67\%$ out of the total buy query time. 
+This is mainly due to the fact that the sensor node has to wait until the HTLC is successfully set 
+up between the buyer and the hub, before it can resume the HTLC setup process with the hub. 
 Without this condition, the node cannot be assured that it can claim the created HTLC output from the hub.
-Thus, the hub-sensor setup phase needs an average of $1015.08$ [ms] to complete.
 
-In the HTLC tear down phase, the hub and sensor node took an average of $199.60$ [ms], 
-and the buyers and the hub $146.57$ [ms] to get back to a secure state in the channel. The performance
-of the two hops is more similar because this stage is parallelized: after the hub receives the secret from the sensor node,
-it validates it and immediately forwards it to the buyer instead of waiting to clear the HTLC output from the HTLC setup
-transaction. When the buyer also received the secret, it can independently update its state with the hub. On average,
-the tear down stage between the hub and the sensor node takes longer because the latter has a poorer hardware performance.
+In the HTLC tear down phase, the hub and sensor node took an average of $199.60$ ms, 
+and the buyers and the hub $146.57$ ms to get back to a secure state in the channel. These times
+are dominated by the cryptographic operations during transaction signing. The performance
+of the two hops is more similar because this stage is parallelized: after the hub receives the secret 
+from the sensor node, it validates it and immediately forwards it to the buyer instead of waiting to 
+clear the HTLC output from the HTLC setup transaction. When the buyer also received the secret, 
+it can independently update its state with the hub. On average, the tear down stage between the hub and 
+the sensor node takes longer because the latter has a poorer hardware performance.
 
 \section{Protocol vulnerabilities}
 
 \hspace*{12pt} In this section, the vulnerabilities of the built system are briefly evaluated and countermeasures
 for each such vulnerability are introduced.
 
+\subsection{Payment security}
+
+\hspace*{12pt} Because of the Bitcoin malleability issue, the payment setup stage of the protocol has a major caveat: 
+it sends over the signed HTLC setup transaction before having any signed HTLC refund transaction that 
+protects the client in case the server decides to lock away the funds in the HTLC outputs indefinitely. 
+It cannot be avoided without the malleability fix, because the client cannot create by itself an 
+HTLC refund transaction that spends from the HTLC output: the HTLC setup transaction spends from the 
+multisig output between the two parties, and it needs to be fully signed for the refund transaction to correctly 
+reference it by its hash. Thus, in the current implementation, a minimal amount of trust is needed in 
+the server component, that it will indeed sign, compute the hash of the HTLC setup transaction,
+and return signed HTLC refund transactions for all active HTLC payments. The amount of trust in the server,
+however, can be adjusted by limiting the number of active HTLC payments at a time.
+Once the client received the HTLC setup transaction hash and HTLC refund transactions for each payment, 
+the protocol is back to a secure state.
+
 \subsection{Flow messages}
 
-\hspace*{12pt} In the current proof-of-concept, the system transmits all messages between components using the 
-Google Protocol Buffers. An attacker could eavesdrop, modify, or inject messages on the used TCP connections, 
+\hspace*{12pt} In the current proof-of-concept, the system transmits all messages unauthenticated and 
+unencrypted. An attacker could eavesdrop, modify, or inject messages on the used TCP connections, 
 gathering information and learning about what is happening in the system. Even though the messages are 
 serialized in binary format, the format is publicly-known and can be easily decoded. A countermeasure 
 for this vulnerability is to use socket layer encryption.
@@ -1165,7 +1170,9 @@ central hub. Since the secret disclosure is done backwards on the full payment p
 of the secret and can decrypt the data purchased by the buyer. This violates the confidentiality since the data is
 disclosed to an unauthorized entity. 
 
-A possible countermeasure for this issue is to use onion-encryption. When initializing a new payment,
+A possible countermeasure for this issue is to nest symmetric key encryption and public key encryption. 
+The secret generating the hash commit is used as the key in the symmetric key encryption, whereas the resulting
+cypher-text is encrypted again using the public key of the buyer. When initializing a new payment,
 the buyer would transmit its public key to the hub, which then forwards it to the sensor node. At this stage,
 the node can encrypt the data with the generated secret, and then encrypt it again using the received public key of the buyer.
 This way, even if the hub attempts to decrypt the upper layer of the data, it cannot fully decrypt it since it does not have
@@ -1179,14 +1186,49 @@ to decrypt the received data.
 
 \chapter{Conclusion}
 
+\hspace*{12pt} The Internet of Things is expected to consist of networks encompassing billions of sensor nodes generating
+huge amounts of data. Following the Sensing as a Service concept, the sensor nodes can engender global data markets
+by offering their data as a service to interested entities for an agreed cost.
 
-% This displays the bibliography for all cited external documents. All references have to be defined in the file references.bib and can then be cited from within this document.
+In this thesis, a centralized, low-trust and secure scheme has been built to incentivize sensor 
+nodes to share sensed data in exchange for bitcoins. The scheme combines two existing Bitcoin constructs:
+micropayment channels and hashed timelock contracts. Scalability is achieved by avoiding 
+the broadcast of each micro-transaction through the use of the micropayment channel construct. 
+The funds transferred between sensor nodes and interested buyers are transparently forwarded through a 
+central hub that also acts as a coordinator and discovery point. End-to-end security of the payments is 
+ensured by the use of hashed timelock contracts, broadcasting intermediary transactions only to 
+handle conflict resolution. In order to be truly secure, the protocol needs a fix for the malleability issue of Bitcoin.
+Otherwise, the receiver part can lock away payments indefinitely. Without the fix, this threat is minimized 
+by adjusting the number of payments that can be active at a time.
+
+A proof-of-concept of the proposed scheme has been implemented, using one component acting as a buyer, another one as
+the central coordinator, and an Android device running a specialized application as a sensor node. By querying
+the hub, the buyer can obtain information about available sensor data and purchase the data it is interested in.
+An analysis of the response time of the built system has yielded that fund transfers between the buyers and 
+the data providers in the system achieve real-time performance. 
+
+The developed protocol meets the individual needs of repeated small value transactions in the Internet of Things scenario
+and can be executed on small devices such as smartphones. By focusing future research on improving performance
+and minimizing power consumption on the sensor system components, the protocol can be tailored for small sensor
+nodes capable of cryptographic operations and can be adopted ubiquitously, opening up new opportunities 
+in data sharing and enabling access to sensor data at an unprecedented scale. 
+
+% This displays the bibliography for all cited external documents. 
+%All references have to be defined in the file references.bib and can then be cited from within this document.
 \bibliographystyle{plainurl}
 \bibliography{references}
 
 % This creates an appendix chapter, comment if not needed.
 \appendix
 \chapter{Appendix Chapter}
+
+\section{HTLC Transactions}
+
+\begin{figure}[h]
+  \centerline{\includegraphics[width=\textwidth]{figures/HTLCPubScripts}}
+  \caption{The HTLC refund, settlement and forfeiture transactions.}
+  \label{fig:pubscripts}
+\end{figure}
 
 \section{Protobuf messages}\label{protobuf}
 

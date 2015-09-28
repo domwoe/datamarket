@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="/home/frabu/workspaces/bitcoinJ/core/target/bitcoinj-core-0.13-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="/home/frabu/thesis/datamarket/htlc-test/slf4j-simple-1.7.12.jar"/>
+	<classpathentry kind="lib" path="/home/frabu/workspaces/bitcoinj_git/bitcoinj/core/target/bitcoinj-core-0.14-SNAPSHOT-bundled.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

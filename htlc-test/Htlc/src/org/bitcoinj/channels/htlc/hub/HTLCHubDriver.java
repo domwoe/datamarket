@@ -12,6 +12,7 @@ import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Sha256Hash;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
+import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
 import org.bitcoinj.protocols.channels.ServerConnectionEventHandler;
 import org.slf4j.Logger;
@@ -30,10 +31,11 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
 	private static final NetworkParameters PARAMS = RegTestParams.get();
 	private static final Integer ANDROID_PORT = 4242;
 	private static final Integer BUYER_PORT = 4243;
-	private static final Integer NETWORK_TIMEOUT = 6000;
-	private static final Long CHANNEL_TIME_WINDOW = 6000L;
+	private static final Integer NETWORK_TIMEOUT = 60000;
+	private static final Long CHANNEL_TIME_WINDOW = 60000L;
 	
 	private WalletAppKit appKit;
+	private HTLCHubServerListener server;
 	
 	public static void main(String[] args) throws Exception {
 		new HTLCHubDriver().run();
@@ -41,8 +43,12 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
 	
 	public void run() throws Exception {
 		appKit = new WalletAppKit(PARAMS, new File("."), "hub");
-		appKit.connectToLocalHost();
-		appKit.startAsync();
+		appKit.connectToLocalHost(); // Not necessary on testnet
+		try {
+			appKit.startAsync();
+		} catch (IllegalStateException e) {
+			log.error("ERROR: {}", e.getCause());
+		}
 		appKit.awaitRunning();
 		
 		log.info(appKit.wallet().toString());
@@ -58,7 +64,7 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
 		ECKey secondaryKey = appKit.wallet().getImportedKeys().get(1);
 		ECKey receivingKey = appKit.wallet().getImportedKeys().get(2);
 	
-		Coin value = Coin.valueOf(5, 0);
+		Coin value = Coin.valueOf(10000L);
 		
 		log.info(
 			"Hub payer addresses: {} {}", 
@@ -69,7 +75,7 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
         TransactionBroadcastScheduler broadcastScheduler = 
     		new TransactionBroadcastScheduler(appKit.peerGroup());
         
-        new HTLCHubServerListener(
+        server = new HTLCHubServerListener(
     		broadcastScheduler, 
     		appKit.wallet(),
     		primaryKey,
@@ -79,10 +85,11 @@ implements HTLCHubServerListener.BuyerHandlerFactory,
     		CHANNEL_TIME_WINDOW,
     		primaryKey, 
     		NETWORK_TIMEOUT, 
-    		Coin.valueOf(100000), 
+    		Coin.valueOf(1000L), 
     		this,
     		this
-		).bindAndStart(BUYER_PORT, ANDROID_PORT);
+		);
+        server.bindAndStart(BUYER_PORT, ANDROID_PORT);
 	}
 
 	@Override

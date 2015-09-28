@@ -1,109 +1,34 @@
 package org.bitcoinj.channels.htlc.buyer;
 
-import java.io.File;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.CountDownLatch;
 
-import org.bitcoinj.channels.htlc.FlowResponse;
-import org.bitcoinj.channels.htlc.HTLCPaymentReceipt;
-import org.bitcoinj.channels.htlc.PriceInfo;
-import org.bitcoinj.channels.htlc.TransactionBroadcastScheduler;
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.kits.WalletAppKit;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.utils.Threading;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 
 public class HTLCBuyerDriver {
 	
 	private static final org.slf4j.Logger log = 
 		LoggerFactory.getLogger(HTLCBuyerDriver.class);
-	private static final NetworkParameters PARAMS = RegTestParams.get();
-	private static final Integer BUYER_PORT = 4243;
-	private static final Long CHANNEL_TIME_WINDOW = 6000L;
-	private static final Integer NETWORK_TIMEOUT = 6000;
+	private static final Integer BUYERS = 1;
 	
-	private CountDownLatch latch;
-	private HTLCBuyerClientConnection client;
-	private WalletAppKit appKit;
+	private List<HTLCBuyerInstance> buyersList = new ArrayList<>();
 	
 	public static void main(String[] args) throws Exception {
-		new HTLCBuyerDriver().run();
+		
+		HTLCBuyerDriver driver = new HTLCBuyerDriver();
+		for (int i = 0; i < BUYERS; i++) {
+			log.info("Spawing buyer {}", i);
+			HTLCBuyerInstance buyerInstance = new HTLCBuyerInstance("buyer" + i);
+			driver.addBuyer(buyerInstance);
+			new Thread(buyerInstance).start();
+		}
+		
+		driver.readQuery();
 	}
 	
-	public void run() throws Exception {
-		
-		appKit = new WalletAppKit(PARAMS, new File("."), "buyer");
-        appKit.connectToLocalHost();
-        appKit.startAsync();
-        appKit.awaitRunning();
-		
-        System.out.println(appKit.wallet());
-        appKit.wallet().allowSpendingUnconfirmedTransactions();
-        if (appKit.wallet().getImportedKeys().size() < 2) {
-        	// Import new keys
-        	appKit.wallet().importKey(new ECKey());
-        	appKit.wallet().importKey(new ECKey());
-        }
-        
-        ECKey primaryKey = appKit.wallet().getImportedKeys().get(0);
-        ECKey secondaryKey = appKit.wallet().getImportedKeys().get(1);
-        
-        log.info(
-			"Client addresses: {} {}", 
-    		primaryKey.toAddress(PARAMS), 
-    		secondaryKey.toAddress(PARAMS)
-		);
-
-		final InetSocketAddress server = 
-			new InetSocketAddress("localhost", BUYER_PORT);
-		Coin value = Coin.valueOf(1, 0);
-		
-		TransactionBroadcastScheduler broadcastScheduler = 
-			new TransactionBroadcastScheduler(appKit.peerGroup());
-		
-		client = new HTLCBuyerClientConnection(
-			server,
-			NETWORK_TIMEOUT,
-			appKit.wallet(),
-			broadcastScheduler,
-			primaryKey, 
-			secondaryKey,
-			value,
-			CHANNEL_TIME_WINDOW
-		);
-		latch = new CountDownLatch(1);
-		Futures.addCallback(
-			client.getChannelOpenFuture(), 
-			new FutureCallback<HTLCBuyerClientConnection>() {
-			    @Override public void onSuccess(
-		    		final HTLCBuyerClientConnection client
-	    		) {
-			    	log.info(
-		    			"Channel open! We're now connected and " +
-		    			"we can make queries"
-					);	
-			    	readQuery();
-			    }
-			    @Override public void onFailure(Throwable throwable) {
-			    	log.error(throwable.getLocalizedMessage());
-			    }
-		}, Threading.USER_THREAD);
-		latch.await();
-	}
-	
-	private void readQuery() {
-		System.out.println("Connected to hub. Please enter a query:");
-		
+	public void readQuery() throws InterruptedException {
 		Scanner input = new Scanner(System.in);
 		
 		while (input.hasNext()) {
@@ -112,20 +37,18 @@ public class HTLCBuyerDriver {
 			query = query.replace("\"", "");
 			String delims = "[ ]+";
 			String[] tokens = query.split(delims);
-			if (tokens.length < 2) {
-				error("Invalid query length.");
-			} else if (tokens[0].equalsIgnoreCase("stats")) {
+			if (tokens[0].equalsIgnoreCase("stats")) {
 				if (tokens[1].equalsIgnoreCase("nodes")) {
-					waitForFuture(client.nodeStats());
-				} else if (tokens[1].equalsIgnoreCase("")) {
-					//client.sensorStats();
+					nodeStats();
+				} else if (tokens[1].equalsIgnoreCase("sensors")) {
+					sensorStats();
 				} else {
 					error("Invalid stats query.");
 				}
 			} else if (tokens[0].equalsIgnoreCase("select")) {
 				String sensorType = 
 					query.substring(query.indexOf('<') + 1, query.indexOf('>'));
-				waitForSelect(client.select(sensorType));
+				select(sensorType);
 			} else if (tokens[0].equalsIgnoreCase("buy")) {
 				String sensorType = 
 					query.substring(query.indexOf('<') + 1, query.indexOf('>'));
@@ -134,75 +57,53 @@ public class HTLCBuyerDriver {
 				String deviceId = tokens[1];
 				Long value = Long.parseLong(tokens[2]);
 				
-				waitForData(
-					client.buy(sensorType, deviceId, Coin.valueOf(value))
-				);
+				buy(sensorType, deviceId, Coin.valueOf(value));
+			} else if (tokens[0].equalsIgnoreCase("close")) {
+				close();
 			} else {
 				error("Invalid query.");
 			}
 		}
-		
+		input.close();
 	}
 	
-	private void waitForData(
-		ListenableFuture<HTLCPaymentReceipt> future
-	) {
-		Futures.addCallback(
-			future, 
-			new FutureCallback<HTLCPaymentReceipt>() {
-				@Override
-				public void onSuccess(HTLCPaymentReceipt receiptWithData) {
-					log.info("Received data {}",  Arrays.toString(receiptWithData.getData().toArray()));
-					log.info("For which I paid {}", receiptWithData.getValue());
-				}
-				
-				@Override
-				public void onFailure(Throwable throwable) {
-					log.error("An exception has occured during the payment");
-				}
+	private void close() {
+		for (int i = 0; i < buyersList.size(); i++) {
+			try {
+				buyersList.get(i).close();
+			} catch (Exception e) {
+				e.printStackTrace();
+				continue;
 			}
-		);
+		}
 	}
 	
-	private void waitForSelect(ListenableFuture<List<PriceInfo>> future) {
-		Futures.addCallback(
-			future, 
-			new FutureCallback<List<PriceInfo>>() {
-				@Override
-				public void onSuccess(List<PriceInfo> pInfoList) {
-					System.out.println("Received query result");
-					for (PriceInfo pInfo: pInfoList) {
-						System.out.println(
-							pInfo.getDeviceId() + ": " + 
-							pInfo.getSensor() + " " + 
-							pInfo.getPrice() + " BTC"
-						);
-					}
-				}
-				
-				@Override 
-				public void onFailure(Throwable throwable) {
-					
-				}
-			}
-		);
+	private void nodeStats() {
+		for (int i = 0; i < buyersList.size(); i++) {
+			buyersList.get(i).nodeStats();
+		}
 	}
-		
-	private void waitForFuture(ListenableFuture<FlowResponse> future) {
-		Futures.addCallback(
-			future,
-			new FutureCallback<FlowResponse>() {
-				@Override public void onSuccess(FlowResponse response) {
-					for (String stat: response.getStats()) {
-						System.out.println(stat);
-					}
-				}
-				
-				@Override public void onFailure(Throwable throwable) {
-					log.error(throwable.getLocalizedMessage());
-				}
-			}
-		);	
+	
+	private void sensorStats() {
+		for (int i = 0; i < buyersList.size(); i++) {
+			buyersList.get(i).sensorStats();
+		}
+	}
+	
+	private void select(String sensorType) {
+		for (int i = 0; i < buyersList.size(); i++) {
+			buyersList.get(i).select(sensorType);
+		}
+	}
+	
+	private void buy(String sensorType, String deviceId, Coin value) {
+		for (int i = 0; i < buyersList.size(); i++) {
+			buyersList.get(i).buy(sensorType, deviceId, value);
+		}
+	}
+	
+	public void addBuyer(HTLCBuyerInstance buyer) {
+		buyersList.add(buyer);
 	}
 	
 	private void error(String error) {

@@ -80,7 +80,6 @@ public class HTLCPaymentChannelClient implements IPaymentChannelClient {
         WAITING_FOR_REFUND_RETURN,
         WAITING_FOR_CHANNEL_OPEN,
         CHANNEL_OPEN,
-        WAITING_FOR_HTLC_INIT_REPLY,
         WAITING_FOR_CHANNEL_CLOSE,
         CHANNEL_CLOSED,
 	}

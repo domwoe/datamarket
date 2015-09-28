@@ -22,6 +22,7 @@ import org.bitcoinj.crypto.TransactionSignature;
 import org.bitcoinj.protocols.channels.ValueOutOfRangeException;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptBuilder;
+import org.bitcoinj.script.ScriptChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,7 @@ public class HTLCChannelServerState {
 	private Transaction multisigContract = null;
 	private Script multisigScript;
 	
-	 // The object that will broadcast transactions for us - usually a peer group.
+	 // The object that will broadcast transactions for us
     private final TransactionBroadcastScheduler broadcaster;
 	
 	private TransactionSignature teardownClientSig;
@@ -291,6 +292,8 @@ public class HTLCChannelServerState {
 		TransactionInput teardownInput = newTeardownTx.getInput(0);
 		log.info("Teardown input hash: {}", teardownInput.hashCode());
 		teardownInput.setScriptSig(scriptSig);
+		
+		//scriptSig.correctlySpends(newTeardownTx, 0, multisigScript);
 		teardownInput.verify(multisigContract.getOutput(0));
 		
 		// Update teardown in the broadcast scheduler
@@ -365,8 +368,10 @@ public class HTLCChannelServerState {
 			clientSig,
 			serverTeardownSig
 		);
+		
 		TransactionInput teardownTxIn = teardownTx.getInput(0);
 		teardownTxIn.setScriptSig(teardownScriptSig);
+		
 		teardownTxIn.verify(multisigContract.getOutput(0));
 		
 		// Update the teardown in the broadcast scheduler
@@ -381,6 +386,7 @@ public class HTLCChannelServerState {
 		this.teardownClientSig = clientSig;
 		
 		log.info("RECEIVED UPDATED TEARDOWN TX {}", this.teardownTx);
+		log.info("HTLCID {}", htlcId);
 		
 		HTLCServerState htlcState = htlcMap.get(htlcId);
 		SignedTransactionWithHash signedRefundTx = 
@@ -408,7 +414,6 @@ public class HTLCChannelServerState {
 		HTLCServerState htlcState = htlcMap.get(htlcId);
 		htlcState.verifyAndStoreSignedSettlementTx(
 			clientSecondaryKey,
-			teardownTx.getOutput(2).getScriptPubKey(),
 			settleTx,
 			settleSig
 		);
@@ -424,7 +429,6 @@ public class HTLCChannelServerState {
 		HTLCServerState htlcState = htlcMap.get(htlcId);
 		htlcState.verifyAndStoreSignedForfeitTx(
 			clientPrimaryKey,
-			teardownTx.getOutput(2).getScriptPubKey(),
 			forfeitTx, 
 			forfeitSig
 		);
@@ -575,5 +579,13 @@ public class HTLCChannelServerState {
 	
 	public Coin getBestValueToMe() {
 		return bestValueToMe;
+	}
+	
+	public Coin getValueOfHTLC(String htlcId) {
+		HTLCServerState state = htlcMap.get(htlcId);
+		if (state != null) {
+			return htlcMap.get(htlcId).getValue();
+		}
+		return Coin.valueOf(0);
 	}
 }

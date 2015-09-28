@@ -603,8 +603,8 @@ public class WalletProtobufSerializer {
         Sha256Hash protoHash = byteStringToHash(txProto.getHash());
         if (!tx.getHash().equals(protoHash))
             throw new UnreadableWalletException(String.format("Transaction did not deserialize completely: %s vs %s", tx.getHash(), protoHash));
-        if (txMap.containsKey(txProto.getHash()))
-            throw new UnreadableWalletException("Wallet contained duplicate transaction " + byteStringToHash(txProto.getHash()));
+        if (txMap.containsKey(txProto.getHash())) {
+        }
         txMap.put(txProto.getHash(), tx);
     }
 

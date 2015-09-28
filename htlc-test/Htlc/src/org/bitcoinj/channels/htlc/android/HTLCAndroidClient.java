@@ -4,8 +4,10 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import net.jcip.annotations.GuardedBy;
@@ -97,7 +99,9 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     @GuardedBy("lock") private long expireTime;
     
     // The list of HTLC ids that are being closed in this update round
-    @GuardedBy("lock") private List<String> closingHTLCIds;
+    @GuardedBy("lock") private final List<String> closingHTLCIds;
+    // The set of HTLC ids that are being created in this client update round
+    @GuardedBy("lock") private final Set<String> newHTLCIds;
 	
 	HTLCAndroidClient(
 		Wallet wallet,
@@ -112,6 +116,8 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 		this.minAcceptedChannelSize = minPayment;
 		this.conn = conn;
 		this.blockingQueue = new HTLCBlockingQueue<Object>(MAX_MESSAGES);
+		this.closingHTLCIds = new ArrayList<String>();
+		this.newHTLCIds = new HashSet<String>();
 	}
 
 	@Override
@@ -126,7 +132,6 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
             			receiveVersionMessage(msg);
             			return;
             		case PROVIDE_REFUND:
-            			log.info("Received PROVIDE_REFUND");
             			receiveRefundMessage(msg);
             			return;
             		case HTLC_PROVIDE_CONTRACT:
@@ -209,10 +214,10 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
                 .setServerVersion(versionNegotiationBuilder)
                 .build()
         );
-        log.info(
-    		"Got initial version message, responding with VERSIONS and " +
-    		"INITIATE: min value={}", minAcceptedChannelSize.value
-		);
+   //     log.info(
+    //		"Got initial version message, responding with VERSIONS and " +
+   // 		"INITIATE: min value={}", minAcceptedChannelSize.value
+//		);
         
         expireTime = 
         	Utils.currentTimeSeconds() + clientVersion.getTimeWindowSecs();
@@ -338,8 +343,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     	
     	if (bestPaymentChange.signum() > 0) {
     		conn.paymentIncrease(
-				bestPaymentChange, 
-				state.getBestValueToMe()
+				bestPaymentChange 
 			);
     	}
     	if (sendAck) {
@@ -372,6 +376,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     	htlcRound = HTLCRound.CONFIRMED;
     	// Retrieve all queued up updates
     	List<Object> allUpdates = blockingQueue.getAll();
+    	log.info("UPDATE SIZE: {}", allUpdates.size());
     	List<Protos.HTLCRevealSecret> allSecrets = 
 			new ArrayList<Protos.HTLCRevealSecret>();
     	List<Protos.HTLCBackOff> allBackoffs = 
@@ -380,11 +385,14 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     	closingHTLCIds.clear();
     	
     	for (Object update: allUpdates) {
+    		log.info("Processing an update {}", update.getClass());
     		if (update instanceof Protos.HTLCRevealSecret) {
-    			Protos.HTLCRevealSecret secretMsg = (Protos.HTLCRevealSecret) update;
+    			Protos.HTLCRevealSecret secretMsg = 
+					(Protos.HTLCRevealSecret) update;
     			allSecrets.add(secretMsg);
     			closingHTLCIds.add(secretMsg.getId());
-    			allSecrets.add((Protos.HTLCRevealSecret) update);
+    			log.error("HTLC_SET2 {} {}", secretMsg.getId(), new Date().getTime());
+    			conn.paymentIncrease(state.getValueOfHTLC(secretMsg.getId()));
     		} else if (update instanceof Protos.HTLCBackOff) {
     			allBackoffs.add((Protos.HTLCBackOff) update);
     		}
@@ -431,6 +439,8 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     		throws UnsupportedEncodingException {
     	log.info("Received HTLC INIT msg, replying with HTLC_INIT_REPLY");
     	
+    	newHTLCIds.clear();
+    	
     	final Protos.HTLCInit htlcInit = msg.getHtlcInit();
     	List<Protos.HTLCPayment> newPayments = htlcInit.getNewPaymentsList();
     	List<Protos.HTLCPaymentReply> paymentsReply = 
@@ -440,6 +450,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     		long value = payment.getValue();
     		HTLCServerState newHTLCState = 
 				state.createNewHTLC(Coin.valueOf(value));
+    		newHTLCIds.add(newHTLCState.getId());
     		Protos.HTLCPaymentReply paymentReply = 
 				Protos.HTLCPaymentReply.newBuilder()
 					.setId(newHTLCState.getId())
@@ -464,7 +475,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 	
 	@GuardedBy("lock")
     private void receiveSignedTeardownMessage(TwoWayChannelMessage msg) {
-    	log.info("Received signed teardown message");
+    	//log.info("Received signed teardown message");
     	    	
     	final Protos.HTLCProvideSignedTeardown teardownMsg = 
 			msg.getHtlcSignedTeardown();
@@ -482,7 +493,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 			TransactionSignature.decodeFromBitcoin(
 				signedTeardown.getSignature().toByteArray(), true
 			);
-    	log.info("Signing refund and teardown hash");
+    	//log.info("Signing refund and teardown hash");
     	
     	List<Protos.HTLCSignedTransaction> allSignedRefunds = 
     		new ArrayList<Protos.HTLCSignedTransaction>();
@@ -508,8 +519,8 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     		allSignedRefunds.add(signedRefund);
     	}
     	
-    	log.info("Done signing refund and teardown hash");
-    	log.info("Sending Signed refunds and teardown hashes back to client");
+    	//log.info("Done signing refund and teardown hash");
+    	//log.info("Sending Signed refunds and teardown hashes back to client");
     	
     	Protos.HTLCSignedRefundWithHash.Builder htlcSigRefund = 
 			Protos.HTLCSignedRefundWithHash.newBuilder()
@@ -527,7 +538,6 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 	@GuardedBy("lock")
     private void receiveSignedSettleAndForfeitMsg(TwoWayChannelMessage msg) {
 		
-		log.info("Received Signed Settle and Forfeit Msg");
     	Protos.HTLCSignedSettleAndForfeit htlcMsg = 
 			msg.getHtlcSignedSettleAndForfeit();
     	List<String> allIds = htlcMsg.getIdsList();
@@ -579,8 +589,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
         	// If we already have some secrets, queue them up for the next
         	// server update round; only do this if we're in a hub update round
         	// else it will keep retrieving the same secrets over and over again
-        	if (htlcRound ==  HTLCRound.CLIENT) {
-	        	log.info("Queueing up secret for HTLC ID {}", htlcId);
+        	if (htlcRound ==  HTLCRound.CLIENT && newHTLCIds.contains(htlcId)) {
 	        	queueUpSecret(htlcId);
         	}
     	}
@@ -593,8 +602,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
     		// signature process so it is safe to do it;
     		List<HTLCData> allData = new ArrayList<>();
     		for (String htlcId: closingHTLCIds) {
-    			// Remove from the HTLCMap
-    			state.removeHTLC(htlcId);
+    			log.error("HTLC_COMP2 {} {}", htlcId, new Date().getTime());
     			List<String> sensorData = state.getDataForHTLC(htlcId);
     			if (sensorData == null) {
     				log.error(
@@ -602,13 +610,15 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 						"This should not happen.", htlcId
 					);
     			} else {
-    				log.info("Retrieving data for HTLCId {}", htlcId);
-    				log.info("Data is: {}", sensorData);
+    				//log.info("Retrieving data for HTLCId {}", htlcId);
+    				//log.info("Data is: {}", sensorData);
 	    			HTLCData.Builder dataMsg = HTLCData.newBuilder()
 	    				.setId(htlcId)
 						.addAllData(state.getDataForHTLC(htlcId));
 	    			allData.add(dataMsg.build());
     			}
+    			// Remove from the HTLCMap
+    			state.removeHTLC(htlcId);
     		}
     		// Send the data msgs to the Hub so it can forward them correctly
     		Protos.HTLCFlow.Builder flowMsg = Protos.HTLCFlow.newBuilder()
@@ -621,13 +631,16 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 					.build();
     		conn.sendToHub(dataMsg);
     		
+    		//log.info("Device Round done!");
+    		
         	Protos.HTLCRoundDone.Builder roundDone =
     			Protos.HTLCRoundDone.newBuilder();
         	final Protos.TwoWayChannelMessage.Builder roundDoneMsg = 
     			Protos.TwoWayChannelMessage.newBuilder()
     				.setHtlcRoundDone(roundDone)
     				.setType(MessageType.HTLC_ROUND_DONE);
-        	conn.sendToHub(roundDoneMsg.build());        	
+        	conn.sendToHub(roundDoneMsg.build()); 
+        	htlcRound = HTLCRound.OFF;
     	} else {
 	    	// Let's ACK the successful setup
 	    	Protos.HTLCSetupComplete.Builder setupMsg = 
@@ -647,19 +660,25 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 	@GuardedBy("lock") 
     private void queueUpSecret(String htlcId) {
     	String secret = state.getSecretForHTLC(htlcId);
-		log.info("Retrieveing HTLC secrert for htlc id {}: {}", htlcId, secret);
+		//log.info("Retrieveing HTLC secret for htlc id {}: {}", htlcId, secret);
     	if (secret != null) {
-    		log.info("Queueing up secret for next SERVER round");
-    		Protos.HTLCRevealSecret.Builder revealMsg = 
+    		Protos.HTLCRevealSecret revealMsg = 
 				Protos.HTLCRevealSecret.newBuilder()
 					.setId(htlcId)
-					.setSecret(secret);
+					.setSecret(secret)
+					.build();
     		blockingQueue.put(revealMsg);
+    		log.info("Queueing up secret for next SERVER round");
+    		log.info("QUEUE SIZE: {}", blockingQueue.size());
     	}
     }
 
 	@GuardedBy("lock")
-	public void updateSensors(List<String> sensors, List<Long> prices) {
+	public void updateSensors(List<String> sensors, long price) {
+		List<Long> prices = new ArrayList<>();
+		for (int i = 0; i < sensors.size(); i++) {
+			prices.add(price);
+		}
 		HTLCRegisterSensors.Builder registerMsg = 
 			HTLCRegisterSensors.newBuilder()
 				.addAllSensors(sensors)
@@ -677,7 +696,7 @@ public class HTLCAndroidClient implements IPaymentAndroidChannelClient {
 	
 	@GuardedBy("lock")
     private void receiveCloseMessage() throws InsufficientMoneyException {
-        log.info("Got CLOSE message, closing channel");
+      //  log.info("Got CLOSE message, closing channel");
         if (state != null) {
             settlePayment(CloseReason.CLIENT_REQUESTED_CLOSE);
         } else {

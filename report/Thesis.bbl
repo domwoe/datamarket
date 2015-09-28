@@ -5,6 +5,16 @@ Bitcoin discussion forum.
 \newblock \url{https://bitcointalk.org/}.
 \newblock Accessed September 2015.
 
+\bibitem{ripple}
+Ripple.
+\newblock \url {https://ripple.com}.
+\newblock Accessed September 2015.
+
+\bibitem{tor}
+Tor.
+\newblock \url {https://www.torproject.org}.
+\newblock Accessed September 2015.
+
 \bibitem{draft}
 Alex Akselrod.
 \newblock Draft.
@@ -29,8 +39,8 @@ Adam Back.
 
 \bibitem{ripplebitcoin}
 C.J.Plooy.
-\newblock Combining bitcoin and the ripple to create a fast, scalable,
-  decentralized, anonymous, low-trust payment network.
+\newblock {Combining Bitcoin and the Ripple to create a fast, scalable,
+  decentralized, anonymous, low-trust payment network}.
 \newblock
   \url{http://www.ultimatestunts.nl/bitcoin/ripple_bitcoin_draft_2.pdf},
   January 2013.
@@ -38,7 +48,7 @@ C.J.Plooy.
 
 \bibitem{malleability}
 Christian Decker and Roger Wattenhofer.
-\newblock Bitcoin transaction malleability and mtgox.
+\newblock {Bitcoin Transaction Malleability and MtGox}.
 \newblock {\em CoRR}, abs/1403.6676, 2014.
 
 \bibitem{hearnmicropay}
@@ -67,7 +77,7 @@ Kay Noyen, Dirk Volland, Dominic W{\"{o}}rner, and Elgar Fleisch.
 \newblock {\em CoRR}, abs/1409.5841, 2014.
 
 \bibitem{micropay2}
-Rafael Pass and abhi shelat.
+Rafael Pass and Abhi Shelat.
 \newblock Micropayments for decentralized currencies.
 
 \bibitem{Payeras-Capella:2003:EAS:1758260.1758276}
@@ -119,7 +129,7 @@ Daniel Wilusz and Jarogniew Rykowski.
 
 \bibitem{iotzhang}
 Yu~Zhang and Jiangtao Wen.
-\newblock {An IoT electric business model based on the protocol of bitcoin.}
+\newblock {An IoT electric business model based on the protocol of Bitcoin.}
 \newblock In {\em ICIN}, pages 184--191. IEEE, 2015.
 
 \end{thebibliography}

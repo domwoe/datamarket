@@ -1,13 +1,13 @@
 package ch.eth.datamarketclean;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.MenuItem;
 
 /**
  * Created by frabu on 20.04.2015.
  */
-public class SettingsActivity extends ActionBarActivity {
+public class SettingsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,9 +19,9 @@ public class SettingsActivity extends ActionBarActivity {
                 .commit();
 
         // use action bar here
-        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Settings");
-        actionBar.setDisplayHomeAsUpEnabled(true);
+//        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+//        actionBar.setTitle("Settings");
+//        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override

@@ -86,7 +86,7 @@ public class HTLCService extends Service {
         try {
             appKit.setPeerNodes(
                     new PeerAddress(
-                            InetAddress.getByName("192.168.192.12"),
+                            InetAddress.getByName("82.165.25.152"),
                             PARAMS.getPort()
                     )
             );
@@ -108,7 +108,7 @@ public class HTLCService extends Service {
         Log.i("Frabu", key.toAddress(PARAMS).toString());
 
         final InetSocketAddress server =
-                new InetSocketAddress("192.168.192.12", 4242);
+                new InetSocketAddress("82.165.25.152", 4242);
 
         Coin minPayment = Coin.valueOf(1000L);
 

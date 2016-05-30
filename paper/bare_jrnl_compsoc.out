@@ -1,0 +1,44 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Background}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Crowdsensing and Sensing-as-Service}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Bitcoin}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Instant Bitcoin Micropayments}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{Off-chain payments}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{One-to-one unidirectional payment channels}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.3}{N-to-M mediated payment channels}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{System Design}{}% 9
+\BOOKMARK [2][-]{subsection.4.1}{Principles}{section.4}% 10
+\BOOKMARK [3][-]{subsubsection.4.1.1}{Low barrier for participation}{subsection.4.1}% 11
+\BOOKMARK [3][-]{subsubsection.4.1.2}{Incentivize participation with micropayments}{subsection.4.1}% 12
+\BOOKMARK [3][-]{subsubsection.4.1.3}{Limited trust in hub}{subsection.4.1}% 13
+\BOOKMARK [3][-]{subsubsection.4.1.4}{Anonymity}{subsection.4.1}% 14
+\BOOKMARK [2][-]{subsection.4.2}{Architecture}{section.4}% 15
+\BOOKMARK [1][-]{section.5}{Prototype Implementation}{}% 16
+\BOOKMARK [2][-]{subsection.5.1}{Mediated payment channels using HTLCs}{section.5}% 17
+\BOOKMARK [2][-]{subsection.5.2}{Data provider}{section.5}% 18
+\BOOKMARK [2][-]{subsection.5.3}{Data requester}{section.5}% 19
+\BOOKMARK [2][-]{subsection.5.4}{Hub}{section.5}% 20
+\BOOKMARK [1][-]{section.6}{Evaluation}{}% 21
+\BOOKMARK [2][-]{subsection.6.1}{Conceptual Evaluation}{section.6}% 22
+\BOOKMARK [3][-]{subsubsection.6.1.1}{Low barrier for participation}{subsection.6.1}% 23
+\BOOKMARK [3][-]{subsubsection.6.1.2}{Incentivize participation with micropayments}{subsection.6.1}% 24
+\BOOKMARK [3][-]{subsubsection.6.1.3}{Limited trust in hub provider}{subsection.6.1}% 25
+\BOOKMARK [3][-]{subsubsection.6.1.4}{Anonymity}{subsection.6.1}% 26
+\BOOKMARK [2][-]{subsection.6.2}{Empirical Evaluation}{section.6}% 27
+\BOOKMARK [2][-]{subsection.6.3}{Performance}{section.6}% 28
+\BOOKMARK [2][-]{subsection.6.4}{Transaction costs}{section.6}% 29
+\BOOKMARK [1][-]{section.7}{Discussion}{}% 30
+\BOOKMARK [2][-]{subsection.7.1}{Intermittent connectivity}{section.7}% 31
+\BOOKMARK [2][-]{subsection.7.2}{Locking of funds}{section.7}% 32
+\BOOKMARK [2][-]{subsection.7.3}{Improving anonymity}{section.7}% 33
+\BOOKMARK [2][-]{subsection.7.4}{Discovery}{section.7}% 34
+\BOOKMARK [2][-]{subsection.7.5}{From smartphones to wireless sensor networks}{section.7}% 35
+\BOOKMARK [3][-]{subsubsection.7.5.1}{Additional challenges}{subsection.7.5}% 36
+\BOOKMARK [1][-]{section.8}{Conclusion}{}% 37
+\BOOKMARK [1][-]{section*.1}{Appendix A: Refund Transactions and Time locks}{}% 38
+\BOOKMARK [1][-]{section*.2}{Appendix B}{}% 39
+\BOOKMARK [1][-]{section*.4}{References}{}% 40
+\BOOKMARK [1][-]{IEEEbiography.0}{Biographies}{}% 41
+\BOOKMARK [2][-]{IEEEbiography.1}{Michael Shell}{IEEEbiography.0}% 42
+\BOOKMARK [2][-]{IEEEbiography.2}{John Doe}{IEEEbiography.0}% 43
+\BOOKMARK [2][-]{IEEEbiography.3}{Jane Doe}{IEEEbiography.0}% 44

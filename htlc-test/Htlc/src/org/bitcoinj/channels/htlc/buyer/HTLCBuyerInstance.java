@@ -2,7 +2,9 @@ package org.bitcoinj.channels.htlc.buyer;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Date;
@@ -18,6 +20,7 @@ import org.bitcoinj.core.Address;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.PeerAddress;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
@@ -71,8 +74,17 @@ public class HTLCBuyerInstance implements Runnable {
 	@Override
 	public void run() {
 		try {
-			appKit = new WalletAppKit(PARAMS, new File("."), walletName);
-	        appKit.connectToLocalHost();
+			appKit = new WalletAppKit(PARAMS, new File("."), "htlc_client");
+			try {
+				appKit.setPeerNodes(
+						new PeerAddress(
+							InetAddress.getByName("82.165.25.152"), 	
+							PARAMS.getPort()
+						)
+					);
+			} catch (UnknownHostException e1) {
+			    e1.printStackTrace();
+			}
 	        appKit.startAsync();
 	        appKit.awaitRunning();
 		} catch (IllegalStateException e) {
@@ -102,7 +114,7 @@ public class HTLCBuyerInstance implements Runnable {
         key = primaryKey.toAddress(PARAMS);
 
 		final InetSocketAddress server = 
-			new InetSocketAddress("localhost", BUYER_PORT);
+			new InetSocketAddress("82.165.25.152", BUYER_PORT);
 		Coin value = Coin.valueOf(100000L);
 		
 		TransactionBroadcastScheduler broadcastScheduler = 

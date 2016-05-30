@@ -35,7 +35,7 @@ public class HTLCAndroidDriver {
         try {
 			appKit.setPeerNodes(
 				new PeerAddress(
-					InetAddress.getByName("192.168.0.101"), 	
+					InetAddress.getByName("82.165.25.152"), 	
 					PARAMS.getPort()
 				)
 			);
@@ -57,7 +57,7 @@ public class HTLCAndroidDriver {
         log.log(Level.INFO, "Android address: {}", key.toAddress(PARAMS));
         
 		final InetSocketAddress server = 
-			new InetSocketAddress("192.168.0.101", 4242);
+			new InetSocketAddress("82.165.25.152", 4242);
 
 		Coin minPayment = Coin.valueOf(0, 1);
 		

@@ -1,0 +1,68 @@
+This is BibTeX, Version 0.99d (TeX Live 2013)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: bare_jrnl_compsoc.aux
+The style file: IEEEtran.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: IEEEabrv.bib
+Database file #2: crowdsensing.bib
+Repeated entry---line 310 of file crowdsensing.bib
+ : @article{7101300
+ :                 ,
+I'm skipping whatever remains of this entry
+Warning--I didn't find a database entry for "Hearn"
+-- IEEEtran.bst version 1.13 (2008/09/30) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+Warning--empty year in giannotti2012planetary
+Warning--empty journal in poonbitcoin
+Warning--empty year in poonbitcoin
+Warning--empty journal in mccorrytowards
+Warning--empty year in mccorrytowards
+
+Done.
+You've used 29 entries,
+            4039 wiz_defined-function locations,
+            1413 strings with 21703 characters,
+and the built_in function-call counts, 23639 in all, are:
+= -- 1886
+> -- 586
+< -- 196
++ -- 316
+- -- 103
+* -- 1208
+:= -- 3539
+add.period$ -- 67
+call.type$ -- 29
+change.case$ -- 30
+chr.to.int$ -- 447
+cite$ -- 34
+duplicate$ -- 1669
+empty$ -- 1926
+format.name$ -- 126
+if$ -- 5444
+int.to.chr$ -- 0
+int.to.str$ -- 29
+missing$ -- 306
+newline$ -- 134
+num.names$ -- 29
+pop$ -- 717
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 2
+skip$ -- 1793
+stack$ -- 0
+substring$ -- 1072
+swap$ -- 1383
+text.length$ -- 47
+text.prefix$ -- 0
+top$ -- 5
+type$ -- 29
+warning$ -- 5
+while$ -- 115
+width$ -- 31
+write$ -- 335
+(There was 1 error message)

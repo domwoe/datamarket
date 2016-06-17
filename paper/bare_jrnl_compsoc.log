@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2014.5.21)  16 MAY 2016 14:55
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2014.5.21)  16 JUN 2016 16:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -933,35 +933,32 @@ LaTeX Warning: Citation `Hearn' on page 3 undefined on input line 594.
 
 [3]
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 647.
+nput line 644.
 LaTeX Font Info:    Font shape `OT1/phv/m/it' in size <9.53561> not available
-(Font)              Font shape `OT1/phv/m/sl' tried instead on input line 668.
- <Architecture.pdf, id=268, 482.26373pt x 225.57375pt>
+(Font)              Font shape `OT1/phv/m/sl' tried instead on input line 666.
+ <Architecture.pdf, id=269, 482.26373pt x 225.57375pt>
 File: Architecture.pdf Graphic file (type pdf)
 
 <use Architecture.pdf>
-Package pdftex.def Info: Architecture.pdf used on input line 685.
+Package pdftex.def Info: Architecture.pdf used on input line 683.
 (pdftex.def)             Requested size: 482.26256pt x 225.57318pt.
- [4]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [5 <./Architecture.pdf>]
-Underfull \hbox (badness 5050) in paragraph at lines 774--774
+ [4] [5 <./Architecture.pdf>]
+Underfull \hbox (badness 5050) in paragraph at lines 772--772
 []\OT1/ppl/m/n/8.03 Buys the cur-rent mea-sure-ment
  []
 
 
-Overfull \hbox (4.5284pt too wide) in paragraph at lines 763--780
+Overfull \hbox (4.5284pt too wide) in paragraph at lines 761--778
  [][] 
  []
 
-[6] <fees_per_kb.pdf, id=350, 1038.94153pt x 632.4237pt>
+[6] <fees_per_kb.pdf, id=351, 1038.94153pt x 632.4237pt>
 File: fees_per_kb.pdf Graphic file (type pdf)
  <use fees_per_kb.pdf>
 Package pdftex.def Info: fees_per_kb.pdf used on input line 841.
 (pdftex.def)             Requested size: 252.94499pt x 153.96568pt.
 
-[7 <./fees_per_kb.pdf>] (./bare_jrnl_compsoc.bbl
+[7 <./fees_per_kb.pdf>] (./bare_jrnl_compsoc.bbl [8]
 Missing character: There is no â in font pplri7t!
 Missing character: There is no € in font pplri7t!
 Missing character: There is no ” in font pplri7t!
@@ -975,7 +972,9 @@ Missing character: There is no ™ in font pplri7t!
 ** WARNING: IEEEtran.bst: No hyphenation pattern has been
 ** loaded for the language `English'. Using the pattern for
 ** the default language instead.
-[8])
+Missing character: There is no Ã in font pplr7t!
+Missing character: There is no ­ in font pplr7t!
+)
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1115.
  [9
 
@@ -986,7 +985,7 @@ Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1115.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1115.
 
 Package rerunfilecheck Info: File `bare_jrnl_compsoc.out' has not changed.
-(rerunfilecheck)             Checksum: A468A11B6F91D8943261F22EB64FDE28;3006.
+(rerunfilecheck)             Checksum: 2A056A63ABC480D3509349FB7697F808;2998.
 
 
 LaTeX Warning: There were undefined references.
@@ -994,13 +993,13 @@ LaTeX Warning: There were undefined references.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1115.
  ) 
 Here is how much of TeX's memory you used:
- 19216 strings out of 493315
- 335639 string characters out of 6137904
- 450799 words of memory out of 5000000
- 22229 multiletter control sequences out of 15000+600000
+ 19219 strings out of 493315
+ 335680 string characters out of 6137904
+ 450871 words of memory out of 5000000
+ 22231 multiletter control sequences out of 15000+600000
  59396 words of font info for 140 fonts, out of 8000000 for 9000
  960 hyphenation exceptions out of 8191
- 56i,20n,55p,2258b,908s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 56i,20n,55p,2259b,908s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/te
 xlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/local/texl
@@ -1020,10 +1019,10 @@ helvetic/uhvro8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/palati
 no/uplb8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/palatino/uplr
 8a.pfb></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb
 ></usr/local/texlive/2013/texmf-dist/fonts/type1/urw/zapfding/uzdr.pfb>
-Output written on bare_jrnl_compsoc.pdf (9 pages, 855769 bytes).
+Output written on bare_jrnl_compsoc.pdf (9 pages, 857187 bytes).
 PDF statistics:
- 498 PDF objects out of 1000 (max. 8388607)
- 443 compressed objects within 5 object streams
- 107 named destinations out of 1000 (max. 500000)
+ 503 PDF objects out of 1000 (max. 8388607)
+ 448 compressed objects within 5 object streams
+ 108 named destinations out of 1000 (max. 500000)
  375 words of extra memory for PDF output out of 10000 (max. 10000000)
 

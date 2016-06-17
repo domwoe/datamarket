@@ -217,4 +217,11 @@ R.~Pass and a.~shelat, ``Micropayments for decentralized currencies,'' in
   \url{http://doi.acm.org/10.1145/2810103.2813713}
 \BIBentrySTDinterwordspacing
 
+\bibitem{s16060776}
+\BIBentryALTinterwordspacing
+S.~Delgado-Segura, C.~Tanas, and J.~Herrera-Joancomartí, ``Reputation and
+  reward: Two sides of the same bitcoin,'' \emph{Sensors}, vol.~16, no.~6, p.
+  776, 2016. [Online]. Available: \url{http://www.mdpi.com/1424-8220/16/6/776}
+\BIBentrySTDinterwordspacing
+
 \end{thebibliography}

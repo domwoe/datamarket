@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex bare_jrnl_compsoc"] 1463424933 "bare_jrnl_compsoc.aux" "bare_jrnl_compsoc.bbl" "bare_jrnl_compsoc" 1464635696
+["bibtex bare_jrnl_compsoc"] 1466109208 "bare_jrnl_compsoc.aux" "bare_jrnl_compsoc.bbl" "bare_jrnl_compsoc" 1466109212
   "/usr/local/texlive/2013/texmf-dist/bibtex/bib/IEEEtran/IEEEabrv.bib" 1222816716 17781 22a7187dd8f9c9fdd01e2bc45cbcedf0 ""
   "/usr/local/texlive/2013/texmf-dist/bibtex/bst/IEEEtran/IEEEtran.bst" 1222816716 59506 016987d9be15acf51cdd7252d40ecec2 ""
-  "bare_jrnl_compsoc.aux" 1463424935 9483 65e35dcea51e463feae767a1a1ef2dba ""
+  "bare_jrnl_compsoc.aux" 1466109210 9607 fca7d431d816151dd88aaea0f3526d7a ""
   "bare_jrnl_compsoc.bcf" 0 -1 0 ""
-  "crowdsensing.bib" 1463424649 25059 c35964f0d3a4ccec3fe3e51e046176ea ""
+  "crowdsensing.bib" 1466102029 26487 0732bf13f8ffb3699674b4d95ad77ce0 ""
   (generated)
-  "bare_jrnl_compsoc.blg"
   "bare_jrnl_compsoc.bbl"
-["pdflatex"] 1463424933 "bare_jrnl_compsoc.tex" "bare_jrnl_compsoc.pdf" "bare_jrnl_compsoc" 1464635696
+  "bare_jrnl_compsoc.blg"
+["pdflatex"] 1466109209 "bare_jrnl_compsoc.tex" "bare_jrnl_compsoc.pdf" "bare_jrnl_compsoc" 1466109212
   "/usr/local/texlive/2013/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2013/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2013/texmf-dist/fonts/tfm/adobe/helvetic/phvb7t.tfm" 1136768653 2240 eb56c13537f4d8a0bd3fafc25572b1bd ""
@@ -188,13 +188,13 @@
   "/usr/local/texlive/2013/texmf.cnf" 1369923207 577 cbc827f6294276973a1952e86e8ad73a ""
   "Architecture.pdf" 1452507180 575993 9ea260e9b86a9824ef34bf47bb6f70d9 ""
   "IEEEtran.cls" 1440650876 288304 b67b6fc6c2abb39f9b461923f5199343 ""
-  "bare_jrnl_compsoc.aux" 1463424935 9483 65e35dcea51e463feae767a1a1ef2dba ""
-  "bare_jrnl_compsoc.bbl" 1463424933 10006 e67ce213a00d7bdffe7c56bc73c0bf75 "bibtex bare_jrnl_compsoc"
-  "bare_jrnl_compsoc.out" 1463424935 3006 a468a11b6f91d8943261f22eb64fde28 ""
-  "bare_jrnl_compsoc.tex" 1463424916 71316 07471395cf94188862805fca3ac4ffff ""
+  "bare_jrnl_compsoc.aux" 1466109210 9607 fca7d431d816151dd88aaea0f3526d7a ""
+  "bare_jrnl_compsoc.bbl" 1466109209 10317 64c2f9fce0fb0da359f035ddd6e30f91 "bibtex bare_jrnl_compsoc"
+  "bare_jrnl_compsoc.out" 1466109210 2998 2a056a63abc480d3509349fb7697f808 ""
+  "bare_jrnl_compsoc.tex" 1466109204 72812 bd82c1fb5451685767fe43d98357b22d ""
   "fees_per_kb.pdf" 1461965708 125145 05e849198e0fb1fa7612c0ab266fe610 ""
   (generated)
   "bare_jrnl_compsoc.log"
+  "bare_jrnl_compsoc.out"
   "bare_jrnl_compsoc.pdf"
   "bare_jrnl_compsoc.aux"
-  "bare_jrnl_compsoc.out"
